@@ -3,8 +3,6 @@
 TopOpt_in_PETSc_wrapped_in_Python
 ===============
 
-|Topology Optimization| |Python| |Large scale| |HPC| |Python wrapper| |PETSc| |Parallel computing|
-
 ``TopOpt_in_PETSc_wrapped_in_Python`` provides a Python wrapper and extends the functionality of the TopOpt_in_PETSc framework.
 
 .. summary-end
