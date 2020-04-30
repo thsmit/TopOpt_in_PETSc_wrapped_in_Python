@@ -71,8 +71,8 @@ Running on ETH Euler
     cd TopOpt_in_PETSc_wrapped_in_Python
     make topoptlib
     make test
-    make myclean
     bsub -n 8 mpirun python problem_definition_file.py
+    make myclean
 
 Origional code
 --------
