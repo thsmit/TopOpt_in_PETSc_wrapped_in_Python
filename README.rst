@@ -3,9 +3,9 @@
 TopOpt_in_PETSc_wrapped_in_Python
 ===============
 
-|Topology Optimization| |Python| |Large scale| |HPC| |Python wrapper| |PETSc| |Parralel computing|
+|Topology Optimization| |Python| |Large scale| |HPC| |Python wrapper| |PETSc| |Parallel computing|
 
-``topoptlib`` provides a Python wrapper and extens the functionality of the TopOpt in PETSc framework.
+``TopOpt_in_PETSc_wrapped_in_Python`` provides a Python wrapper and extends the functionality of the TopOpt_in_PETSc framework.
 
 .. summary-end
 
@@ -22,23 +22,22 @@ Examples
 Implemented functionality
 ----------------------
 
-- ``loadcases(.., .., ..)`` multipleloads
+- ``loadcases(.., .., ..)`` multiloads
 - ``passive()`` passive elements
 - ``vtu()`` generate vtu files for paraview
 - ``stl()`` generate stl file of final design for 3D-printing
 
 
-Installation of topoptlib
+Installation
 ------------
 
-Requirements:
-- PETSc 3.13.0
-- Python 3.7.4
+
 
 Tests
 ------------
 
 Implemented tests in ``/tests``:
+
 - [x] Testing standard MBB problem with maxItr of 4 ``test_topoptlib.py``
 - [ ] Testing multiloads functionality
 - [ ] Testing passive elements functionality
@@ -82,11 +81,12 @@ Origional code
 
 .. code:: bash
 
-    `Aage, N., Andreassen, E., & Lazarov, B. S. (2015). Topology optimization using PETSc: An easy-to-use, 
-    fully parallel, open source topology optimization framework. Structural and Multidisciplinary Optimization, 51(3), 565–572. 
-    https://doi.org/10.1007/s00158-014-1157-0
+    Aage, N., Andreassen, E., & Lazarov, B. S. (2015). Topology optimization using PETSc: An easy-to-use, fully parallel, open source topology optimization framework. 
+    Structural and Multidisciplinary Optimization, 51(3), 565–572. https://doi.org/10.1007/s00158-014-1157-0
 
 Citing 
 --------
 
-`...`
+.. code:: bash
+
+    ...
