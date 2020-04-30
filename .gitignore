@@ -1,0 +1,15 @@
+.ipynb_checkpoints/
+.spyproject/
+.spyderproject
+.vscode/
+build/
+dist/
+*.pyc
+__pycache__/
+.pytest_cache
+*.egg-info/
+*.vtu
+*.vtk
+*.sh
+*~
+
