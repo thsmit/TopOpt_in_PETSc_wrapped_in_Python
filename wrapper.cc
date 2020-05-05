@@ -4,21 +4,11 @@
 #include "arrayobject.h"
 #include "structmember.h"
 
-//#ifdef WITH_THREAD
-//#include <pythread.h>
-//#endif
-
 #include "topoptlib.h"
-
-//#include <list>
-//#include <stdio.h>
-//#include <string> 
-//#include <thread>
 #include <vector>
-#include <iostream>
 
 /*
-Author: Thijs Smit, April 2020
+Author: Thijs Smit, May 2020
 Copyright (C) 2020 ETH Zurich
 
 Disclaimer:
@@ -38,7 +28,7 @@ static PyMemberDef members[] =
 };
 
 // set mesh variables
-static PyObject *mesh_py(DataObj *self, PyObject *args)
+static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
 {
     double xc0, xc1, xc2, xc3, xc4, xc5;
     int nxyz0, nxyz1, nxyz2;
@@ -112,62 +102,6 @@ static PyObject *mma_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-// set bc
-static PyObject *bc_py(DataObj *self, PyObject *args)
-{
-   
-    PyObject *checker;
-    PyObject *setter;
-    //PyObject *pItem;
-    //Py_ssize_t nChecker;
-    //Py_ssize_t nSetter;
-    //int i;
-    int nChecker;
-    int nSetter;
-
-    if (!PyArg_ParseTuple(args, "OO", &checker, &setter)) {
-        return NULL;
-    }
-
-    nChecker = PyList_Size(checker);
-    nSetter = PyList_Size(setter);
-    printf("Number of Checkers: %i\n", nChecker);
-    printf("Number of Setters: %i\n", nSetter);
-    
-    PyObject *iterator = PyObject_GetIter(checker);
-    PyObject *item;
-
-    std::vector<int> *V = new std::vector<int>();
-
-    while ((item = PyIter_Next(iterator)))
-        {
-            int val = PyLong_AsLong(item);
-            V->push_back(val);
-            Py_DECREF(item);
-        }
-
-    Py_DECREF(iterator);
-
-    for (int i = 0; i < V->size(); i++) {
-        std::cout << V->at(i) << ' ';
-    }
-
-    //for (i=0; i<n; i++) {
-      //  pItem = PyList_GetItem(pList, i);
-      //  printf("List: %i\n", pItem);
-    //} 
-
-    //self->nL = n;
-
-    //self->loadcases_list = pList;
-    //Py_INCREF(self->loadcases_list);
-
-    // Print out input string
-    //printf("Input string: %s\n", str);
-
-    Py_RETURN_NONE;
-}
-
 /*
 static PyObject *passive_py(DataObj *self, PyObject *args)
 {
@@ -188,29 +122,90 @@ static PyObject *passive_py(DataObj *self, PyObject *args)
 }
 */
 
-static PyObject *loadcases_py(DataObj *self, PyObject *args)
+static PyObject *bc_py(DataObj *self, PyObject *args)
 {
-   
-    PyObject *pList;
-    //PyObject *pItem;
-    Py_ssize_t n;
-    //int i;
+    
+    PyObject *checker;
+    PyObject *setter_dof;
+    PyObject *setter_val;
+ 
+    int loadcase_ID;
+    int BCtypes;
+    int nChecker;
+    int nSetter_dof;
+    int nSetter_val;
 
-    if (!PyArg_ParseTuple(args, "O", &pList)) {
+    BC condition;
+
+    if (!PyArg_ParseTuple(args, "iiOOO", &loadcase_ID, &BCtypes, &checker, &setter_dof, &setter_val)) {
         return NULL;
     }
 
-    n = PyList_Size(pList);
-    //printf("List: %i\n", n);
-    //for (i=0; i<n; i++) {
-      //  pItem = PyList_GetItem(pList, i);
-      //  printf("List: %i\n", pItem);
-    //} 
+    nChecker = PyList_Size(checker);
+    nSetter_dof = PyList_Size(setter_dof);
+    nSetter_val = PyList_Size(setter_val);
+    //printf("Loadcase ID: %i\n", loadcase_ID);
+    //printf("Number of Checkers: %i\n", nChecker);
+    //printf("Number of Setters dof: %i\n", nSetter_dof);
+    //printf("Number of Setters val: %i\n", nSetter_val);
 
+    condition.BCtype = BCtypes;
+    
+    PyObject *iterator = PyObject_GetIter(checker);
+    PyObject *item;
+
+    
+    while ((item = PyIter_Next(iterator)))
+        {
+            int val = PyLong_AsLong(item);
+            condition.Checker_vec.push_back(val);
+            Py_DECREF(item);
+        }
+
+    Py_DECREF(iterator);
+
+    PyObject *iteratorr = PyObject_GetIter(setter_dof);
+    PyObject *itemm;
+
+    while ((itemm = PyIter_Next(iteratorr)))
+        {
+            int vall = PyLong_AsLong(itemm);
+            condition.Setter_dof_vec.push_back(vall);
+            Py_DECREF(itemm);
+        }
+
+    Py_DECREF(iteratorr);
+
+    PyObject *iteratorrr = PyObject_GetIter(setter_val);
+    PyObject *itemmm;
+
+    while ((itemmm = PyIter_Next(iteratorrr)))
+        {
+            double valll = PyFloat_AsDouble(itemmm);
+            condition.Setter_val_vec.push_back(valll);
+            Py_DECREF(itemmm);
+        }
+
+    Py_DECREF(iteratorrr);
+
+    self->loadcases_list.at(loadcase_ID).push_back(condition);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *loadcases_py(DataObj *self, PyObject *args)
+{
+    int n;
+
+    if (!PyArg_ParseTuple(args, "i", &n)) {
+        return NULL;
+    }
+    
+    // Set number of loadcases variable
     self->nL = n;
 
-    //self->loadcases_list = pList;
-    //Py_INCREF(self->loadcases_list);
+    // Resize the loadcases list according to user input
+    self->loadcases_list.resize(n);
 
     Py_RETURN_NONE;
 }
@@ -243,6 +238,15 @@ static PyObject *obj_sens_py(DataObj *self, PyObject *args)
     
     self->obj_sens_func = pyobj_sens_func;
     Py_INCREF(self->obj_sens_func);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *volumeConstraint_py(DataObj *self, PyObject *args)
+{    
+    if(!PyArg_ParseTuple(args, "d", &self->volumefrac_w)) { 
+        return NULL;
+    }
 
     Py_RETURN_NONE;
 }
@@ -313,15 +317,16 @@ static PyObject *stl_py(DataObj *self, PyObject *args)
 }
 
 static PyMethodDef methods[] =
-    { {"mesh", (PyCFunction)mesh_py, METH_VARARGS, "Implement mesh\n"},
+    { {"structuredGrid", (PyCFunction)structuredGrid_py, METH_VARARGS, "Implement structuredGrid\n"},
       {"material", (PyCFunction)material_py, METH_VARARGS, "Implement material\n"},
       {"filter", (PyCFunction)filter_py, METH_VARARGS, "Implement filter\n"},
       {"mma", (PyCFunction)mma_py, METH_VARARGS, "Implement mma\n"},
-      {"bc", (PyCFunction)bc_py, METH_VARARGS, "Implement boundery conditions\n"},
       //{"passive", (PyCFunction)passive_py, METH_VARARGS, "Implement boundery conditions\n"},
+      {"bc", (PyCFunction)bc_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"loadcases", (PyCFunction)loadcases_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"obj", (PyCFunction)obj_py, METH_VARARGS, "Callback for Objective function\n"},
       {"obj_sens", (PyCFunction)obj_sens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
+      {"volumeConstraint", (PyCFunction)volumeConstraint_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"const", (PyCFunction)const_py, METH_VARARGS, "Callback for Objective function\n"},
       {"const_sens", (PyCFunction)const_sens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"solve", (PyCFunction)solve_py, METH_NOARGS, "Python bindings to solve() in topoptlib\n"},

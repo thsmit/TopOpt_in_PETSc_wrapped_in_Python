@@ -3,8 +3,6 @@
 TopOpt_in_PETSc_wrapped_in_Python
 ===============
 
-|Topology Optimization| |Python| |Large scale| |HPC| |Python wrapper| |PETSc| |Parallel computing|
-
 ``TopOpt_in_PETSc_wrapped_in_Python`` provides a Python wrapper and extends the functionality of the TopOpt_in_PETSc framework.
 
 .. summary-end
@@ -15,6 +13,7 @@ Examples
 --------
 
 - [ ] Cantilever beam in ``beam.py``
+- [ ] Multi-loads in ``multiloads.py``
 - [ ] Roof support in ``roof.py``
 - [ ] Force inverter in ``inverter.py``
 
@@ -22,7 +21,9 @@ Examples
 Implemented functionality
 ----------------------
 
-- ``loadcases(.., .., ..)`` multiloads
+- ``structuredGrid((domain size), (mesh size))`` define strutured grid/mesh
+- ``loadcases(...)`` multiloads
+- ``bc(...)`` define boundary conditions
 - ``passive()`` passive elements
 - ``vtu()`` generate vtu files for paraview
 - ``stl()`` generate stl file of final design for 3D-printing
@@ -42,7 +43,7 @@ Implemented tests in ``/tests``:
 - [ ] Testing multiloads functionality
 - [ ] Testing passive elements functionality
 
-Running tests ``make test``
+Running tests ``make testing``
 
 
 ToDo
@@ -73,8 +74,8 @@ Running on ETH Euler
     cd TopOpt_in_PETSc_wrapped_in_Python
     make topoptlib
     make test
-    make myclean
     bsub -n 8 mpirun python problem_definition_file.py
+    make myclean
 
 Origional code
 --------

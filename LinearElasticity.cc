@@ -1,12 +1,13 @@
 #include "LinearElasticity.h"
-#include "Python.h"
+//#include "Python.h"
 //#include "structmember.h"
 //#include "topoptlib.h"
 //#include <string>
-//#include <vector>
+#include <vector>
 //#include <list>
 //#include <stdio.h>
 //#include <string> 
+#include <iostream>
 
 /*
  Modified by: Thijs Smit, May 2020
@@ -164,46 +165,95 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
     // Compute epsilon parameter for finding points in space:
     PetscScalar epsi = PetscMin(dx * 0.05, PetscMin(dy * 0.05, dz * 0.05));
 
-    // Set the values:
-    // In this case: N = the wall at x=xmin is fully clamped
-    //               RHS(z) = sin(pi*y/Ly) at x=xmax,z=zmin;
-    // OR
-    //               RHS(z) = -0.1 at x=xmax,z=zmin;
+    // Print number of loadcases
+    //PetscPrintf(PETSC_COMM_WORLD, "Number of loadcases: %i\n", data.loadcases_list.size());
 
-    // nn is number of dofs
-    // running over all dofs: i
-    // lcoorp is coordinate corresopinding to dof number
-    // check for every x!
-    // inside [] of lcoorp and xc are critical
-    // setting, N is dirislet, RHS is force, for which dof, value
+    // Loop over the load cases
+    for (auto lc = 0; lc < data.loadcases_list.size(); lc++) {
 
-    // put in some list in a list: bc = [], [[bc 1],[bc 2],[bc 3],[bc 4],[bc 5],[bc 6]], [[bc 1:[[name], [check], [set]]],[], etc], 
-    // checker:[lcoorp:[i or i + 1], xc:[0 or 2]] 
-    // setter:[vec:[N or RHS], dof:[i or i + 1], value:[0.0 or load in N]] 
-    
-    // iteration over nn, all the dofs
-    // Dirichlet: A array with dof numbers to presribe dirichlet
-    // Load: A array with dof numbers and a vector with loadintensities (of same length) 
+        // iter over bc per load case
+        for (auto j = 0; j < data.loadcases_list.at(lc).size(); j++) {
 
-    // or vector??
+            if (data.loadcases_list.at(lc).at(j).Checker_vec.size() == 2) {
+                //PetscPrintf(PETSC_COMM_WORLD, "Size Checker: %i\n", data.loadcases_list.at(j).Checker_vec.size());
+                
+                // iterate over dofs
+                for (PetscInt ii = 0; ii < nn; ii++) {
+                    if (ii % 3 == 0 && PetscAbsScalar(lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]) < epsi) {
+                        for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
+                         
+                            if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
+                                VecSetValueLocal(N[lc], ii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                            }
+                            if (data.loadcases_list.at(lc).at(j).BCtype == 2) {
+                                VecSetValueLocal(RHS[lc], ii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                            }
+                            
+                        }
+                    }
+                }
+            }
+        
+            if (data.loadcases_list.at(lc).at(j).Checker_vec.size() == 4) {
+                
+                // iterate over dofs
+                for (PetscInt iii = 0; iii < nn; iii++) {
+                    
+                    if (iii % 3 == 0 && PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]) < epsi && 
+                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(3)]) < epsi) {
+                        
+                        for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
+                            
+                            if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
+                                VecSetValueLocal(N[lc], iii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                            }
+                            if (data.loadcases_list.at(lc).at(j).BCtype == 2) {
+                                VecSetValueLocal(RHS[lc], iii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                            }
+                        }
+                    }
+                }
+            }
 
-    // for i in loadcases list:
-    //      
+            if ((data.loadcases_list.at(lc).at(j).Checker_vec.size() / 2) == 3) {
+            
+                // iterate over dofs
+                for (PetscInt iii = 0; iii < nn; iii++) {
+                    
+                    if (iii % 3 == 0 && PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]) < epsi && 
+                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(3)]) < epsi && 
+                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(5)]) < epsi) {
+                        
+                        for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
+                            
+                            if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
+                                VecSetValueLocal(N[lc], iii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                            }
+                            if (data.loadcases_list.at(lc).at(j).BCtype == 2) {
+                                VecSetValueLocal(RHS[lc], iii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+    }
 
     // Define boundary conditions manually here
-    ///*
+    /*
     PetscScalar LoadIntensity = -0.001;
     for (PetscInt i = 0; i < nn; i++) {
         // Make a wall with all dofs clamped
-        if (i % 3 == 0 && PetscAbsScalar(lcoorp[i] - xc[0]) < epsi) {
-            VecSetValueLocal(N[0], i, 0.0, INSERT_VALUES);
-            VecSetValueLocal(N[0], ++i, 0.0, INSERT_VALUES);
-            VecSetValueLocal(N[0], ++i, 0.0, INSERT_VALUES);
-        }
+        //if (i % 3 == 0 && PetscAbsScalar(lcoorp[i] - xc[0]) < epsi) {
+        //    VecSetValueLocal(N[0], i, 0.0, INSERT_VALUES);
+        //    VecSetValueLocal(N[0], ++i, 0.0, INSERT_VALUES);
+        //    VecSetValueLocal(N[0], ++i, 0.0, INSERT_VALUES);
+        //}
         // Line load
-        if (i % 3 == 0 && PetscAbsScalar(lcoorp[i] - xc[1]) < epsi && PetscAbsScalar(lcoorp[i + 2] - xc[4]) < epsi) {
-            VecSetValueLocal(RHS[0], i + 2, LoadIntensity, INSERT_VALUES);
-        }
+        //if (i % 3 == 0 && PetscAbsScalar(lcoorp[i] - xc[1]) < epsi && PetscAbsScalar(lcoorp[i + 2] - xc[4]) < epsi) {
+        //    VecSetValueLocal(RHS[0], i + 2, LoadIntensity, INSERT_VALUES);
+        //}
         // Adjust the corners
         if (i % 3 == 0 && PetscAbsScalar(lcoorp[i] - xc[1]) < epsi && PetscAbsScalar(lcoorp[i + 1] - xc[2]) < epsi &&
             PetscAbsScalar(lcoorp[i + 2] - xc[4]) < epsi) {
@@ -214,7 +264,7 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
             VecSetValueLocal(RHS[0], i + 2, LoadIntensity / 2.0, INSERT_VALUES);
         }
     }
-    //*/
+    */
 
     VecAssemblyBegin(N[0]);
     VecAssemblyBegin(RHS[0]);

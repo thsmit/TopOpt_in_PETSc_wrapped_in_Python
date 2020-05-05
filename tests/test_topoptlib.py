@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Author: Thijs Smit, April 2020
+# Author: Thijs Smit, May 2020
 # Copyright (C) 2020 ETH Zurich
 
 # Disclaimer:
@@ -14,7 +14,7 @@ def test_topoptlib():
 
     # run default problem
     data = topoptlib.Data()
-    data.mesh((0.0, 2.0, 0.0, 1.0, 0.0, 1.0), (65, 33, 33))
+    data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0), (65, 33, 33))
     Emin = 1.0e-9
     Emax = 1.0
     penal = 3.0
@@ -23,4 +23,4 @@ def test_topoptlib():
     data.mma(4)
     complete = data.solve()
 
-    print(data.scaledFx)
+    assert complete == 1, "Problem not completed"

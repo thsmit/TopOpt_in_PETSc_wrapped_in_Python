@@ -2,9 +2,10 @@
 #define TOPOPTLIB_HPP
 
 #include <Python.h>
+#include <vector>
 
 /*
-Author: Thijs Smit, April 2020
+Author: Thijs Smit, May 2020
 Copyright (C) 2020 ETH Zurich
 
 Disclaimer:
@@ -12,6 +13,17 @@ Disclaimer:
  free from errors. Furthermore, we shall not be liable in any event
  caused by the use of the program.
 */
+
+class BC {
+    public:
+
+        int BCtype;
+
+        std::vector<int> Checker_vec;
+        std::vector<int> Setter_dof_vec;
+        std::vector<double> Setter_val_vec;
+
+};
 
 // Creating class with C variables with default values
 struct DataObj {
@@ -27,6 +39,7 @@ struct DataObj {
     int maxIter_w = 400;
     int filter_w = 1;
     double rmin_w = 0.08;
+    double volumefrac_w = 0.12;
 
     // needed as members to be used in python script
     int nNodes;
@@ -41,12 +54,9 @@ struct DataObj {
     double trueFx;
     double scaledFx;
 
-    // Lock
-    //PyThread_type_lock lock;
-
-    // BC
-    PyObject *loadcases_list = NULL;
+    // Loadcases
     int nL = 1;
+    std::vector<std::vector<BC>> loadcases_list;    
 
     // Passive elements
     //bool passive = false;
@@ -166,29 +176,6 @@ struct DataObj {
     }
 
 };
-
-
-
-/*
-class Data {
-    public:
-
-        // default input, is overwritten by user input data
-        double xc_w[6] = {0.0, 2.0, 0.0, 1.0, 0.0, 1.0};
-        int nxyz_w[3] = {65, 33, 33};
-        double Emin_w = 1.0e-9;
-        double Emax_w = 1.0;
-        double nu_w = 0.3;
-        double penal_w = 3.0;
-        int nLC = 1;
-        int maxIter_w = 400;
-
-        // Callback functions
-        //int obj(xp, uKu) {
-        //    return NULL;
-        //}    
-};
-*/
 
 int solve(DataObj data);
 #endif

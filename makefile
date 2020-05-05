@@ -1,5 +1,5 @@
 # Limitations: work on Linux machine
-# Have available in your environment: GCC 4.8.5, OpenMPI 4.0.2, Python 3.7.4
+# Have available in your environment: GCC 4.8.5, OpenMPI 3.0.1, Python 3.7.4
 
 #PETSC_ARCH=arch-linux-c-debug
 #PETSC_DIR=/cluster/home/thsmit/petsc
@@ -23,13 +23,13 @@ include ${PETSC_DIR}/lib/petsc/conf/test
 
 topoptlib: wrapper.o loop.o TopOpt.o LinearElasticity.o MMA.o Filter.o PDEFilter.o MPIIO.o chkopts
 	rm -rf topoptlib.so
-	mpicc -shared -fPIC -o topoptlib.so wrapper.o loop.o TopOpt.o LinearElasticity.o MMA.o Filter.o PDEFilter.o MPIIO.o ${PETSC_SYS_LIB}
+	mpic++ -shared -fPIC -o topoptlib.so wrapper.o loop.o TopOpt.o LinearElasticity.o MMA.o Filter.o PDEFilter.o MPIIO.o ${PETSC_SYS_LIB}
 	${RM} wrapper.o loop.o TopOpt.o LinearElasticity.o MMA.o Filter.o PDEFilter.o MPIIO.o 
 	rm -rf *.o
 
 myclean:
 	rm -rf main *.a *.so *.o output* binary* log* makevtu.pyc Restart*
 
-test:
+testing:
 	bsub -I -n 8 mpirun pytest
 	
