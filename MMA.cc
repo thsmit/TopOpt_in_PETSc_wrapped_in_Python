@@ -3,6 +3,7 @@
 #include <iostream>
 #include <math.h>
 
+
 MMA::MMA(PetscInt nn, PetscInt mm, PetscInt kk, Vec xo1t, Vec xo2t, Vec Ut, Vec Lt, PetscScalar* at, PetscScalar* ct,
          PetscScalar* dt) {
     n = nn;
@@ -367,8 +368,7 @@ PetscErrorCode MMA::SetRobustAsymptotesType(PetscInt val) {
     return ierr;
 }
 
-PetscErrorCode MMA::SetOuterMovelimit(PetscScalar Xmin, PetscScalar Xmax, PetscScalar movlim, Vec x, Vec xmin,
-                                      Vec xmax) {
+PetscErrorCode MMA::SetOuterMovelimit(PetscScalar Xmin, PetscScalar Xmax, PetscScalar movlim, Vec x, Vec xmin, Vec xmax) {
 
     PetscErrorCode ierr = 0;
 
@@ -498,6 +498,45 @@ PetscErrorCode MMA::Update(Vec xval, Vec dfdx, PetscScalar* gx, Vec* dgdx, Vec x
 
     // Solve the dual with an interior point method
     SolveDIP(xval);
+    return ierr;
+}
+
+PetscErrorCode MMA::SetToZero(Vec xPassive, Vec x, Vec dfdx) {
+    PetscErrorCode ierr = 0;
+    //PetscErrorPrintf("MMA->SetToZero called!\n");
+
+    PetscScalar *xpPassive, *xtmp, *ftmp;
+    ierr = VecGetArray(xPassive, &xpPassive);
+    CHKERRQ(ierr);
+    ierr = VecGetArray(x, &xtmp);
+    CHKERRQ(ierr);
+    ierr = VecGetArray(dfdx, &ftmp);
+    CHKERRQ(ierr);
+
+    PetscInt nel;
+    VecGetLocalSize(xPassive, &nel);   
+
+    //VecSet(xPassive, -1.0); // Set ALL elements to active
+
+    // Loop over elements and write to tmp vector
+    for (PetscInt el = 0; el < nel; el++) {
+        if (xpPassive[el] > 0) { // Is passive element
+            xtmp[el] = 0.0;
+            ftmp[el] = 0.0;
+        }
+        //PetscPrintf(PETSC_COMM_WORLD, "el: %i, val: %f\n", el, xxpPassive[el]);
+    }
+    
+    // Restore
+    ierr = VecRestoreArray(xPassive, &xpPassive);
+    CHKERRQ(ierr);
+    // Restore
+    ierr = VecRestoreArray(x, &xtmp);
+    CHKERRQ(ierr);
+    // Restore
+    ierr = VecRestoreArray(dfdx, &ftmp);
+    CHKERRQ(ierr);
+    
     return ierr;
 }
 

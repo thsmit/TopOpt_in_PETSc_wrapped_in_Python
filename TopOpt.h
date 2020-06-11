@@ -44,7 +44,6 @@ class TopOpt {
     // Constructor/Destructor
     //TopOpt(PetscInt nconstraint);
     TopOpt(DataObj data);
-    //TopOpt();
     ~TopOpt();
 
     // Method to allocate MMA with/without restarting
@@ -89,6 +88,9 @@ class TopOpt {
     PetscReal   betaFinal;
     PetscReal   eta;
 
+    Vec xPassive;
+    Vec xActive;
+
     Vec  x;          // Design variables
     Vec  xTilde;     // Filtered field
     Vec  xPhys;      // Physical variables (filtered x)
@@ -108,7 +110,7 @@ class TopOpt {
     PetscErrorCode SetUp(DataObj data);
 
     PetscErrorCode SetUpMESH();
-    PetscErrorCode SetUpOPT();
+    PetscErrorCode SetUpOPT(DataObj data);
 
     // Restart filenames
     std::string filename00, filename00Itr, filename01, filename01Itr;

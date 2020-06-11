@@ -3,6 +3,8 @@
 
 //#include <Python.h>
 #include <stdio.h>
+//#include <petscvec.h>
+
 
 /*
  Modified by: Thijs Smit, May 2020
@@ -30,8 +32,27 @@
 //}
 
 TopOpt::TopOpt(DataObj data) {
+    
     m = 1;
-    Init(data);
+    
+    x        = NULL;
+    xPhys    = NULL;
+    dfdx     = NULL;
+    dgdx     = NULL;
+    gx       = NULL;
+    da_nodes = NULL;
+    da_elem  = NULL;
+
+    xPassive = NULL;
+    xActive = NULL;
+
+    xo1 = NULL;
+    xo2 = NULL;
+    U   = NULL;
+    L   = NULL;
+
+    SetUp(data);
+    //Init(data);
 }
 
 void TopOpt::Init(DataObj data) { // Dummy constructor
@@ -78,6 +99,12 @@ TopOpt::~TopOpt() {
     }
     if (xmax != NULL) {
         VecDestroy(&xmax);
+    }
+    if (xPassive != NULL) {
+        VecDestroy(&xPassive);
+    }
+    if (xActive != NULL) {
+        VecDestroy(&xPassive);
     }
 
     if (da_nodes != NULL) {
@@ -147,7 +174,7 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     ierr = SetUpMESH();
     CHKERRQ(ierr);
 
-    ierr = SetUpOPT();
+    ierr = SetUpOPT(data);
     CHKERRQ(ierr);
 
     return (ierr);
@@ -222,7 +249,7 @@ PetscErrorCode TopOpt::SetUpMESH() {
 
     // Discretization: nodes:
     // For standard FE - number must be odd
-    // FOr periodic: Number must be even
+    // For periodic: Number must be even
     PetscInt nx = nxyz[0];
     PetscInt ny = nxyz[1];
     PetscInt nz = nxyz[2];
@@ -317,13 +344,14 @@ PetscErrorCode TopOpt::SetUpMESH() {
     return (ierr);
 }
 
-PetscErrorCode TopOpt::SetUpOPT() {
+PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
 
     PetscErrorCode ierr;
 
     // ierr = VecDuplicate(CRAPPY_VEC,&xPhys); CHKERRQ(ierr);
     ierr = DMCreateGlobalVector(da_elem, &xPhys);
     CHKERRQ(ierr);
+
     // Total number of design variables
     VecGetSize(xPhys, &n);
 
@@ -367,6 +395,50 @@ PetscErrorCode TopOpt::SetUpOPT() {
     if (filter == 0) {
         Xmin = 0.001; // Prevent division by zero in filter
     }
+
+    ///////////////// Passive
+    //PetscInt nel;
+    //VecGetLocalSize(xPhys, &nel);    
+    VecDuplicate(xPhys, &xPassive);
+    CHKERRQ(ierr);
+    /*
+    PetscScalar *xpPassive;
+    ierr = VecGetArray(xPassive, &xpPassive);
+    CHKERRQ(ierr);
+
+    //VecSet(xPassive, -1.0); // Set ALL elements to active
+
+    // Loop over elements and write to tmp vector
+    for (PetscInt el = 0; el < nel; el++) {
+        if (el > 63488) { // Is passive element
+            xpPassive[el] = 1.0;
+            PetscPrintf(PETSC_COMM_WORLD, "el: %i, val: %f\n", el, xpPassive[el]);
+        } else {
+            xpPassive[el] = -1.0;
+        }
+        
+    }
+    
+    // Restore
+    ierr = VecRestoreArray(xPassive, &xpPassive);
+    CHKERRQ(ierr);
+    */
+    //VecDuplicate(xPhys, &xActive);
+    //VecSetSizes(xActive, PETSC_DECIDE, 63488);
+    //PetscScalar *xpActive;
+    //ierr = VecGetArray(xActive, &xpActive);
+    //CHKERRQ(ierr);
+
+    //for (PetscInt el = 63488; 65536; el++) {
+    //    PetscScalar fff = data.passive_ev(el);
+    //    PetscPrintf(PETSC_COMM_WORLD, "fff: %f\n", fff);
+        
+      //  VecSetValueLocal(xPassive, el, 1.0, INSERT_VALUES);
+        //VecSetValueLocal(xPassive, el, -1.0, INSERT_VALUES);
+        //PetscPrintf(PETSC_COMM_WORLD, "xPassive: %f\n", el);
+    //}
+
+    //////////////////////////////////
 
     // Allocate the optimization vectors
     ierr = VecDuplicate(xPhys, &x);

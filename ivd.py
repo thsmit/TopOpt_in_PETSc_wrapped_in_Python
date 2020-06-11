@@ -17,10 +17,8 @@ data = topoptlib.Data()
 
 # step 2:
 # define input data
-# mesh: (domain: x, y, z)
-#       (mesh: number of nodes: x, y, z)
-#data.structuredGrid((0.0, 48.0, 0.0, 40.0, 0.0, 16.0), (97, 81, 33))
-data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (17, 9, 9))
+# mesh: (domain)(mesh: number of nodes)
+data.structuredGrid((0.0, 2.0, 0.0, 2.0, 0.0, 1.0), (65, 65, 33))
 
 #print(data.nNodes)
 #print(data.nElements)
@@ -33,47 +31,36 @@ penal = 3.0
 data.material(Emin, Emax, 0.3, penal)
 
 # filter: (type, radius)
-# filter types: sensitivity = 0, density = 1, 
-data.filter(0, 0.2)
+# filter types: density = 1, sensitivity = 0
+data.filter(1, 0.08)
 
 # optimizer: (maxIter)
-data.mma(2)
+data.mma(400)
 
-volumefraction = 0.12
-nEl = data.nElements
+#volumefraction = 0.12
+#nEl = data.nElements
 #nnEl = nEl - (64 * 32)
 #print(nEl)
 #print((nEl - (64 * 32)))
 
-def roof(el):
-    #cx = 48
-    #cy = 23
-    #r = 5
+#def roof(el):
+ #   if el > nnel:
+  #      val = 1.0
+   # else:
+   #     val = -1.0
+   # return val
 
-    #x = lcx - cx
-    #y = lcy - cy
-
-    #print("el", el)
-
-    #return (np.power((x / r), 2) + np.power((y / cy), 2))
-    if el < (nEl - (64 * 32)):
-        return -1.0
-    else:
-        return -1.0
-
-
-# passive elements (parametrization function)
-# only available for sensitivity and density filter, not for PDE filter
+# passive elements
 #data.passive(roof)
 
 # loadcases: (# of loadcases)
 data.loadcases(1)
 
 # bc: (loadcase, type, [checker: lcoorp[i+?], xc[?]], [setter: dof index], [setter: values])
-data.bc(0, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], None)
-data.bc(0, 2, [0, 1, 2, 4], [2], [-0.001], None)
-data.bc(0, 2, [0, 1, 1, 2, 2, 4], [2], [-0.0005], None)
-data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], None)
+#data.bc(0, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], None)
+#data.bc(0, 2, [0, 1, 2, 4], [2], [-0.001], None)
+#data.bc(0, 2, [0, 1, 1, 2, 2, 4], [2], [-0.0005], None)
+#data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], None)
 
 #data.bc(1, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], None)
 #data.bc(1, 2, [0, 1, 1, 3], [1], [0.001], None)
@@ -81,25 +68,26 @@ data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], None)
 #data.bc(1, 2, [0, 1, 1, 3, 2, 5], [1], [0.0005], None)
 
 def param(lcx, lcy, lcz):
-    cenx = (48.0 / 2) + 1
-    ceny = (40.0 / 2) + 1
-    cenz = (16.0 / 2) + 1
+    cenx = (2.0 / 2) + 1
+    ceny = (2.0 / 2) + 1
+    cenz = (1.0 / 2) + 1
     xx = lcx - cenx
     yy = lcy - ceny
     zz = lcz - cenz
 
-    return np.power( np.power((xx / cenx), (2 / 1)) + np.power((yy / ceny), (2 / 1)), (1 / 0.1))
+    # Return the parametrization surface
+    return np.pow( np.pow((xx / cenx), (2 / 1)) + np.pow((yy / ceny), (2 / 1)), (1 / 0.1)) - 1
 
 # bc_para: (loadcase, type, [checker: lcoorp[i+?], xc[?]], [setter: dof index], [setter: values], param)
-#data.bc(2, 1, [2, 4], [0, 1, 2], [0.0, 0.0, 0.0], None)
-#data.bc(2, 2, [2, 5], [2], [-0.001], param)
+data.bc(0, 1, [2, 4], [0, 1, 2], [0.0, 0.0, 0.0], None)
+data.bc(0, 2, [2, 5], [2], [-0.001], param)
 
 # Calculate the objective function
 # objective input: (design variable value, SED)
-def objective(xp, uKu): 
+def objective(xp, uKu):
     return (Emin + np.power(xp, penal) * (Emax - Emin)) * uKu
 
-def sensitivity(xp, uKu): # make more general, check with Niels
+def sensitivity(xp, uKu):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
 
 # Callback implementation
@@ -107,7 +95,7 @@ data.obj(objective)
 data.obj_sens(sensitivity)
 
 # Volume constraint is standard, input (volume fraction)
-data.volumeConstraint(volumefraction)
+data.volumeConstraint(0.12)
 
 #def Constraint(xp, uKu):
  #   return (xp / nEl) - volumefraction

@@ -12,26 +12,14 @@ TopOpt_in_PETSc_wrapped_in_Python
 Examples
 --------
 
-- [ ] Cantilever beam in ``beam.py``
+- [x] Cantilever beam in ``beam.py``
 - [ ] Multi-loads in ``multiloads.py``
 - [ ] Roof support in ``roof.py``
 - [ ] Force inverter in ``inverter.py``
 
 
-Implemented functionality
-----------------------
-
-- ``structuredGrid((domain size), (mesh size))`` define strutured grid/mesh
-- ``loadcases(...)`` multiloads
-- ``bc(...)`` define boundary conditions
-- ``passive()`` passive elements
-- ``vtu()`` generate vtu files for paraview
-- ``stl()`` generate stl file of final design for 3D-printing
-
-
 Installation
 ------------
-
 
 
 Tests
@@ -50,12 +38,11 @@ ToDo
 --------
 
 - [x] Multiloads
+- [x] Wrap BC
 - [ ] Passive elements
 - [ ] Multiple constraints
-- [ ] Wrap BC
 - [ ] Test with Petsc 3.13.0
 - [ ] Update tests
-- [ ] Python multithreading
 - [ ] Default variable values
 - [ ] vtu gen
 - [ ] stl gen
@@ -63,6 +50,11 @@ ToDo
 - [ ] infill constraint
 - [ ] learner with jupyter notebook
 
+Wish-list
+--------
+
+- [ ] continuation strategy
+- [ ] Python multithreading
 
 Running on ETH Euler
 --------
@@ -73,7 +65,7 @@ Running on ETH Euler
     module load gcc/4.8.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4
     cd TopOpt_in_PETSc_wrapped_in_Python
     make topoptlib
-    make test
+    make testing
     bsub -n 8 mpirun python problem_definition_file.py
     make myclean
 

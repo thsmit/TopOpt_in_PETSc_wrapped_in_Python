@@ -1,7 +1,7 @@
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include "Python.h"
-#include "arrayobject.h"
+//#include "arrayobject.h"
 #include "structmember.h"
 
 #include "topoptlib.h"
@@ -30,10 +30,10 @@ static PyMemberDef members[] =
 // set mesh variables
 static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
 {
-    double xc0, xc1, xc2, xc3, xc4, xc5;
+    double xc0, xc1, xc2, xc3, xc4, xc5, xc6, xc7, xc8;
     int nxyz0, nxyz1, nxyz2;
 
-    if(!PyArg_ParseTuple(args, "(dddddd)(iii)", &xc0, &xc1, &xc2, &xc3, &xc4, &xc5, &nxyz0, &nxyz1, &nxyz2)) { 
+    if(!PyArg_ParseTuple(args, "(ddddddddd)(iii)", &xc0, &xc1, &xc2, &xc3, &xc4, &xc5, &xc6, &xc7, &xc8, &nxyz0, &nxyz1, &nxyz2)) { 
         return NULL;
     }
 
@@ -43,6 +43,9 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
     self->xc_w[3] = xc3;
     self->xc_w[4] = xc4;
     self->xc_w[5] = xc5;
+    self->xc_w[6] = xc6;
+    self->xc_w[7] = xc7;
+    self->xc_w[8] = xc8;
 
     self->nxyz_w[0] = nxyz0;
     self->nxyz_w[1] = nxyz1;
@@ -58,9 +61,9 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
 // set material variables
 static PyObject *material_py(DataObj *self, PyObject *args)
 {
-    double Emin, Emax, nu, penal; 
+    double Emin, Emax, nu, dens, penal; 
     
-    if(!PyArg_ParseTuple(args, "dddd", &Emin, &Emax, &nu, &penal)) { 
+    if(!PyArg_ParseTuple(args, "ddddd", &Emin, &Emax, &nu, &dens, &penal)) { 
         return NULL;
     }
 
@@ -102,7 +105,6 @@ static PyObject *mma_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-/*
 static PyObject *passive_py(DataObj *self, PyObject *args)
 {
     PyObject *pypassive_func;
@@ -120,7 +122,24 @@ static PyObject *passive_py(DataObj *self, PyObject *args)
 
     Py_RETURN_NONE;
 }
-*/
+
+static PyObject *bcpara_py(DataObj *self, PyObject *args)
+{
+    PyObject *pypara_func;
+    if (!PyArg_ParseTuple(args, "O", &pypara_func))
+        return NULL;
+
+    // Make sure second argument is a function
+    if (!PyCallable_Check(pypara_func)) 
+        return NULL;
+    
+    //self->passive = true;
+
+    self->para_func = pypara_func;
+    Py_INCREF(self->para_func);
+
+    Py_RETURN_NONE;
+}
 
 static PyObject *bc_py(DataObj *self, PyObject *args)
 {
@@ -128,16 +147,18 @@ static PyObject *bc_py(DataObj *self, PyObject *args)
     PyObject *checker;
     PyObject *setter_dof;
     PyObject *setter_val;
+    //PyObject *param_func;
  
     int loadcase_ID;
     int BCtypes;
     int nChecker;
     int nSetter_dof;
     int nSetter_val;
+    int param_funci;
 
     BC condition;
 
-    if (!PyArg_ParseTuple(args, "iiOOO", &loadcase_ID, &BCtypes, &checker, &setter_dof, &setter_val)) {
+    if (!PyArg_ParseTuple(args, "iiOOOi", &loadcase_ID, &BCtypes, &checker, &setter_dof, &setter_val, &param_funci)) {
         return NULL;
     }
 
@@ -188,6 +209,17 @@ static PyObject *bc_py(DataObj *self, PyObject *args)
 
     Py_DECREF(iteratorrr);
 
+    // Check param_func is a function
+    if (param_funci) {
+        //self->para_func = param_func;
+        //Py_INCREF(self->para_func);
+        condition.Para = 1;
+    }
+    else {
+        //self->para_func = NULL;
+        condition.Para = 0;
+    }
+        
     self->loadcases_list.at(loadcase_ID).push_back(condition);
 
     Py_RETURN_NONE;
@@ -321,8 +353,9 @@ static PyMethodDef methods[] =
       {"material", (PyCFunction)material_py, METH_VARARGS, "Implement material\n"},
       {"filter", (PyCFunction)filter_py, METH_VARARGS, "Implement filter\n"},
       {"mma", (PyCFunction)mma_py, METH_VARARGS, "Implement mma\n"},
-      //{"passive", (PyCFunction)passive_py, METH_VARARGS, "Implement boundery conditions\n"},
+      {"passive", (PyCFunction)passive_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"bc", (PyCFunction)bc_py, METH_VARARGS, "Implement boundery conditions\n"},
+      {"bcpara", (PyCFunction)bcpara_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"loadcases", (PyCFunction)loadcases_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"obj", (PyCFunction)obj_py, METH_VARARGS, "Callback for Objective function\n"},
       {"obj_sens", (PyCFunction)obj_sens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
@@ -335,6 +368,7 @@ static PyMethodDef methods[] =
       {NULL, NULL, 0, NULL}
     };
 
+// check if you can skip 0
 static PyTypeObject DataType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "topoptlib.Data",          /* tp_name */
@@ -376,6 +410,8 @@ static PyTypeObject DataType = {
     PyType_GenericNew,         /* tp_new */
 };
 
+// for default: look into allocator or constructor
+
 static struct PyModuleDef module =
     {
      PyModuleDef_HEAD_INIT,
@@ -397,7 +433,8 @@ PyMODINIT_FUNC PyInit_topoptlib(void)
     
     PyObject* m = PyModule_Create(&module);
 
-    import_array();
+    // for numpy arrays
+    //import_array();
 
     // Adding Data python class with C variables to module at initialization
     Py_INCREF(&DataType);

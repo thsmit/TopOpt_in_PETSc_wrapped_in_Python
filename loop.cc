@@ -42,7 +42,8 @@ int solve(DataObj data) {
     LinearElasticity* physics = new LinearElasticity(opt->da_nodes, data);
 
     // STEP 3: THE FILTERING
-    Filter* filter = new Filter(opt->da_nodes, opt->xPhys, opt->filter, opt->rmin);
+    //Filter* filter = new Filter(opt->da_nodes, opt->xPhys, opt->filter, opt->rmin);
+    Filter* filter = new Filter(opt->da_nodes, opt->xPhys, opt->xPassive, opt->filter, opt->rmin);
 
     // STEP 4: VISUALIZATION USING VTK
     MPIIO* output = new MPIIO(opt->da_nodes, 3, "ux, uy, uz", 3, "x, xTilde, xPhys");
@@ -71,6 +72,8 @@ int solve(DataObj data) {
         ierr = physics->ComputeObjectiveConstraintsSensitivities(&(opt->fx), &(opt->gx[0]), opt->dfdx, opt->dgdx[0],
                                                                  opt->xPhys, opt->Emin, opt->Emax, opt->penal,
                                                                  opt->volfrac, data);
+
+        
         CHKERRQ(ierr);
 
         // Compute objective scale
@@ -90,9 +93,21 @@ int solve(DataObj data) {
         ierr = mma->SetOuterMovelimit(opt->Xmin, opt->Xmax, opt->movlim, opt->x, opt->xmin, opt->xmax);
         CHKERRQ(ierr);
 
+        
+        ///////////////////// set sens and x to 0
+        //ierr = mma->SetToZero(opt->xPassive, opt->x, opt->dfdx);
+        //CHKERRQ(ierr);
+        
+
         // Update design by MMA
         ierr = mma->Update(opt->x, opt->dfdx, opt->gx, opt->dgdx, opt->xmin, opt->xmax);
         CHKERRQ(ierr);
+
+
+        ///////////////////////// set sens and x to 0
+        //ierr = mma->SetToZero(opt->xPassive, opt->x, opt->dfdx);
+        //CHKERRQ(ierr);
+
 
         // Inf norm on the design change
         ch = mma->DesignChange(opt->x, opt->xold);

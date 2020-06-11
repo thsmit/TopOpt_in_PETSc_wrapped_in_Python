@@ -36,6 +36,7 @@ class Filter {
   public:
     // Constructor
     Filter(DM da_nodes, Vec x, PetscInt filterT, PetscScalar Rin);
+    Filter(DM da_nodes, Vec x, Vec xPassive, PetscInt filterT, PetscScalar Rin);
 
     // Destructor
     ~Filter();
@@ -70,7 +71,7 @@ class Filter {
     PDEFilt* pdef; // PDE filter class
 
     // Setup datastructures for the filter
-    PetscErrorCode SetUp(DM da_nodes, Vec x);
+    PetscErrorCode SetUp(DM da_nodes, Vec x, Vec xPassive);
 
     // Projection
     PetscErrorCode HeavisideFilter(Vec x, Vec y, PetscReal beta, PetscReal eta);

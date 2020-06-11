@@ -22,7 +22,7 @@ License along with this Module; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 -------------------------------------------------------------------------- */
 
-Filter::Filter(DM da_nodes, Vec x, PetscInt filterT, PetscScalar Rin) {
+Filter::Filter(DM da_nodes, Vec x, Vec xPassive, PetscInt filterT, PetscScalar Rin) {
     // Set all pointers to NULL
     H       = NULL;
     Hs      = NULL;
@@ -34,7 +34,28 @@ Filter::Filter(DM da_nodes, Vec x, PetscInt filterT, PetscScalar Rin) {
     filterType = filterT;
 
     // Call the setup method
-    SetUp(da_nodes, x);
+    SetUp(da_nodes, x, xPassive);
+}
+
+Filter::Filter(DM da_nodes, Vec x, PetscInt filterT, PetscScalar Rin) {
+    // Set all pointers to NULL
+    H       = NULL;
+    Hs      = NULL;
+    da_elem = NULL;
+    pdef    = NULL;
+
+    // Get parameters
+    R          = Rin;
+    filterType = filterT;
+    
+    // Create dummy passive vector
+    Vec xPassive;
+    VecDuplicate(x, &xPassive);
+    VecSet(xPassive, -1.0); // Set ALL elements to active
+
+    // Call the setup method
+    SetUp(da_nodes, x, xPassive);
+    VecDestroy(&xPassive);
 }
 
 Filter::~Filter() {
@@ -287,7 +308,7 @@ PetscBool Filter::IncreaseBeta(PetscReal* beta, PetscReal betaFinal, PetscScalar
     return changeBeta;
 }
 
-PetscErrorCode Filter::SetUp(DM da_nodes, Vec x) {
+PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
 
     PetscErrorCode ierr;
 
@@ -441,15 +462,91 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x) {
         // Assemble H:
         MatAssemblyBegin(H, MAT_FINAL_ASSEMBLY);
         MatAssemblyEnd(H, MAT_FINAL_ASSEMBLY);
+
+        ///////////////////////////////////
+
+        PetscScalar *xxpPassive;
+        ierr = VecGetArray(xPassive, &xxpPassive);
+        CHKERRQ(ierr);
+
+        //VecSet(xPassive, -1.0); // Set ALL elements to active
+
+        // Loop over elements and write to tmp vector
+        for (PetscInt el = 0; el < nel; el++) {
+            if (el > 6348) { // Is passive element
+                xxpPassive[el] = 1.0;
+            } else {
+                xxpPassive[el] = -1.0;
+            }
+            //PetscPrintf(PETSC_COMM_WORLD, "el: %i, val: %f\n", el, xxpPassive[el]);
+        }
+    
+        // Restore
+        ierr = VecRestoreArray(xPassive, &xxpPassive);
+        CHKERRQ(ierr);
+        
+        ///////////////////////////////////////////////////////////////////////////////////////////////////
+        // FOR PASSIVE
+        DMDAGetElements_3D(da_nodes, &nel, &nen, &necon);
+
+        // ELimination vector to kill the unwanted dofs in the filter matrix
+        Vec Nvec;
+        DMCreateGlobalVector(da_elem, &Nvec);
+
+        // Map the xPssize vector to a new one with only 0 (passive) and 1 (active)
+        Vec tmpV;
+        VecDuplicate(xPassive, &tmpV);
+
+        PetscScalar *xpPassive, *ptmp;
+        ierr = VecGetArray(xPassive, &xpPassive);
+        CHKERRQ(ierr);
+        ierr = VecGetArray(tmpV, &ptmp);
+        CHKERRQ(ierr);
+
+        // Loop over elements and write to tmp vector
+        for (PetscInt el = 0; el < nel; el++) {
+            if (xpPassive[el] > 0) { // Is passive element
+                ptmp[el] = 0.0;
+            } else {
+                ptmp[el] = 1.0;
+            }
+        }
+
+        // Restore
+        ierr = VecRestoreArray(xPassive, &xpPassive);
+        CHKERRQ(ierr);
+        ierr = VecRestoreArray(tmpV, &ptmp);
+        CHKERRQ(ierr);
+
+        // Transfer results to Nvec
+        VecCopy(tmpV, Nvec);
+
+        // Impose the dirichlet conditions, i.e. K = N'*K*N - (N-I)
+        // 1.: K = N'*K*N
+        MatDiagonalScale(H, Nvec, Nvec);
+
         // Compute the Hs, i.e. sum the rows
         Vec dummy;
         VecDuplicate(Hs, &dummy);
         VecSet(dummy, 1.0);
         MatMult(H, dummy, Hs);
 
+        // Insert ones at zero positions on diagonal
+        Vec NI;
+        VecDuplicate(Nvec, &NI);
+        VecSet(NI, 1.0);
+        VecAXPY(NI, -1.0, Nvec);
+        MatDiagonalSet(H, NI, ADD_VALUES);
+        // Add ones to the HS vector to avoid division by zero
+        VecAXPY(Hs, 1.0, NI);
+        VecDestroy(&NI);
+        ///////////////////////////////////////////////////////////////////////////////////////////////////
+
         // Clean up
         VecRestoreArray(lcoor, &lcoorp);
         VecDestroy(&dummy);
+        VecDestroy(&tmpV);
+        VecDestroy(&Nvec);
         delete[] Lx;
         delete[] Ly;
         delete[] Lz;
