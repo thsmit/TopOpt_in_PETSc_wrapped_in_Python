@@ -16,7 +16,7 @@ Examples
 
 - Cantilever beam in ``beam.py``
 - Multi-loads in ``multiloads.py``
-<img src="![3](https://user-images.githubusercontent.com/52911749/85385983-48616480-b543-11ea-86a3-45c1efe5d447.png)">
+<img src="![3](https://user-images.githubusercontent.com/52911749/85385983-48616480-b543-11ea-86a3-45c1efe5d447.png)"> </img>
 - Roof support in ``roof.py``
 
 Installation
