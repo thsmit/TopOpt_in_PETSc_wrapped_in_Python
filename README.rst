@@ -17,7 +17,6 @@ Examples
 .. raw:: html
 
     - Cantilever beam in ``beam.py``
-     <img src="https://user-images.githubusercontent.com/52911749/85385983-48616480-b543-11ea-86a3-45c1efe5d447.png" width='20%'> </img>
     - Multi-loads in ``multiloads.py``
     <img src="https://user-images.githubusercontent.com/52911749/85385983-48616480-b543-11ea-86a3-45c1efe5d447.png" width='20%'> </img>
     - Roof support in ``roof.py``
