@@ -258,7 +258,7 @@ static PyObject *obj_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject *obj_sens_py(DataObj *self, PyObject *args)
+static PyObject *objsens_py(DataObj *self, PyObject *args)
 {
     PyObject *pyobj_sens_func;
     if (!PyArg_ParseTuple(args, "O", &pyobj_sens_func))
@@ -283,7 +283,7 @@ static PyObject *volumeConstraint_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject *const_py(DataObj *self, PyObject *args)
+static PyObject *cons_py(DataObj *self, PyObject *args)
 {
     PyObject *pyconst_func;
     if (!PyArg_ParseTuple(args, "O", &pyconst_func))
@@ -299,7 +299,7 @@ static PyObject *const_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject *const_sens_py(DataObj *self, PyObject *args)
+static PyObject *conssens_py(DataObj *self, PyObject *args)
 {
     PyObject *pyconst_sens_func;
     if (!PyArg_ParseTuple(args, "O", &pyconst_sens_func))
@@ -358,10 +358,10 @@ static PyMethodDef methods[] =
       {"bcpara", (PyCFunction)bcpara_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"loadcases", (PyCFunction)loadcases_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"obj", (PyCFunction)obj_py, METH_VARARGS, "Callback for Objective function\n"},
-      {"obj_sens", (PyCFunction)obj_sens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
+      {"objsens", (PyCFunction)objsens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"volumeConstraint", (PyCFunction)volumeConstraint_py, METH_VARARGS, "Callback for Sensitivity function\n"},
-      {"const", (PyCFunction)const_py, METH_VARARGS, "Callback for Objective function\n"},
-      {"const_sens", (PyCFunction)const_sens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
+      {"cons", (PyCFunction)cons_py, METH_VARARGS, "Callback for Objective function\n"},
+      {"conssens", (PyCFunction)conssens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"solve", (PyCFunction)solve_py, METH_NOARGS, "Python bindings to solve() in topoptlib\n"},
       {"vtu", (PyCFunction)vtu_py, METH_VARARGS, "Generate vtu\n"},
       {"stl", (PyCFunction)stl_py, METH_VARARGS, "Generate vtu\n"},

@@ -17,26 +17,27 @@ data = topoptlib.Data()
 
 # step 2:
 # define input data
-# mesh: (domain)(mesh: number of nodes)
-#data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0), (129, 65, 65))
-data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (17, 9, 9))
+# mesh: (domain: x, y, z, center)(mesh: number of nodes)
+#data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (129, 65, 65))
+#data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (17, 9, 9))
+#data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (33, 17, 17))
+data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (65, 33, 33))
 
+# Optional printing:
 #print(data.nNodes)
 #print(data.nElements)
 #print(data.nDOF)
 
 # material: (Emin, Emax, nu, penal)
-Emin = 1.0e-9
-Emax = 1.0
-penal = 3.0
-data.material(Emin, Emax, 0.3, 1.0, penal)
+Emin, Emax, nu, Dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 1.0
+data.material(Emin, Emax, nu, Dens, penal)
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1, 
-data.filter(1, 0.1)
+data.filter(1, 0.001)
 
 # optimizer: (maxIter)
-data.mma(1000)
+data.mma(10000)
 
 # loadcases: (# of loadcases)
 data.loadcases(1)
@@ -47,20 +48,38 @@ data.bc(0, 2, [0, 1, 2, 4], [2], [-0.001], 0)
 data.bc(0, 2, [0, 1, 1, 2, 2, 4], [2], [-0.0005], 0)
 data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], 0)
 
+#data.bc(1, 1, [[0, 0]], [0, 1, 2], [0.0, 0.0, 0.0], None)
+#data.bc(1, 2, [[0, 1], [1, 3]], [1], [0.001], None)
+#data.bc(1, 2, [[0, 1], [1, 3], [2, 4]], [1], [0.0005], None)
+#data.bc(1, 2, [[0, 1], [1, 3], [2, 5]], [1], [0.0005], None)
+
+materialvolumefraction = 0.40
+nEl = data.nElements
+
 # Calculate the objective function
 # objective input: (design variable value, SED)
-def objective(xp, uKu):
+def objective(sumXp, xp, uKu):
     return (Emin + np.power(xp, penal) * (Emax - Emin)) * uKu
 
-def sensitivity(xp, uKu):
+def sensitivity(sumXp, xp, uKu):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
+
+def constraint(sumXp, xp, uKu):
+    return (sumXp / nEl - materialvolumefraction) / nEl
+
+def constraintSensitivity(sumXp, xp, uKu):
+    return 1.0 / nEl
 
 # Callback implementation
 data.obj(objective)
-data.obj_sens(sensitivity)
+data.objsens(sensitivity)
+
+# Define constraint
+data.cons(constraint)
+data.conssens(constraintSensitivity)
 
 # Volume constraint is standard, input (volume fraction)
-data.volumeConstraint(0.12)
+data.volumeConstraint(materialvolumefraction)
 
 # step 3:
 # solve topopt problem with input data and wait for "complete" signal
@@ -70,6 +89,8 @@ complete = data.solve()
 # post processing, generate .vtu file to be viewed in paraview
 #if complete:
 #    data.vtu()
+
+# vergelijken met unplenilized design.
 
 # step 5:
 # generate .stl file from final design for 3D printing

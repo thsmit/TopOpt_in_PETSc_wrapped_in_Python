@@ -12,11 +12,9 @@ TopOpt_in_PETSc_wrapped_in_Python
 Examples
 --------
 
-- [x] Cantilever beam in ``beam.py``
-- [ ] Multi-loads in ``multiloads.py``
-- [ ] Roof support in ``roof.py``
-- [ ] Force inverter in ``inverter.py``
-
+- Cantilever beam in ``beam.py``
+- Multi-loads in ``multiloads.py``
+- Roof support in ``roof.py``
 
 Installation
 ------------
@@ -27,34 +25,34 @@ Tests
 
 Implemented tests in ``/tests``:
 
-- [x] Testing standard MBB problem with maxItr of 4 ``test_topoptlib.py``
-- [ ] Testing multiloads functionality
-- [ ] Testing passive elements functionality
+- Testing standard MBB problem with maxItr of 40 ``test_beam.py``
 
-Running tests ``make testing``
+Running tests:
+
+.. code:: bash
+
+    module load gcc/4.8.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4
+    cd TopOpt_in_PETSc_wrapped_in_Python
+    make topoptlib
+    make test
+    make myclean
 
 
-ToDo
+Learner
 --------
 
-- [x] Multiloads
-- [x] Wrap BC
-- [ ] Passive elements
-- [ ] Multiple constraints
-- [ ] Test with Petsc 3.13.0
-- [ ] Update tests
-- [ ] Default variable values
-- [ ] vtu gen
-- [ ] stl gen
-- [ ] performance script
-- [ ] infill constraint
-- [ ] learner with jupyter notebook
 
 Wish-list
 --------
 
+- [ ] STL input
+- [ ] Passive elements proper implementation
 - [ ] continuation strategy
-- [ ] Python multithreading
+- [ ] infill constraint
+- [ ] Automatic STL and VTK output
+- [ ] performance script
+- [ ] Multiple constraints
+- [ ] Test with Petsc 3.13.0
 
 Running on ETH Euler
 --------
@@ -65,8 +63,8 @@ Running on ETH Euler
     module load gcc/4.8.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4
     cd TopOpt_in_PETSc_wrapped_in_Python
     make topoptlib
-    make testing
-    bsub -n 8 mpirun python problem_definition_file.py
+    make test
+    bsub -n 8 mpirun -n 8 python multiloads.py
     make myclean
 
 Origional code

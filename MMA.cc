@@ -505,7 +505,7 @@ PetscErrorCode MMA::SetToZero(Vec xPassive, Vec x, Vec dfdx) {
     PetscErrorCode ierr = 0;
     //PetscErrorPrintf("MMA->SetToZero called!\n");
 
-    PetscScalar *xpPassive, *xtmp, *ftmp;
+    PetscScalar *xpPassive, *xtmp, *ftmp; 
     ierr = VecGetArray(xPassive, &xpPassive);
     CHKERRQ(ierr);
     ierr = VecGetArray(x, &xtmp);

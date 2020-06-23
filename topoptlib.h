@@ -114,9 +114,9 @@ struct DataObj {
             return result;
         }
 
-        double obj_ev(double xp, double uKu) {
+        double obj_ev(double comp, double sumXP, double xp, double uKu) {
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("dd", xp, uKu);
+            PyObject *arglist = Py_BuildValue("dddd", comp, sumXP, xp, uKu);
             
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(obj_func, arglist);
@@ -130,13 +130,13 @@ struct DataObj {
             return result;
         }
 
-        double obj_sens_ev(double xp, double uKu) {
+        double obj_sens_ev(double sumXP, double xp, double uKu) {
             
             //printf("xp: %f\n", xp);
             //printf("uKu: %f\n", uKu);
 
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("dd", xp, uKu);
+            PyObject *arglist = Py_BuildValue("ddd", sumXP, xp, uKu);
             
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(obj_sens_func, arglist);
@@ -155,9 +155,9 @@ struct DataObj {
             return result;
         }
 
-        double const_ev(double xp, double uKu) {
+        double const_ev(double comp, double sumXP, double xp, double uKu) {
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("dd", xp, uKu);
+            PyObject *arglist = Py_BuildValue("dddd", comp, sumXP, xp, uKu);
             
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(const_func, arglist);
@@ -171,13 +171,13 @@ struct DataObj {
             return result;
         }
 
-        double const_sens_ev(double xp, double uKu) {
+        double const_sens_ev(double sumXP, double xp, double uKu) {
             
             //printf("xp: %f\n", xp);
             //printf("uKu: %f\n", uKu);
 
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("dd", xp, uKu);
+            PyObject *arglist = Py_BuildValue("ddd", sumXP, xp, uKu);
             
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(const_sens_func, arglist);

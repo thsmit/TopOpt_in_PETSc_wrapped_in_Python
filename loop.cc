@@ -68,7 +68,14 @@ int solve(DataObj data) {
         // start timer
         t1 = MPI_Wtime();
 
+        ///////////////////// set sens and x to 0
+        //ierr = mma->SetToZero(opt->xPassive, opt->x, opt->xPhys);
+        //CHKERRQ(ierr);
+
         // Compute (a) obj+const, (b) sens, (c) obj+const+sens
+        // input -> xPhys + SIMP settings + material properties
+        // output -> objective + sensitivities + constraint value + cons sensitivies
+        // output -> fx, dfdx, gx, dgdx
         ierr = physics->ComputeObjectiveConstraintsSensitivities(&(opt->fx), &(opt->gx[0]), opt->dfdx, opt->dgdx[0],
                                                                  opt->xPhys, opt->Emin, opt->Emax, opt->penal,
                                                                  opt->volfrac, data);
@@ -95,18 +102,26 @@ int solve(DataObj data) {
 
         
         ///////////////////// set sens and x to 0
-        //ierr = mma->SetToZero(opt->xPassive, opt->x, opt->dfdx);
-        //CHKERRQ(ierr);
+        ierr = mma->SetToZero(opt->xPassive, opt->x, opt->dfdx);
+        CHKERRQ(ierr);
         
+        //VecView(opt->x,PETSC_VIEWER_STDOUT_WORLD);
+        //VecView(opt->dfdx,PETSC_VIEWER_STDOUT_WORLD);
+        //PetscPrintf(PETSC_COMM_WORLD,"gx %f \n",opt->gx);
+        //VecView(*opt->dgdx,PETSC_VIEWER_STDOUT_WORLD);
+        //VecView(opt->xmin,PETSC_VIEWER_STDOUT_WORLD);
+        //VecView(opt->xmax,PETSC_VIEWER_STDOUT_WORLD);
 
         // Update design by MMA
         ierr = mma->Update(opt->x, opt->dfdx, opt->gx, opt->dgdx, opt->xmin, opt->xmax);
         CHKERRQ(ierr);
 
+        
+
 
         ///////////////////////// set sens and x to 0
-        //ierr = mma->SetToZero(opt->xPassive, opt->x, opt->dfdx);
-        //CHKERRQ(ierr);
+        ierr = mma->SetToZero(opt->xPassive, opt->x, opt->dfdx);
+        CHKERRQ(ierr);
 
 
         // Inf norm on the design change
@@ -133,6 +148,7 @@ int solve(DataObj data) {
                     "It.: %i, True fx: %f, Scaled fx: %f, gx[0]: %f, ch.: %f, "
                     "mnd.: %f, time: %f\n",
                     itr, opt->fx / opt->fscale, opt->fx, opt->gx[0], ch, mnd, t2 - t1);
+        //PetscPrintf(PETSC_COMM_WORLD,"%f\n", opt->fx / opt->fscale);
 
         // Write field data: first 10 iterations and then every 20th
         if (itr < 11 || itr % 20 == 0 || changeBeta) {

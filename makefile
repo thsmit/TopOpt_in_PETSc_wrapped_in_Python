@@ -34,6 +34,6 @@ topoptlib: wrapper.o loop.o TopOpt.o LinearElasticity.o MMA.o Filter.o PDEFilter
 myclean:
 	rm -rf main *.a *.so *.o output* binary* log* makevtu.pyc Restart*
 
-testing:
-	bsub -I -n 8 mpirun pytest
+test:
+	bsub -n 8 mpirun -n 8 python tests/test_beam.py
 	

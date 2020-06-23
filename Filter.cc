@@ -145,6 +145,8 @@ PetscErrorCode Filter::Gradients(Vec x, Vec xTilde, Vec dfdx, PetscInt m, Vec* d
     // Cheinrule for projection filtering
     if (projectionFilter) {
 
+        //PetscPrintf(PETSC_COMM_WORLD, "CHECK \n");
+
         // Get correction
         ChainruleHeavisideFilter(dx, xTilde, beta, eta);
 
@@ -188,9 +190,16 @@ PetscErrorCode Filter::Gradients(Vec x, Vec xTilde, Vec dfdx, PetscInt m, Vec* d
     if (filterType == 0)
     // Filter the sensitivities, df,dg
     {
+        //PetscPrintf(PETSC_COMM_WORLD, "CHECK SENSITIVITY \n");
         Vec xtmp;
         ierr = VecDuplicate(xTilde, &xtmp);
         CHKERRQ(ierr);
+
+        // Debuging
+        //VecView(xTilde,PETSC_VIEWER_STDOUT_WORLD);
+        //VecView(Hs,PETSC_VIEWER_STDOUT_WORLD);
+        //MatView(H,PETSC_VIEWER_STDOUT_WORLD);
+
         VecPointwiseMult(xtmp, dfdx, x);
         MatMult(H, xtmp, dfdx);
         VecPointwiseDivide(xtmp, dfdx, Hs);
@@ -429,6 +438,7 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
                     PetscInt row =
                         (i - info.gxs) + (j - info.gys) * (info.gxm) + (k - info.gzs) * (info.gxm) * (info.gym);
                     //
+                    //PetscPrintf(PETSC_COMM_WORLD, "k: %i, j: %i, i: %i, row: %i \n", k, j, i, row);
                     // 2. Loop over nodes (including ghosts) within a cubic domain with
                     // center at (i,j,k)
                     //    For each element, run through all elements in a box of size
@@ -448,10 +458,15 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
                                     dist = dist + PetscPowScalar(lcoorp[3 * row + kk] - lcoorp[3 * col + kk], 2.0);
                                 }
                                 dist = PetscSqrtScalar(dist);
+                                //PetscPrintf(PETSC_COMM_WORLD, "dist: %f \n", dist);
                                 if (dist < R) {
                                     // Longer distances should have less weight
                                     dist = R - dist;
                                     MatSetValuesLocal(H, 1, &row, 1, &col, &dist, INSERT_VALUES);
+
+                                    
+                                    //PetscPrintf(PETSC_COMM_WORLD, "row: %i, col: %i, H: %f \n", row, col, dist);
+                                    
                                 }
                             }
                         }
@@ -471,10 +486,12 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
 
         //VecSet(xPassive, -1.0); // Set ALL elements to active
 
-        // Loop over elements and write to tmp vector
+        // Loop over elements
         for (PetscInt el = 0; el < nel; el++) {
-            if (el > 6348) { // Is passive element
-                xxpPassive[el] = 1.0;
+            //if (el > 6348) { // Is passive element
+            if ( (PetscPowScalar((lcoorp[3 * el] - 24.0) / 12.0, 2.0) + PetscPowScalar((lcoorp[3 * el + 1] - 20.0) / 10.0, 2.0)) < 1) {
+                //xxpPassive[el] = 1.0;
+                xxpPassive[el] = -1.0;
             } else {
                 xxpPassive[el] = -1.0;
             }
@@ -486,6 +503,7 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
         CHKERRQ(ierr);
         
         ///////////////////////////////////////////////////////////////////////////////////////////////////
+        
         // FOR PASSIVE
         DMDAGetElements_3D(da_nodes, &nel, &nen, &necon);
 

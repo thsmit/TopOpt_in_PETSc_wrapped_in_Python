@@ -209,6 +209,24 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                                     //PetscPrintf(PETSC_COMM_WORLD, "RHS\n");
                                     VecSetValueLocal(RHS[lc], ii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
                                 }
+                                
+                                if (data.loadcases_list.at(lc).at(j).BCtype == 3) {
+                                    PetscScalar valx = (lcoorp[ii] - 24) * 0.0000001; 
+                                    PetscScalar valy = (lcoorp[ii + 1] - 20) * 0.0000001; 
+                                    //PetscPrintf(PETSC_COMM_WORLD, "RHS\n");
+                                    //VecSetValueLocal(RHS[lc], ii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), valx * data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                                    VecSetValueLocal(RHS[lc], ii, -valy, INSERT_VALUES);
+                                    VecSetValueLocal(RHS[lc], ii + 1, valx, INSERT_VALUES);
+                                }
+
+                                if (data.loadcases_list.at(lc).at(j).BCtype == 4) {
+                                    PetscScalar valx = (lcoorp[ii] - 24) * 0.0000001; 
+                                    PetscScalar valy = (lcoorp[ii + 1] - 20) * 0.0000001;
+                                    //PetscPrintf(PETSC_COMM_WORLD, "RHS\n");
+                                    //VecSetValueLocal(RHS[lc], ii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), -1 * val * data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                                    VecSetValueLocal(RHS[lc], ii, valy, INSERT_VALUES);
+                                    VecSetValueLocal(RHS[lc], ii + 1, -valx, INSERT_VALUES);
+                                }
                             }
                         }
                     }
@@ -557,6 +575,7 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
     PetscErrorCode ierr;
 
     PetscScalar ftmp;
+    PetscScalar gtmp;
 
     // Zero the real numbers
     fx[0] = 0.0;
@@ -564,14 +583,24 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
     Vec dftemp;
     VecDuplicate(dfdx, &dftemp);
 
+    // wrap
+    gx[0] = 0.0;
+    VecSet(dgdx, 0.0);
+    Vec dgtemp;
+    VecDuplicate(dgdx, &dgtemp);
+
     for (PetscInt loadcase = 0; loadcase < numLoadCases; loadcase++) {
         // Keep overwriting volume constraint... should be removed from this method !!!!!!
         ftmp = 0.0;
-        ierr = ComputeObjectiveConstraintsSensitivities(&ftmp, gx, dftemp, dgdx, xPhys, Emin, Emax, penal, volfrac,
+        gtmp = 0.0;
+        ierr = ComputeObjectiveConstraintsSensitivities(&ftmp, &gtmp, dftemp, dgtemp, xPhys, Emin, Emax, penal, volfrac,
                                                         loadcase, data);
         CHKERRQ(ierr);
         fx[0] += ftmp;
         ierr = VecAXPY(dfdx, 1.0, dftemp);
+        CHKERRQ(ierr);
+        gx[0] += gtmp;
+        ierr = VecAXPY(dgdx, 1.0, dgtemp);
         CHKERRQ(ierr);
     }
 
@@ -616,11 +645,30 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
     PetscScalar* df;
     VecGetArray(dfdx, &df);
 
+    // wrapper
+    PetscScalar* dg;
+    VecGetArray(dgdx, &dg);
+
+    // wrapper
+    PetscScalar sumXP;
+    VecSum(xPhys, &sumXP);
+
     // Edof array
     PetscInt edof[24];
 
     fx[0] = 0.0;        
     gx[0] = 0.0;
+
+    // wrapper
+    PetscScalar comp;
+    comp = 0.0;
+    
+    // wrapper
+    Vec uKuX;
+    PetscScalar* uKu;
+    VecDuplicate(xPhys, &uKuX);
+    VecGetArray(uKuX, &uKu);
+
     // Loop over elements
     for (PetscInt i = 0; i < nel; i++) {
         // loop over element nodes
@@ -631,42 +679,91 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
             }
         }
         // Use SIMP for stiffness interpolation
-        PetscScalar uKu = 0.0;
+        //PetscScalar uKu = 0.0;
         for (PetscInt k = 0; k < 24; k++) {
+            
+            // printing for debuging
+            //if (i < 1) {
+            //    PetscPrintf(PETSC_COMM_WORLD, "u: %f\n", up[edof[k]]);
+            //}
+            
             for (PetscInt h = 0; h < 24; h++) {
-                uKu += up[edof[k]] * KE[k * 24 + h] * up[edof[h]];
+                uKu[i] += up[edof[k]] * KE[k * 24 + h] * up[edof[h]];
+            
+                // printing for debuging
+                //if (i < 1) {
+                //    PetscPrintf(PETSC_COMM_WORLD, "i: %i, j: %i, ke: %f\n", k, h, KE[k * 24 + h]);
+                //}
             }
         }
-        
-        // Add to objective:
 
+        comp += (Emin + PetscPowScalar(xp[i], penal) * (Emax - Emin)) * uKu[i];
+
+    }
+
+    // Allreduce comp
+    PetscScalar tmp = comp;
+    comp           = 0.0;
+    MPI_Allreduce(&tmp, &(comp), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
+
+    fx[0] = data.obj_ev(comp, sumXP, 1.0, 1.0); // letop, = or +=
+    gx[0] = data.const_ev(comp, sumXP, 1.0, 1.0); // let op, = or +=
+
+    // Loop over elements
+    for (PetscInt i = 0; i < nel; i++) {    
+        // Add to objective:
         // Wrapper callback code
         //PetscPrintf(PETSC_COMM_WORLD, "f: %f\n", data.obj_ev(xp[i], uKu));
         // E_real_material * ???
-        fx[0] += data.obj_ev(xp[i], uKu);
-        df[i] = data.obj_sens_ev(xp[i], uKu);
+        
+        df[i] = data.obj_sens_ev(sumXP, xp[i], uKu[i]);
+
+        // printing for debuging
+        //if (i < 1) {
+          //  PetscPrintf(PETSC_COMM_WORLD, "uku: %f\n", uKu);
+            //PetscPrintf(PETSC_COMM_WORLD, "xp: %f\n", xp[i]);
+            //PetscPrintf(PETSC_COMM_WORLD, "df: %f\n", df[i]);
+        //}
         
         // Origional code
         //fx[0] += (Emin + PetscPowScalar(xp[i], penal) * (Emax - Emin)) * uKu;
         // Set the Senstivity
         // * E_real_material *???
         //df[i] = -1.0 * penal * PetscPowScalar(xp[i], penal - 1) * (Emax - Emin) * uKu;
-    }
+
+        // Wrapper callback for sensitivity
+        
+        dg[i] = data.const_sens_ev(sumXP, xp[i], uKu[i]);
+
+        //PetscPrintf(PETSC_COMM_WORLD, "gx: %f\n", gx[0]);
+    }        
 
     // Allreduce fx[0]
-    PetscScalar tmp = fx[0];
-    fx[0]           = 0.0;
-    MPI_Allreduce(&tmp, &(fx[0]), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
+    //PetscScalar tmp = fx[0];
+    //fx[0]           = 0.0;
+    //MPI_Allreduce(&tmp, &(fx[0]), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
+
+    // wrapper
+    //PetscScalar tmpp = gx[0];
+    //gx[0]           = 0.0;
+    //MPI_Allreduce(&tmpp, &(gx[0]), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
+    
+    //PetscPrintf(PETSC_COMM_WORLD, "fx: %f\n", fx[0]);
 
     // Origional code
     // Compute volume constraint gx[0]
-    PetscInt neltot;
-    VecGetSize(xPhys, &neltot);
-    gx[0] = 0;
-    VecSum(xPhys, &(gx[0]));
-    gx[0] = gx[0] / (((PetscScalar)neltot)) - volfrac;
-    VecSet(dgdx, 1.0 / (((PetscScalar)neltot)));
-
+    //PetscInt neltot;
+    //VecGetSize(xPhys, &neltot);
+    //gx[0] = 0;
+    //VecSum(xPhys, &(gx[0]));
+    //PetscPrintf(PETSC_COMM_WORLD, "gx: %f\n", gx[0]);
+    //PetscPrintf(PETSC_COMM_WORLD, "el: %f\n", (((PetscScalar)neltot)));
+    //PetscPrintf(PETSC_COMM_WORLD, "volfrac: %f\n", volfrac);
+    //gx[0] = gx[0] / (((PetscScalar)neltot)) - volfrac;
+    //VecSet(dgdx, 1.0 / (((PetscScalar)neltot)));
+    //PetscPrintf(PETSC_COMM_WORLD, "dgdx: %f\n", dg);
+    
+    VecRestoreArray(dgdx, &dg); // wrapper
     VecRestoreArray(xPhys, &xp);
     VecRestoreArray(Uloc, &up);
     VecRestoreArray(dfdx, &df);
@@ -1167,6 +1264,7 @@ PetscInt LinearElasticity::Hex8Isoparametric(PetscScalar* X, PetscScalar* Y, Pet
     // Make sure the stiffness matrix is zeroed out:
     memset(ke, 0, sizeof(ke[0]) * 24 * 24);
     // Perform the numerical integration
+    //PetscPrintf(PETSC_COMM_WORLD, "redInt: %i \n", redInt);
     for (PetscInt ii = 0; ii < 2 - redInt; ii++) {
         for (PetscInt jj = 0; jj < 2 - redInt; jj++) {
             for (PetscInt kk = 0; kk < 2 - redInt; kk++) {
@@ -1188,8 +1286,12 @@ PetscInt LinearElasticity::Hex8Isoparametric(PetscScalar* X, PetscScalar* Y, Pet
                 J[2][2] = Dot(dNdzeta, Z, 8);
                 // Inverse and determinant
                 PetscScalar detJ = Inverse3M(J, invJ);
+                //PetscPrintf(PETSC_COMM_WORLD, "detJ: %f \n", detJ);
+
                 // Weight factor at this point
                 PetscScalar weight = W[ii] * W[jj] * W[kk] * detJ;
+                //PetscPrintf(PETSC_COMM_WORLD, "W: %f \n", weight);
+
                 // Strain-displacement matrix
                 memset(B, 0, sizeof(B[0][0]) * 6 * 24); // zero out
                 for (PetscInt ll = 0; ll < 3; ll++) {
@@ -1206,14 +1308,23 @@ PetscInt LinearElasticity::Hex8Isoparametric(PetscScalar* X, PetscScalar* Y, Pet
                     // Assemble strain operator
                     for (PetscInt i = 0; i < 6; i++) {
                         for (PetscInt j = 0; j < 3; j++) {
-                            beta[i][j] =
-                                invJ[0][ll] * alpha1[i][j] + invJ[1][ll] * alpha2[i][j] + invJ[2][ll] * alpha3[i][j];
+                            beta[i][j] = invJ[0][ll] * alpha1[i][j] + invJ[1][ll] * alpha2[i][j] + invJ[2][ll] * alpha3[i][j];
+                                //PetscPrintf(PETSC_COMM_WORLD, "i: %i, j: %i, a1: %f \n", i, j, alpha1[i][j]);
+                                //PetscPrintf(PETSC_COMM_WORLD, "i: %i, j: %i, invJ: %f \n", i, j, invJ[2][ll]);
+                                //PetscPrintf(PETSC_COMM_WORLD, "i: %i, j: %i, beta: %f \n", i, j, beta[i][j]);
                         }
                     }
+                    for (PetscInt i = 0; i < 8; i++) {
+                        //PetscPrintf(PETSC_COMM_WORLD, "dN[i]: %f \n", dN[i]);
+                    }
+
                     // Add contributions to strain-displacement matrix
                     for (PetscInt i = 0; i < 6; i++) {
                         for (PetscInt j = 0; j < 24; j++) {
                             B[i][j] = B[i][j] + beta[i][j % 3] * dN[j / 3];
+                            //PetscPrintf(PETSC_COMM_WORLD, "j / 3: %f \n", j / 3);
+                            //PetscPrintf(PETSC_COMM_WORLD, "dN[j / 3]: %f \n", dN[j / 3]);
+                            //PetscPrintf(PETSC_COMM_WORLD, "i: %i, j: %i, B: %f \n", i, j, B[i][j]);
                         }
                     }
                 }
@@ -1224,6 +1335,7 @@ PetscInt LinearElasticity::Hex8Isoparametric(PetscScalar* X, PetscScalar* Y, Pet
                             for (PetscInt l = 0; l < 6; l++) {
 
                                 ke[j + 24 * i] = ke[j + 24 * i] + weight * (B[k][i] * C[k][l] * B[l][j]);
+                                //PetscPrintf(PETSC_COMM_WORLD, "i: %i, j: %i, ke: %f\n", i, j, ke[j * 24 + i]);
                             }
                         }
                     }
@@ -1233,6 +1345,7 @@ PetscInt LinearElasticity::Hex8Isoparametric(PetscScalar* X, PetscScalar* Y, Pet
     }
     return 0;
 }
+
 PetscScalar LinearElasticity::Dot(PetscScalar* v1, PetscScalar* v2, PetscInt l) {
     // Function that returns the dot product of v1 and v2,
     // which must have the same length l
