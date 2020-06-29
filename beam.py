@@ -89,10 +89,3 @@ complete = data.solve()
 # post processing, generate .vtu file to be viewed in paraview
 #if complete:
 #    data.vtu()
-
-# vergelijken met unplenilized design.
-
-# step 5:
-# generate .stl file from final design for 3D printing
-#if complete:
-#    data.stl()

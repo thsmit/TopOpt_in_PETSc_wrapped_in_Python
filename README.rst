@@ -50,10 +50,10 @@ Wish-list
 
 - [ ] STL input
 - [ ] Passive elements proper implementation
-- [ ] continuation strategy
+- [ ] Continuation strategy
 - [ ] infill constraint
 - [ ] Automatic STL and VTK output
-- [ ] performance script
+- [ ] Performance script
 - [ ] Multiple constraints
 - [ ] Test with Petsc 3.13.0
 
