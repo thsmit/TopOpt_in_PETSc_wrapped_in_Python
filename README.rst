@@ -7,17 +7,21 @@ TopOpt_in_PETSc_wrapped_in_Python
 
 .. summary-end
 
-**WARNING: adaptive is still in a beta development stage**
+**WARNING: TopOpt_in_PETSc_wrapped_in_Python is still in a beta development stage**
 
 .. not-in-documentation-start
 
 Examples
 --------
 
-- Cantilever beam in ``beam.py``
-- Multi-loads in ``multiloads.py``
-<img src="![3](https://user-images.githubusercontent.com/52911749/85385983-48616480-b543-11ea-86a3-45c1efe5d447.png)"> </img>
-- Roof support in ``roof.py``
+.. raw:: html
+
+    - Cantilever beam in ``beam.py``
+    - Multi-loads in ``multiloads.py``
+    
+    <img src="https://user-images.githubusercontent.com/52911749/85385983-48616480-b543-11ea-86a3-45c1efe5d447.png" width='20%'> </img>
+   
+   - Roof support in ``roof.py``
 
 Installation
 ------------
