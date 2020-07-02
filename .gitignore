@@ -11,5 +11,6 @@ __pycache__/
 *.vtu
 *.vtk
 *.sh
+*setup.py
 *~
 
