@@ -47,4 +47,4 @@ data.conssens(constraintSensitivity)
 data.volumeConstraint(materialvolumefraction)
 complete = data.solve()
 
-print('True Compliance should be: ', 2.164461, 3.361824, 8.570609)
+print('True Compliance should be: ', 2.164643, 3.361824, 8.570609)

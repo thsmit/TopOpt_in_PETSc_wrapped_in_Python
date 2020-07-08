@@ -3,9 +3,12 @@
 #include "Python.h"
 //#include "arrayobject.h"
 #include "structmember.h"
-
 #include "topoptlib.h"
 #include <vector>
+#include <stdio.h>
+
+#include <cstdlib>
+#include "Voxelizer.h"
 
 /*
 Author: Thijs Smit, May 2020
@@ -54,6 +57,59 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
     self->nNodes = nxyz0 * nxyz1 * nxyz2;
     self->nElements = (nxyz0 - 1) * (nxyz1 - 1) * (nxyz2 - 1);
     self->nDOF = self->nNodes * 3;
+
+    Py_RETURN_NONE;
+}
+
+// set material variables
+static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
+{
+    char *path = NULL; 
+    
+    if(!PyArg_ParseTuple(args, "s", &path)) { 
+        return NULL;
+    }
+
+    // print file path
+    printf("Stl file: %s\n", path);
+
+    // Create geometry and read stl
+    Geometry geo(path);
+
+    // Box
+    V3 gridMinCorner(-2.0, -2.0, -2.0);
+    V3 gridMaxCorner( 2.0,  2.0,  2.0);
+    V3 gridExtend = gridMaxCorner - gridMinCorner;
+
+    double dx = gridExtend.x / 33;
+
+    // print dx
+    printf("dx: %f\n", dx);
+
+    // set grid bounding corner
+    int3 gridNum = int3(gridExtend.x / dx, gridExtend.y / dx, gridExtend.z /dx);
+
+    // make the grid equal to the PETSc grid
+    GridBox grid(gridMinCorner, dx, gridNum);
+
+    // voxelize geo in grid
+    Voxelizer vox(geo, grid);
+
+    // get flag
+    const char* flag = vox.get_flag();
+    gridNum = grid.get_gridNum();
+
+    // count solid flag
+    int count = 0;
+    for (int i = 0; i < gridNum.nx * gridNum.ny * gridNum.nz; i++)
+    {
+        //if (*(flag+i) == 0) count++;
+        if (flag[i] == 1) count++;
+    }
+    cout << "count of flag == 1 : " << count << endl;
+
+    // wirte vtk file of flag, use paraview to view the flag data
+    vox.write_vtk_image();
 
     Py_RETURN_NONE;
 }
@@ -350,6 +406,7 @@ static PyObject *stl_py(DataObj *self, PyObject *args)
 
 static PyMethodDef methods[] =
     { {"structuredGrid", (PyCFunction)structuredGrid_py, METH_VARARGS, "Implement structuredGrid\n"},
+      {"stlread_domain", (PyCFunction)stlread_domain_py, METH_VARARGS, "STL read\n"},
       {"material", (PyCFunction)material_py, METH_VARARGS, "Implement material\n"},
       {"filter", (PyCFunction)filter_py, METH_VARARGS, "Implement filter\n"},
       {"mma", (PyCFunction)mma_py, METH_VARARGS, "Implement mma\n"},

@@ -18,16 +18,22 @@ data = topoptlib.Data()
 # step 2:
 # define input data
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
-#data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (129, 65, 65))
-#data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (17, 9, 9))
-#data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (33, 17, 17))
 data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (65, 33, 33))
+
+# readin STL file in binary format
+# TO DO: allow for aiici format
+# stl read: (full path to file)
+data.stlread_domain('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/sphere.stl')
+# data.stlread_domain('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/jetEngineDesignDomainFine.stl')
+# data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/jetEngineSolidDomainFine.stl')
+# data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/jetEngineRigidDomainFine.stl')
 
 # Optional printing:
 #print(data.nNodes)
 #print(data.nElements)
 #print(data.nDOF)
 
+'''
 # material: (Emin, Emax, nu, penal)
 Emin, Emax, nu, Dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 1.0
 data.material(Emin, Emax, nu, Dens, penal)
@@ -89,3 +95,4 @@ complete = data.solve()
 # post processing, generate .vtu file to be viewed in paraview
 #if complete:
 #    data.vtu()
+'''
