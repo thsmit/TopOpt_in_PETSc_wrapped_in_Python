@@ -18,13 +18,11 @@ Implemented functionality
 Examples
 --------
 
-.. raw:: html
-
-    - Cantilever beam in ``beam.py``
-    - Multi-loads in ``multiloads.py``   
-    - Roof support in ``roof.py``
-    - ``sphere.py``
-    - ``bracket.py``
+- Cantilever beam in ``beam.py``
+- Multi-loads in ``multiloads.py``   
+- Roof support in ``roof.py``
+- ``sphere.py``
+- ``bracket.py``
 
 Installation
 ------------
@@ -61,13 +59,13 @@ Running on ETH Euler
     cd ..
     bsub -n 8 mpirun -n 8 python bracket.py
 
-    Or use the `run_topopt.sh` for automated building and running
+Or use the `run_topopt.sh` for automated building and running
     
 
 Origional code
 --------
 
-.. code:: bash
+.. note::
 
     Aage, N., Andreassen, E., & Lazarov, B. S. (2015). Topology optimization using PETSc: An easy-to-use, fully parallel, open source topology optimization framework. 
     Structural and Multidisciplinary Optimization, 51(3), 565–572. https://doi.org/10.1007/s00158-014-1157-0
