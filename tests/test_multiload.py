@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Author: Thijs Smit, June 2020
+# Author: Thijs Smit, May 2020
 # Copyright (C) 2020 ETH Zurich
 
 # Disclaimer:
@@ -19,11 +19,15 @@ Emin, Emax, nu, dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 3.0
 data.material(Emin, Emax, nu, dens, penal)
 data.filter(2, 0.08)
 data.mma(40)
-data.loadcases(1)
+data.loadcases(2)
 data.bc(0, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
 data.bc(0, 2, [0, 1, 2, 4], [2], [-0.001], 0)
 data.bc(0, 2, [0, 1, 1, 2, 2, 4], [2], [-0.0005], 0)
 data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], 0)
+data.bc(1, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+data.bc(1, 2, [0, 1, 1, 3], [1], [0.001], 0)
+data.bc(1, 2, [0, 1, 1, 3, 2, 4], [1], [0.0005], 0)
+data.bc(1, 2, [0, 1, 1, 3, 2, 5], [1], [0.0005], 0)
 
 materialvolumefraction = 0.12
 nEl = data.nElements

@@ -321,6 +321,9 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
 
     PetscErrorCode ierr;
 
+    PetscPrintf(PETSC_COMM_WORLD, "########################################################################\n");
+    PetscPrintf(PETSC_COMM_WORLD, "############################# Filtering ################################\n");
+
     VecDuplicate(x, &dx);
     VecSet(dx, 1.0);
 
@@ -480,27 +483,27 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
 
         ///////////////////////////////////
 
-        PetscScalar *xxpPassive;
-        ierr = VecGetArray(xPassive, &xxpPassive);
-        CHKERRQ(ierr);
+        //PetscScalar *xxpPassive;
+        //ierr = VecGetArray(xPassive, &xxpPassive);
+        //CHKERRQ(ierr);
 
         //VecSet(xPassive, -1.0); // Set ALL elements to active
 
         // Loop over elements
-        for (PetscInt el = 0; el < nel; el++) {
+        //for (PetscInt el = 0; el < nel; el++) {
             //if (el > 6348) { // Is passive element
-            if ( (PetscPowScalar((lcoorp[3 * el] - 24.0) / 12.0, 2.0) + PetscPowScalar((lcoorp[3 * el + 1] - 20.0) / 10.0, 2.0)) < 1) {
+         //   if ( (PetscPowScalar((lcoorp[3 * el] - 24.0) / 12.0, 2.0) + PetscPowScalar((lcoorp[3 * el + 1] - 20.0) / 10.0, 2.0)) < 1) {
                 //xxpPassive[el] = 1.0;
-                xxpPassive[el] = -1.0;
-            } else {
-                xxpPassive[el] = -1.0;
-            }
+          //      xxpPassive[el] = -1.0;
+            //} else {
+              //  xxpPassive[el] = -1.0;
+            //}
             //PetscPrintf(PETSC_COMM_WORLD, "el: %i, val: %f\n", el, xxpPassive[el]);
-        }
+        //}
     
         // Restore
-        ierr = VecRestoreArray(xPassive, &xxpPassive);
-        CHKERRQ(ierr);
+        //ierr = VecRestoreArray(xPassive, &xxpPassive);
+        //CHKERRQ(ierr);
         
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         
@@ -570,6 +573,9 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
         delete[] Lz;
 
     } else if (filterType == 2) {
+        // Print WARNING!
+        PetscPrintf(PETSC_COMM_WORLD, "WARNING: it is not adviced to use the PDE filter in combination with passive elements \n");
+        
         // ALLOCATE AND SETUP THE PDE FILTER CLASS
         pdef = new PDEFilt(da_nodes, R);
     }

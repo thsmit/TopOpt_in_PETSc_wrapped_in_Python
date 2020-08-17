@@ -4,13 +4,14 @@
 .vscode/
 build/
 dist/
+data/
 *.pyc
 __pycache__/
 .pytest_cache
 *.egg-info/
 *.vtu
 *.vtk
-*.sh
-*setup.py
+#*.sh
+#*setup.py
 *~
 

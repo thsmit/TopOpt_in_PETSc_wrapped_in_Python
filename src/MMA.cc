@@ -229,6 +229,8 @@ MMA::MMA(PetscInt nn, PetscInt mm, Vec x) {
     n = nn;
     m = mm;
 
+    //PetscPrintf(PETSC_COMM_WORLD, "init MMA \n");
+
     asyminit = 0.5;
     asymdec  = 0.7;
     asyminc  = 1.2;
@@ -372,6 +374,8 @@ PetscErrorCode MMA::SetOuterMovelimit(PetscScalar Xmin, PetscScalar Xmax, PetscS
 
     PetscErrorCode ierr = 0;
 
+    //PetscPrintf(PETSC_COMM_WORLD, "start SetOuterMovelimit \n");
+
     PetscScalar *xv, *xmiv, *xmav;
     PetscInt     nloc;
     VecGetLocalSize(x, &nloc);
@@ -483,11 +487,18 @@ PetscErrorCode MMA::KKTresidual(Vec x, Vec dfdx, PetscScalar* fx, Vec* dgdx, Vec
 PetscErrorCode MMA::Update(Vec xval, Vec dfdx, PetscScalar* gx, Vec* dgdx, Vec xmin, Vec xmax) {
     PetscErrorCode ierr = 0;
 
+    //PetscPrintf(PETSC_COMM_WORLD, "start Update \n");
+
     if (!NonLinConstraints) {
         PetscErrorPrintf("MMA->Update called WITH constraints but object was "
                          "allocated WITHOUT !\n");
         return -1;
     }
+
+    //PetscInt nloc;
+    //VecGetSize(xval, &nloc);
+    //PetscPrintf(PETSC_COMM_WORLD, "len xval IN UPDATE %i\n", nloc);
+
 
     // Generate the subproblem
     GenSub(xval, dfdx, gx, dgdx, xmin, xmax);
@@ -498,6 +509,75 @@ PetscErrorCode MMA::Update(Vec xval, Vec dfdx, PetscScalar* gx, Vec* dgdx, Vec x
 
     // Solve the dual with an interior point method
     SolveDIP(xval);
+    return ierr;
+}
+
+PetscErrorCode MMA::MaptoMMA(Vec xPassive, Vec x, Vec dfdx, Vec* dgdx, Vec xmin, Vec xmax, Vec xMMA, Vec dfdxMMA, Vec* dgdxMMA, Vec xminMMA, Vec xmaxMMA) {
+    PetscErrorCode ierr = 0;
+
+    PetscPrintf(PETSC_COMM_WORLD, "MMA->Mapping called!\n");
+    
+    PetscInt nel;
+    VecGetLocalSize(xPassive, &nel);
+
+    PetscPrintf(PETSC_COMM_WORLD, "Size xPassive: %i\n", nel);
+    
+    PetscInt acount = 0;
+    
+    PetscScalar *xpPassive;
+    VecGetArray(xPassive, &xpPassive);
+
+    // Count number of active elements on processor
+    for (PetscInt el = 0; el < nel; el++) {
+        if (xpPassive[el] < 0) {
+            //PetscPrintf(PETSC_COMM_WORLD, "ctmp[el] : %f\n", xtmp[el]);
+            //VecSetValueLocal(xMMA, count, xtmp[el], INSERT_VALUES);
+            acount += 1;
+        }
+    }
+
+    //VecCreateMPI(PETSC_COMM_WORLD, acount, PETSC_DETERMINE, &xMMA);
+
+    PetscInt nela;
+    VecGetLocalSize(xMMA, &nela);
+
+    //PetscInt nelaglobal;
+    //VecGetSize(xMMA, &nelaglobal);
+
+    PetscPrintf(PETSC_COMM_WORLD, "Size active elements: %i\n", nela);
+    //PetscPrintf(PETSC_COMM_WORLD, "Size active elementsglobal: %i\n", nelaglobal);
+
+
+    PetscScalar *xtmp;
+    VecGetArray(x, &xtmp);
+
+    PetscInt count = 0;
+
+    //VecSet(xMMA, 0.0);
+
+    // Count number of active elements on processor
+    for (PetscInt el = 0; el < nel; el++) {
+        if (xpPassive[el] < 0) {
+            //PetscPrintf(PETSC_COMM_WORLD, "ctmp[el] : %f\n", xtmp[el]);
+            //VecSetValueLocal(xMMA, count, xtmp[el], INSERT_VALUES);
+            count += 1;
+        }
+    }
+ 
+    PetscPrintf(PETSC_COMM_SELF, "# aactive: %i\n", count);
+    PetscSynchronizedPrintf(PETSC_COMM_WORLD, "# active: %i\n", count);
+
+    // Restore
+    ierr = VecRestoreArray(xPassive, &xpPassive);
+    CHKERRQ(ierr);
+
+    VecAssemblyBegin(xMMA);
+    VecAssemblyEnd(xMMA);
+
+    // Restore
+    ierr = VecRestoreArray(x, &xtmp);
+    CHKERRQ(ierr);
+
     return ierr;
 }
 
@@ -545,7 +625,19 @@ PetscErrorCode MMA::SetToZero(Vec xPassive, Vec x, Vec dfdx) {
 PetscErrorCode MMA::GenSub(Vec xval, Vec dfdx, PetscScalar* gx, Vec* dgdx, Vec xmin, Vec xmax) {
     PetscErrorCode ierr = 0;
 
+    //PetscPrintf(PETSC_COMM_WORLD, "start GenSub \n");
+
     PetscScalar gamma, helpvar;
+    
+    //PetscInt nlocx;
+    //VecGetSize(xval, &nlocx);
+    //PetscPrintf(PETSC_COMM_WORLD, "len xval %i\n", nlocx);
+    //PetscInt nlocL;
+    //VecGetSize(L, &nlocL);
+    //PetscPrintf(PETSC_COMM_WORLD, "len L %i\n", nlocL);
+    //PetscInt nlocxmax;
+    //VecGetSize(xmax, &nlocxmax);
+    //PetscPrintf(PETSC_COMM_WORLD, "len xmax %i\n", nlocxmax);
 
     k++;
     PetscInt nloc;

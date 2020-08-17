@@ -50,6 +50,8 @@ class TopOpt {
     PetscErrorCode AllocateMMAwithRestart(PetscInt* itr, MMA** mma);
     PetscErrorCode WriteRestartFiles(PetscInt* itr, MMA* mma);
 
+    PetscErrorCode UpdateVariables(PetscInt updateDirection, Vec elementVector, Vec MMAVector);
+
     // Physical domain variables
     PetscScalar xc[6];      // Domain coordinates
     PetscScalar dx, dy, dz; // Element size
@@ -89,7 +91,8 @@ class TopOpt {
     PetscReal   eta;
 
     Vec xPassive;
-    Vec xActive;
+    IS is;
+    //ISLocalToGlobalMapping is;
 
     Vec  x;          // Design variables
     Vec  xTilde;     // Filtered field
@@ -99,6 +102,13 @@ class TopOpt {
     Vec  xold;       // x from previous iteration
     Vec* dgdx;       // Sensitivities of constraints (vector array)
 
+    // new vectors for passive element implementations
+    Vec xMMA;
+    Vec dfdxMMA;
+    Vec* dgdxMMA;
+    Vec xminMMA;
+    Vec xmaxMMA;
+    
     // Restart data for MMA:
     PetscBool   restart, flip;
     std::string restdens_1, restdens_2;

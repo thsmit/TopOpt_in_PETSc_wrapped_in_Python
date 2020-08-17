@@ -23,6 +23,8 @@ class MMA {
     // Set and solve a subproblem: return new xval
     PetscErrorCode Update(Vec xval, Vec dfdx, PetscScalar* gx, Vec* dgdx, Vec xmin, Vec xmax);
 
+    PetscErrorCode MaptoMMA(Vec xPassive, Vec x, Vec dfdx, Vec* dgdx, Vec xmin, Vec xmax, Vec xMMA, Vec dfdxMMA, Vec* dgdxMMA, Vec xminMMA, Vec xmaxMMA);
+
     PetscErrorCode SetToZero(Vec xPassive, Vec x, Vec dfdx);
 
     // Return necessary data for possible restart

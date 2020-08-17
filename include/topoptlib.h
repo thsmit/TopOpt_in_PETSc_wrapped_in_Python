@@ -23,7 +23,6 @@ class BC {
         std::vector<int> Checker_vec;
         std::vector<int> Setter_dof_vec;
         std::vector<double> Setter_val_vec;
-
 };
 
 // Creating class with C variables with default values
@@ -35,6 +34,7 @@ struct DataObj {
     public:
         // data storage
         double xc_w[9];
+        double b_w[6];
         int nxyz_w[3] = {65, 33, 33};
         double Emin_w = 1.0e-9;
         double Emax_w = 1.0;
@@ -58,14 +58,18 @@ struct DataObj {
         double trueFx;
         double scaledFx;
 
+        // xPassive
+        std::vector<double> xPassive_w;
+        int nael; // number of active design variables
+
         // Loadcases
         int nL = 1;
         std::vector<std::vector<BC>> loadcases_list;
         
+        // parametrization
         PyObject *para_func = NULL;    
 
-        // Passive elements
-        //bool passive = false;
+        // parametrization
         PyObject *passive_func = NULL;
 
         // Callback function

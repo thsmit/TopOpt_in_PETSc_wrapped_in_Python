@@ -7,9 +7,13 @@ TopOpt_in_PETSc_wrapped_in_Python
 
 .. summary-end
 
-**WARNING: TopOpt_in_PETSc_wrapped_in_Python is still in a beta development stage**
+**WARNING: TopOpt_in_PETSc_wrapped_in_Python is still in a development stage**
 
 .. not-in-documentation-start
+
+Implemented functionality
+--------
+
 
 Examples
 --------
@@ -19,6 +23,8 @@ Examples
     - Cantilever beam in ``beam.py``
     - Multi-loads in ``multiloads.py``   
     - Roof support in ``roof.py``
+    - ``sphere.py``
+    - ``bracket.py``
 
 Installation
 ------------
@@ -30,33 +36,15 @@ Tests
 Implemented tests in ``/tests``:
 
 - Testing standard MBB problem with maxItr of 40 ``test_beam.py``
+- ``multiload.py``
+- ``continuation.py``
 
-Running tests:
-
-.. code:: bash
-
-    module load gcc/4.8.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4
-    cd TopOpt_in_PETSc_wrapped_in_Python
-    make topoptlib
-    make test
-    make myclean
-
+On ETH Euler: use the `test_topopt.sh` for automated building and running the tests
 
 Learner
 --------
 
 
-Wish-list
---------
-
-- [ ] STL input
-- [ ] Passive elements proper implementation
-- [ ] Continuation strategy
-- [ ] infill constraint
-- [ ] Automatic STL and VTK output
-- [ ] Performance script
-- [ ] Multiple constraints
-- [ ] Test with Petsc 3.13.0
 
 Running on ETH Euler
 --------
@@ -64,12 +52,17 @@ Running on ETH Euler
 .. code:: bash
 
     env2lmod
-    module load gcc/4.8.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4
+    module load gcc/4.8.5 cmake/3.16.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4 gmp/6.1.2 mpfr/3.1.5 boost/1.68.0 cgal/4.11 vtk/8.1.2
     cd TopOpt_in_PETSc_wrapped_in_Python
-    make topoptlib
-    make test
-    bsub -n 8 mpirun -n 8 python multiloads.py
-    make myclean
+    mkdir build
+    cd build
+    cmake ..
+    make
+    cd ..
+    bsub -n 8 mpirun -n 8 python bracket.py
+
+    Or use the `run_topopt.sh` for automated building and running
+    
 
 Origional code
 --------

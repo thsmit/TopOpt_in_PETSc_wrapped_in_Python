@@ -37,7 +37,7 @@ data.material(Emin, Emax, nu, Dens, penal)
 data.filter(1, 0.001)
 
 # optimizer: (maxIter)
-data.mma(10000)
+data.mma(10)
 
 # loadcases: (# of loadcases)
 data.loadcases(1)
@@ -79,7 +79,7 @@ data.cons(constraint)
 data.conssens(constraintSensitivity)
 
 # Volume constraint is standard, input (volume fraction)
-data.volumeConstraint(materialvolumefraction)
+data.initialcondition(materialvolumefraction)
 
 # step 3:
 # solve topopt problem with input data and wait for "complete" signal
