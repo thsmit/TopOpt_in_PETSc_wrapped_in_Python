@@ -23,8 +23,8 @@ data.structuredGrid((0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0), (65, 65, 65))
 # readin STL file in binary format
 # TO DO: allow for ASCII format
 # stl read: ((box around stl: (min corner)(max corner))full path to file)
-data.stlread_domain((-1.0, -1.0, -1.0), (1.0, 1.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/sphere.stl')
-#data.stlread_domain((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/tritext_demo.stl')
+data.stlread_domain((-1.0, -1.0, -1.0), (1.0, 1.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/sphere.stl')
+#data.stlread_domain((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/tritext_demo.stl')
 # data.stlread_domain('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/jetEngineDesignDomainFine.stl')
 # data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/jetEngineSolidDomainFine.stl')
 # data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/jetEngineRigidDomainFine.stl')

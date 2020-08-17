@@ -29,9 +29,9 @@ cd $id
 
 #path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/problem_definition_file.py 
 #path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/largescale.py
-path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/beam.py
+#path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/beam.py
 #path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket.py
-#path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/sphere.py
+path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/sphere.py
 
 # ADJUSTABLE PARAMETERS
 EULER_MEMORY="1000"
