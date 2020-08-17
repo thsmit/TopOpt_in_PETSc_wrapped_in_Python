@@ -3,7 +3,7 @@
 TopOpt_in_PETSc_wrapped_in_Python
 ===============
 
-``TopOpt_in_PETSc_wrapped_in_Python`` provides a Python wrapper and extends the functionality of the TopOpt_in_PETSc framework.
+``TopOpt_in_PETSc_wrapped_in_Python`` provides a Python wrapper and extends the functionality of the TopOpt_in_PETSc framework [CIT2015]_.
 
 .. summary-end
 
@@ -65,7 +65,7 @@ Or use the ``run_topopt.sh`` for automated building and running
 Origional code
 --------
 
-.. note:: bash
+.. [CIT2015]
 
     Aage, N., Andreassen, E., & Lazarov, B. S. (2015). Topology optimization using PETSc: An easy-to-use, fully parallel, open source topology optimization framework. 
     Structural and Multidisciplinary Optimization, 51(3), 565–572. https://doi.org/10.1007/s00158-014-1157-0
