@@ -29,6 +29,7 @@ static PyMemberDef members[] =
       {"it", T_INT, offsetof(DataObj, it), 0, "nNodes docstring"},
       {"trueFx", T_DOUBLE, offsetof(DataObj, trueFx), 0, "nNodes docstring"},
       {"scaledFx", T_DOUBLE, offsetof(DataObj, scaledFx), 0, "nNodes docstring"},
+      {"nael", T_INT, offsetof(DataObj, nael), 0, "nael docstring"},
       {NULL}  /* Sentinel */
 };
 
@@ -190,7 +191,8 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
         }
     }
 
-    //std::cout << "active design var: " << acount << std::endl;
+    std::cout << "total design var: " << ecount << std::endl;
+    std::cout << "active design var: " << acount << std::endl;
     self->nael = acount;
 
     // wirte vtk file of flag, use paraview to view the flag data
@@ -698,8 +700,9 @@ static PyObject *conssens_py(DataObj *self, PyObject *args)
 
 static PyObject *solve_py(DataObj *self)
 {
-    // variable to store "complete" signal
+    // variable to store output variables
     int complete = 0;
+    double trueFX = 0.0;
 
     // initialte TopOpt loop
     complete = solve(*self);

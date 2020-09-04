@@ -262,10 +262,6 @@ void MPIIO::Allocate(std::string info, const int nDom, const int nPFields[], con
         abort("Problems getting number of cpus", "MPIIO:MPIIO");
     }
 
-    //////////////
-    PetscPrintf(MPI_COMM_WORLD, "nDom: %i\n", nDom);
-
-
     // Communicate number of points and cells to all processors
     // First allocate space for the arrays
     // Check how many domains your trying to allocate (to avoid crash)

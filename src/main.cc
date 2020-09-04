@@ -1,4 +1,4 @@
-#include "topoptlib.h"
+#include "topoptlib.h" // for wrapper
 #include "Filter.h"
 #include "LinearElasticity.h"
 #include "MMA.h"
@@ -8,7 +8,7 @@
 #include <petsc.h>
 
 /*
-Modified by: Thijs Smit, May 2020
+Modified: Thijs Smit, May 2020
 
 Authors: Niels Aage, Erik Andreassen, Boyan Lazarov, August 2013
 
@@ -69,10 +69,6 @@ int solve(DataObj data) {
         // start timer
         t1 = MPI_Wtime();
 
-        ///////////////////// set sens and x to 0
-        //ierr = mma->SetToZero(opt->xPassive, opt->x, opt->xPhys);
-        //CHKERRQ(ierr);
-
         // Compute (a) obj+const, (b) sens, (c) obj+const+sens
         // input -> xPhys + SIMP settings + material properties
         // output -> objective + sensitivities + constraint value + cons sensitivies
@@ -97,60 +93,39 @@ int solve(DataObj data) {
                                  opt->eta);
         CHKERRQ(ierr);
 
-        /*
-        ///////////////////// passive
-        //ierr = mma->SetToZero(opt->xPassive, opt->x, opt->dfdx);
-        //ierr = mma->MaptoMMA(opt->xPassive, opt->x, opt->dfdx, opt->dgdx, opt->xmin, opt->xmax, opt->xMMA, opt->dfdxMMA, opt->dgdxMMA, opt->xminMMA, opt->xmaxMMA);
-        ierr = opt->UpdateVariables(1, opt->x, opt->xMMA);
-        CHKERRQ(ierr);
-        ierr = opt->UpdateVariables(1, opt->dfdx, opt->dfdxMMA);
-        CHKERRQ(ierr);
-        ierr = opt->UpdateVariables(1, opt->dgdx[0], opt->dgdxMMA[0]);
-        CHKERRQ(ierr);
-        ierr = opt->UpdateVariables(1, opt->xmin, opt->xminMMA);
-        CHKERRQ(ierr);
-        ierr = opt->UpdateVariables(1, opt->xmax, opt->xmaxMMA);
-        CHKERRQ(ierr);
-        */
-
-        //VecView(opt->x,PETSC_VIEWER_STDOUT_WORLD);
-        //VecView(opt->xMMA,PETSC_VIEWER_STDOUT_WORLD);
-
-        // Sets outer movelimits on design variables
-        ierr = mma->SetOuterMovelimit(opt->Xmin, opt->Xmax, opt->movlim, opt->x, opt->xmin, opt->xmax);
-        //ierr = mma->SetOuterMovelimit(opt->Xmin, opt->Xmax, opt->movlim, opt->xMMA, opt->xminMMA, opt->xmaxMMA);
-        CHKERRQ(ierr);
-
+        if (opt->xPassiveStatus) {
         
-        //VecView(opt->dfdx,PETSC_VIEWER_STDOUT_WORLD);
-        //PetscPrintf(PETSC_COMM_WORLD,"gx %f \n",opt->gx);
-        //VecView(*opt->dgdx,PETSC_VIEWER_STDOUT_WORLD);
-        //VecView(opt->xmin,PETSC_VIEWER_STDOUT_WORLD);
-        //VecView(opt->xmax,PETSC_VIEWER_STDOUT_WORLD);
+            // map vectors
+            opt->UpdateVariables(1, opt->x, opt->xMMA);
+            opt->UpdateVariables(1, opt->dfdx, opt->dfdxMMA);
+            opt->UpdateVariables(1, opt->dgdx[0], opt->dgdxMMA[0]);
+            opt->UpdateVariables(1, opt->xmin, opt->xminMMA);
+            opt->UpdateVariables(1, opt->xmax, opt->xmaxMMA);
 
-        // Update design by MMA
-        ierr = mma->Update(opt->x, opt->dfdx, opt->gx, opt->dgdx, opt->xmin, opt->xmax);
-        //ierr = mma->Update(opt->xMMA, opt->dfdxMMA, opt->gx, opt->dgdxMMA, opt->xminMMA, opt->xmaxMMA);
-        CHKERRQ(ierr);
+            // Sets outer movelimits on design variables
+            ierr = mma->SetOuterMovelimit(opt->Xmin, opt->Xmax, opt->movlim, opt->xMMA, opt->xminMMA, opt->xmaxMMA);
+            CHKERRQ(ierr);
 
-        /*
-        ///////////////////////// passive
-        //ierr = mma->SetToZero(opt->xPassive, opt->x, opt->dfdx);
-        //ierr = mma->MapMMA(opt->xPassive, opt->xMMA, opt->dfdxMMA, opt->dgdxMMA, opt->xminMMA, opt->xmaxMMA, opt->x, opt->dfdx, opt->dgdx, opt->xmin, opt->xmax);
-        //CHKERRQ(ierr);
-        ierr = opt->UpdateVariables(-1, opt->x, opt->xMMA);
-        CHKERRQ(ierr);
-        ierr = opt->UpdateVariables(-1, opt->dfdx, opt->dfdxMMA);
-        CHKERRQ(ierr);
-        ierr = opt->UpdateVariables(-1, opt->dgdx[0], opt->dgdxMMA[0]);
-        CHKERRQ(ierr);
-        ierr = opt->UpdateVariables(-1, opt->xmin, opt->xminMMA);
-        CHKERRQ(ierr);
-        ierr = opt->UpdateVariables(-1, opt->xmax, opt->xmaxMMA);
-        CHKERRQ(ierr);
-        */
+            // Update design by MMA
+            ierr = mma->Update(opt->xMMA, opt->dfdxMMA, opt->gx, opt->dgdxMMA, opt->xminMMA, opt->xmaxMMA);
+            CHKERRQ(ierr);
 
-        //VecView(opt->x,PETSC_VIEWER_STDOUT_WORLD);
+            opt->UpdateVariables(-1, opt->x, opt->xMMA);
+            opt->UpdateVariables(-1, opt->dfdx, opt->dfdxMMA);
+            opt->UpdateVariables(-1, opt->dgdx[0], opt->dgdxMMA[0]);
+            opt->UpdateVariables(-1, opt->xmin, opt->xminMMA);
+            opt->UpdateVariables(-1, opt->xmax, opt->xmaxMMA);
+            
+        } else {
+            
+            // Sets outer movelimits on design variables
+            ierr = mma->SetOuterMovelimit(opt->Xmin, opt->Xmax, opt->movlim, opt->x, opt->xmin, opt->xmax);
+            CHKERRQ(ierr);
+
+            // Update design by MMA
+            ierr = mma->Update(opt->x, opt->dfdx, opt->gx, opt->dgdx, opt->xmin, opt->xmax);
+            CHKERRQ(ierr);
+        }
 
         // Inf norm on the design change
         ch = mma->DesignChange(opt->x, opt->xold);
@@ -176,7 +151,6 @@ int solve(DataObj data) {
                     "It.: %i, True fx: %f, Scaled fx: %f, gx[0]: %f, ch.: %f, "
                     "mnd.: %f, time: %f\n",
                     itr, opt->fx / opt->fscale, opt->fx, opt->gx[0], ch, mnd, t2 - t1);
-        //PetscPrintf(PETSC_COMM_WORLD,"%f\n", opt->fx / opt->fscale);
 
         // Write field data: first 10 iterations and then every 20th
         if (itr < 11 || itr % 20 == 0 || changeBeta) {
@@ -184,21 +158,15 @@ int solve(DataObj data) {
         }
 
         // Dump data needed for restarting code at termination
-        //if (itr % 10 == 0) {
-            //opt->WriteRestartFiles(&itr, mma);
-            //physics->WriteRestartFiles();
-        //}
+        if (itr % 10 == 0) {
+            opt->WriteRestartFiles(&itr, mma);
+            physics->WriteRestartFiles();
+        }
     }
-    
-    // Fill wrapper output variables
-    //PetscPrintf(PETSC_COMM_WORLD, "It.: %i", itr);
-    //data.it = itr;
-    //data.trueFx = opt->fx / opt->fscale;
-    //data.scaledFx = opt->fx;
-    
+        
     // Write restart WriteRestartFiles
-    //opt->WriteRestartFiles(&itr, mma);
-    //physics->WriteRestartFiles();
+    opt->WriteRestartFiles(&itr, mma);
+    physics->WriteRestartFiles();
 
     // Dump final design
     output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr + 1);

@@ -91,8 +91,9 @@ class TopOpt {
     PetscReal   eta;
 
     Vec xPassive;
-    IS is;
-    //ISLocalToGlobalMapping is;
+    Vec indicator;
+
+    PetscBool xPassiveStatus;
 
     Vec  x;          // Design variables
     Vec  xTilde;     // Filtered field

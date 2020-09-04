@@ -45,32 +45,13 @@ TopOpt::TopOpt(DataObj data) {
     da_elem  = NULL;
 
     xPassive = NULL;
-    is = NULL;
+    indicator = NULL;
 
     xMMA = NULL;
     dfdxMMA = NULL;
     dgdxMMA = NULL;
     xminMMA = NULL;
     xmaxMMA = NULL;
-
-    xo1 = NULL;
-    xo2 = NULL;
-    U   = NULL;
-    L   = NULL;
-
-    SetUp(data);
-    //Init(data);
-}
-
-void TopOpt::Init(DataObj data) { // Dummy constructor
-
-    x        = NULL;
-    xPhys    = NULL;
-    dfdx     = NULL;
-    dgdx     = NULL;
-    gx       = NULL;
-    da_nodes = NULL;
-    da_elem  = NULL;
 
     xo1 = NULL;
     xo2 = NULL;
@@ -110,8 +91,8 @@ TopOpt::~TopOpt() {
     if (xPassive != NULL) {
         VecDestroy(&xPassive);
     }
-    if (is != NULL) {
-        ISDestroy(&is);
+    if (indicator != NULL) {
+        VecDestroy(&indicator);
     }
     if (xMMA != NULL) {
         VecDestroy(&xMMA);
@@ -184,8 +165,12 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     Xmin    = 0.0;
     Xmax    = 1.0;
     movlim  = 0.2;
-    //restart = PETSC_TRUE;
-    restart = PETSC_FALSE;
+    restart = PETSC_TRUE;
+    xPassiveStatus = PETSC_FALSE;
+
+    if (data.xPassive_w.size() > 1) {
+        xPassiveStatus = PETSC_TRUE;
+    }
 
     // Projection filter
     projectionFilter = PETSC_FALSE;
@@ -417,102 +402,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     if (filter == 0) {
         Xmin = 0.001; // Prevent division by zero in filter
     }
-
-    ///////////////// Passive
-        
-    //VecDuplicate(xPhys, &xPassive);
-    //CHKERRQ(ierr);
-    /*
-    PetscScalar *xpPassive;
-    ierr = VecGetArray(xPassive, &xpPassive);
-    CHKERRQ(ierr);
-
-    //VecSet(xPassive, -1.0); // Set ALL elements to active
-
-    // Loop over elements and write to tmp vector
-    for (PetscInt el = 0; el < nel; el++) {
-        if (el > 63488) { // Is passive element
-            xpPassive[el] = 1.0;
-            PetscPrintf(PETSC_COMM_WORLD, "el: %i, val: %f\n", el, xpPassive[el]);
-        } else {
-            xpPassive[el] = -1.0;
-        }
-        
-    }
-    
-    // Restore
-    ierr = VecRestoreArray(xPassive, &xpPassive);
-    CHKERRQ(ierr);
-    */
-    //VecDuplicate(xPhys, &xActive);
-    //VecSetSizes(xActive, PETSC_DECIDE, 63488);
-    //PetscScalar *xpActive;
-    //ierr = VecGetArray(xActive, &xpActive);
-    //CHKERRQ(ierr);
-
-    //for (PetscInt el = 63488; 65536; el++) {
-    //    PetscScalar fff = data.passive_ev(el);
-    //    PetscPrintf(PETSC_COMM_WORLD, "fff: %f\n", fff);
-        
-      //  VecSetValueLocal(xPassive, el, 1.0, INSERT_VALUES);
-        //VecSetValueLocal(xPassive, el, -1.0, INSERT_VALUES);
-        //PetscPrintf(PETSC_COMM_WORLD, "xPassive: %f\n", el);
-    //}
-
-    //////////////////////////////////
-
-    // set xPassive vector
-    PetscInt nel;
-    VecGetLocalSize(xPhys, &nel);
-
-    ierr = VecDuplicate(xPhys, &xPassive);
-    CHKERRQ(ierr);
-
-    PetscScalar *xpPassive;
-    ierr = VecGetArray(xPassive, &xpPassive);
-    CHKERRQ(ierr);
-
-    // count number of active elements on this processor
-    PetscInt count = 0;
-    PetscInt acount = 0;
-
-    for (PetscInt el = 0; el < nel; el++) {
-        if (data.xPassive_w.size() > 1) {
-            xpPassive[el] = data.xPassive_w[el];
-            count++;
-            if (xpPassive[el] < 0) {
-                acount++;
-            }
-        
-        } else {
-            xpPassive[el] = -1.0; // default, if no xPassive_w than all elements are active = -1.0
-        }
-    }
-
-    PetscInt *index;
-    PetscMalloc1(acount, &index);
-    count = 0;
-    acount = 0;
-
-    for (PetscInt el = 0; el < nel; el++) {
-        if (data.xPassive_w.size() > 1) {           
-            if (xpPassive[el] < 0) {
-                index[acount] = el;
-                //PetscPrintf(PETSC_COMM_WORLD, "acount: %i, count: %i\n", acount, count);
-                acount++;
-            }
-            count++;
-        } 
-    }
-
-    // print number of active elements
-    PetscPrintf(PETSC_COMM_WORLD, "count: %i\n", count);
-    PetscPrintf(PETSC_COMM_WORLD, "active: %i\n", acount);
-    PetscPrintf(PETSC_COMM_WORLD, "nael: %i\n", data.nael);
-
-    ierr = VecRestoreArray(xPassive, &xpPassive);
-    CHKERRQ(ierr);
-
+ 
     // Allocate the optimization vectors
     ierr = VecDuplicate(xPhys, &x);
     CHKERRQ(ierr);
@@ -522,10 +412,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     VecSet(x, volfrac);      // Initialize to volfrac !
     VecSet(xTilde, volfrac); // Initialize to volfrac !
     VecSet(xPhys, volfrac);  // Initialize to volfrac !
-    //VecSet(x, 0.0);      // Initialize to volfrac !
-    //VecSet(xTilde, 0.0); // Initialize to volfrac !
-    //VecSet(xPhys, 0.0);  // Initialize to volfrac !
-
+    
     // Sensitivity vectors
     ierr = VecDuplicate(x, &dfdx);
     CHKERRQ(ierr);
@@ -537,23 +424,141 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     VecDuplicate(x, &xmax);
     VecDuplicate(x, &xold);
     VecSet(xold, volfrac);
-    //VecSet(xold, 0.0);
-
-    // indicesMap
-    ISCreateGeneral(PETSC_COMM_SELF, acount, index, PETSC_COPY_VALUES, &is);
-    PetscFree(index);
-
-    //// create MMA vectors
-    VecCreateMPI(PETSC_COMM_WORLD, acount, data.nael, &xMMA);
-
-    ierr = VecDuplicate(xMMA, &dfdxMMA);
-    CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(xMMA, m, &dgdxMMA);
+    
+    // create xPassive vector
+    ierr = VecDuplicate(xPhys, &xPassive);
     CHKERRQ(ierr);
 
-    VecDuplicate(xMMA, &xminMMA);
-    VecDuplicate(xMMA, &xmaxMMA);
+    // Onlz if a custom domain is given
+    if (xPassiveStatus) { 
 
+        // total number of elements on core
+        PetscInt nel;
+        VecGetLocalSize(xPhys, &nel);
+
+        VecSet(x, 0.0);
+        VecSet(xTilde, 0.0);
+        VecSet(xPhys, 0.0); 
+        VecSet(xold, 0.0);
+
+        // create mapping vector
+        ierr = VecDuplicate(xPhys, &indicator);
+        CHKERRQ(ierr);
+
+        // counters for total and active elements on this processor
+        PetscInt tcount = 0; // total number of elements
+        PetscInt acount = 0; // number of active elements
+        PetscInt scount = 0; // number of solid elements
+        PetscInt rcount = 0; // number of rigid element
+
+        // create a temporary vector with natural ordering to get domain data to xPassive
+        Vec TMPnatural;
+        DMDACreateNaturalVector(da_elem, &TMPnatural);
+        
+        PetscInt low;
+        PetscInt high;
+        VecGetOwnershipRange(TMPnatural, &low, &high);
+
+        PetscScalar *xnatural;
+        VecGetArray(TMPnatural, &xnatural);
+
+        // fill the temporary vector with natural ordering
+        for (PetscInt i = low; i < high; i++) {
+            xnatural[i-low] = data.xPassive_w[i];
+        }
+
+        VecRestoreArray(TMPnatural, &xnatural);
+
+        // convert from natural to PETSc ordering in xPassive
+        DMDANaturalToGlobalBegin(da_elem, TMPnatural, INSERT_VALUES, xPassive);
+        DMDANaturalToGlobalEnd(da_elem, TMPnatural, INSERT_VALUES, xPassive);
+        VecDestroy(&TMPnatural);
+        
+        // index set for xPassive and indicator
+        PetscScalar *xpPassive;
+        PetscScalar *xpIndicator;
+        ierr = VecGetArray(xPassive, &xpPassive);
+        CHKERRQ(ierr);
+        ierr = VecGetArray(indicator, &xpIndicator);
+        CHKERRQ(ierr);
+        
+        // count the number of active, solid and rigid elements
+        for (PetscInt el = 0; el < nel; el++) {
+            if (xpPassive[el] == -1.0) {
+                acount++;
+            }
+            if (xpPassive[el] == 2.0) {
+                scount++;
+            } 
+            if (xpPassive[el] == 3.0) {
+                rcount++;
+            } 
+        }
+
+        // printing
+        //PetscPrintf(PETSC_COMM_SELF, "tcount: %i\n", tcount);
+        //PetscPrintf(PETSC_COMM_SELF, "acount: %i\n", acount);
+        //PetscPrintf(PETSC_COMM_SELF, "scount: %i\n", scount);
+        //PetscPrintf(PETSC_COMM_SELF, "rcount: %i\n", rcount);
+
+        // Allreduce, number of active elements
+        // tmp number of var on proces
+        // acount total number of var sumed
+        PetscInt tmp = acount;
+        acount = 0;
+        MPI_Allreduce(&tmp, &acount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
+        
+        // printing
+        //PetscPrintf(PETSC_COMM_WORLD, "acount sum: %i\n", acount);
+
+        //// create MMA vectors
+        VecCreateMPI(PETSC_COMM_WORLD, tmp, acount, &xMMA);
+
+
+        //PetscScalar *xpMMA, *xpPhys;
+        //VecGetArray(xMMA, &xpMMA);
+        //VecGetArray(xPhys, &xpPhys);
+
+        //for (PetscInt ii = 0; ii < nLocalVar; ii++) {
+        //    xpMMA[ii] = volfrac;
+        // }
+
+        //VecRestoreArray(xMMA, &xpMMA);
+        
+        // fill the indicator vector as mapping for x -> xMMA
+        PetscInt count = 0;
+
+        for (PetscInt el = 0; el < nel; el++) {       
+            if (xpPassive[el] == -1.0) {
+                xpIndicator[count] = el;
+                //xpPhys[el] = volfrac;
+                //PetscPrintf(PETSC_COMM_SELF, "aacount: %i, el: %i, low + el: %i\n", aacount, el, low + el);
+                count++;
+            } 
+        }
+
+        //VecRestoreArray(xPhys, &xpPhys);
+
+        // restore xPassive, indicator
+        ierr = VecRestoreArray(xPassive, &xpPassive);
+        CHKERRQ(ierr);
+        ierr = VecRestoreArray(indicator, &xpIndicator);
+        CHKERRQ(ierr);
+
+        // check xPassive, indicator
+        //VecView(xPassive, PETSC_VIEWER_STDOUT_WORLD);
+        //VecView(xMMA, PETSC_VIEWER_STDOUT_WORLD);
+        //VecView(indicator, PETSC_VIEWER_STDOUT_WORLD);
+
+        // duplicate needed vectors
+        VecDuplicate(xMMA, &dfdxMMA);
+        VecDuplicateVecs(xMMA, m, &dgdxMMA);
+        VecDuplicate(xMMA, &xminMMA);
+        VecDuplicate(xMMA, &xmaxMMA);
+
+    } else {
+        VecSet(xPassive, -1.0);
+    }
 
     return (ierr);
 }
@@ -583,7 +588,6 @@ PetscErrorCode TopOpt::AllocateMMAwithRestart(PetscInt* itr, MMA** mma) {
     PetscOptionsGetBool(NULL, NULL, "-restart", &restart, &flg);
     PetscOptionsGetBool(NULL, NULL, "-onlyLoadDesign", &onlyLoadDesign, &flg);
 
-    // x = xMMA
     if (restart) {
         ierr = VecDuplicate(x, &xo1);
         CHKERRQ(ierr);
@@ -646,12 +650,10 @@ PetscErrorCode TopOpt::AllocateMMAwithRestart(PetscInt* itr, MMA** mma) {
     }
 
     // Read from restart point
-
     PetscInt nGlobalDesignVar;
-    VecGetSize(x,
-               &nGlobalDesignVar); // ASSUMES THAT SIZE IS ALWAYS MATCHED TO CURRENT MESH
+    VecGetSize(x, &nGlobalDesignVar); // ASSUMES THAT SIZE IS ALWAYS MATCHED TO CURRENT MESH
     if (restart && vecFile && itrFile) {
-
+        
         PetscViewer view;
         // Open the data files
         ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD, restartFileVec.c_str(), FILE_MODE_READ, &view);
@@ -677,9 +679,13 @@ PetscErrorCode TopOpt::AllocateMMAwithRestart(PetscInt* itr, MMA** mma) {
             PetscPrintf(PETSC_COMM_WORLD, "# Continue optimization from file: %s \n", restartFileVec.c_str());
             *mma = new MMA(nGlobalDesignVar, m, *itr, xo1, xo2, U, L, aMMA, cMMA, dMMA);
         }
-
         PetscPrintf(PETSC_COMM_WORLD, "# Successful restart from file: %s and %s \n", restartFileVec.c_str(),
                     restartFileItr.c_str());
+    } else if (xPassiveStatus) {
+        PetscInt nxMMA;
+        VecGetSize(xMMA, &nxMMA);
+        *mma = new MMA(nxMMA, m, xMMA, aMMA, cMMA, dMMA);
+        PetscPrintf(PETSC_COMM_WORLD, "MMA create, just checking\n");
     } else {
         *mma = new MMA(nGlobalDesignVar, m, x, aMMA, cMMA, dMMA);
     }
@@ -750,39 +756,40 @@ PetscErrorCode TopOpt::UpdateVariables(PetscInt updateDirection, Vec elementVect
     // If updateDirection < 0, fullVector is updated from MMAVector
     PetscErrorCode ierr;
     // Pointers to the vectors
-    PetscScalar *xp, *xpMMA;
+    PetscScalar *xp, *xpMMA, *indicesMap;
+    //PetscInt indicesMap;
     ierr = VecGetArray(MMAVector, &xpMMA);
     CHKERRQ(ierr);
     ierr = VecGetArray(elementVector, &xp);
     CHKERRQ(ierr);
     // Index set
     PetscInt nLocalVar;
-    VecGetLocalSize(MMAVector, &nLocalVar);
+    VecGetLocalSize(xMMA, &nLocalVar);
 
-    //PetscPrintf(PETSC_COMM_WORLD, "xMMA length: %i\n", nLocalVar);
-
-    const PetscInt *indicesMap;
-    ISGetIndices(is, &indicesMap);
+    ierr = VecGetArray(indicator, &indicesMap);
+    CHKERRQ(ierr);
 
     // Run through the indices
     for (PetscInt i = 0; i < nLocalVar; i++) {
         if (updateDirection > 0) {
-            //PetscPrintf(PETSC_COMM_WORLD, "i: %i, xp[%i] = %f\n", i, indicesMap[i], xp[indicesMap[i]]);
-            xpMMA[i] = xp[indicesMap[i]];
+            PetscInt index = indicesMap[i];
+            //PetscPrintf(PETSC_COMM_SELF, "i: %i, xp[%i] = %f\n", i, index, xp[index]);
+            xpMMA[i] = xp[index];
+            //xpMMA[i] = xp[indicesMap[i]];
         } else if (updateDirection < 0) {
-            xp[indicesMap[i]] = xpMMA[i];
-            PetscPrintf(PETSC_COMM_WORLD, "i: %i, xp[%i] = %f\n", i, indicesMap[i], xp[indicesMap[i]]);
+            PetscInt index = indicesMap[i];
+            xp[index] = xpMMA[i];
+            //PetscPrintf(PETSC_COMM_WORLD, "i: %i, xp[%i] = %f\n", i, indicesMap[i], xp[indicesMap[i]]);
         }
     }
+    
     // Restore
     ierr = VecRestoreArray(elementVector, &xp);
     CHKERRQ(ierr);
     ierr = VecRestoreArray(MMAVector, &xpMMA);
     CHKERRQ(ierr);
-    ISRestoreIndices(is,&indicesMap);
+    ierr = VecRestoreArray(indicator, &indicesMap);
     CHKERRQ(ierr);
-
-    //PetscPrintf(PETSC_COMM_WORLD, "FINISHED UpdateVariables \n");
 
     return ierr;
 }
