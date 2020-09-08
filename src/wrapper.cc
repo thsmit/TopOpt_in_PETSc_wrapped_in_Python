@@ -191,8 +191,8 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
         }
     }
 
-    std::cout << "total design var: " << ecount << std::endl;
-    std::cout << "active design var: " << acount << std::endl;
+    //std::cout << "total design var: " << ecount << std::endl;
+    //std::cout << "active design var: " << acount << std::endl;
     self->nael = acount;
 
     // wirte vtk file of flag, use paraview to view the flag data

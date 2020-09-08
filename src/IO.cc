@@ -41,7 +41,7 @@ using namespace std;
 void writeVTKPolyData() {
 	
 	// reading binary file
-	printf("Reading .dat\n");
+	//printf("Reading .dat\n");
 	std::ifstream FIN("output_00000.dat", std::ios::in | std::ios::binary);
     
 	if (FIN)
@@ -145,7 +145,7 @@ void writeVTKPolyData() {
 	//writer->SetDataModeToAscii();
 	//writer->Update();
 	
-	printf("Close .dat, but keep the file as backup\n");
+	//printf("Close .dat, but keep the file as backup\n");
 }
 
 // reference: www.jgxsoft.com
@@ -387,9 +387,9 @@ V3 Line::p_cross_x_plane(double x) const {
 }
 
 Geometry::Geometry(std::string fname) {
-	std::cout << "Reading geometry ..." << std::endl;
+	//std::cout << "Reading geometry ..." << std::endl;
 	read_stl_file(fname);
-	std::cout << "Num of triangle " << get_num_tri() << std::endl;
+	//std::cout << "Num of triangle " << get_num_tri() << std::endl;
 	set_bound();
 }
 
@@ -399,7 +399,7 @@ GridBox::GridBox(V3& minCorner_, V3& maxCorner_, double dx_)
 	: Bbox(minCorner_, maxCorner_), dx(dx_)
 {
 	// the size in x/y/z direction has to be multiple of dx
-	std::cout << "Generate grid ..." << std::endl;
+	//std::cout << "Generate grid ..." << std::endl;
 	V3 extend = maxCorner - minCorner;
 	int nxI = (int)(extend.x / dx);
 	int nyI = (int)(extend.y / dx);
@@ -433,7 +433,7 @@ void Geometry::read_stl_file(std::string fname) {
 	if (stlFile)
 	{
 		stlFile.read(headInfo, 80);
-		std::cout << "STL file comment " << headInfo << std::endl;
+		//std::cout << "STL file comment " << headInfo << std::endl;
 		char nTriRaw[4];
 		stlFile.read(nTriRaw, 4);
 		unsigned numTri = *((unsigned*)nTriRaw);
@@ -488,9 +488,9 @@ void Geometry::set_bound() {
 
 Voxelizer::Voxelizer(Geometry& geo_, GridBox& grid_) : geo(geo_), grid(grid_) {
 	// scale (in the z direction) and shift the geometry to fit the grid
-	std::cout << "Generating voxilzer ..." << std::endl;
+	//std::cout << "Generating voxilzer ..." << std::endl;
 	Bbox bound = geo.get_bound();
-	std::cout << "GEO bound = " << bound << std::endl;
+	//std::cout << "GEO bound = " << bound << std::endl;
 
 	double dx = grid.get_dx();
 	//double scale = (grid.get_extend().z - 2.0 * dx )/ bound.get_extend().z;
@@ -550,7 +550,7 @@ Voxelizer::Voxelizer(Geometry& geo_, GridBox& grid_) : geo(geo_), grid(grid_) {
 
 Voxelizer::~Voxelizer()
 {
-	std::cout << "Deleting the flag memory!" << std::endl;
+	//std::cout << "Deleting the flag memory!" << std::endl;
 	delete []flag;
 }
 
@@ -613,7 +613,7 @@ void Voxelizer::get_xid_cross(std::vector<int>& xids_, int iy_, std::vector<Line
 }
 
 void Voxelizer::write_vtk_image() {
-	std::cout << "Writing vtk image ... " << std::endl;
+	//std::cout << "Writing vtk image ... " << std::endl;
 	int3 gridNum = grid.get_gridNum();
 	int nx = gridNum.nx;
 	int ny = gridNum.ny;

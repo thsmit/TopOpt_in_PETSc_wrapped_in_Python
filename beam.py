@@ -29,15 +29,15 @@ data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (65, 33, 33))
 #print(data.nDOF)
 
 # material: (Emin, Emax, nu, penal)
-Emin, Emax, nu, Dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 1.0
+Emin, Emax, nu, Dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 3.0
 data.material(Emin, Emax, nu, Dens, penal)
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1, 
-data.filter(1, 0.001)
+data.filter(2, 0.08)
 
 # optimizer: (maxIter)
-data.mma(10)
+data.mma(40)
 
 # loadcases: (# of loadcases)
 data.loadcases(1)
@@ -53,19 +53,19 @@ data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], 0)
 #data.bc(1, 2, [[0, 1], [1, 3], [2, 4]], [1], [0.0005], None)
 #data.bc(1, 2, [[0, 1], [1, 3], [2, 5]], [1], [0.0005], None)
 
-materialvolumefraction = 0.40
+materialvolumefraction = 0.12
 nEl = data.nElements
 
 # Calculate the objective function
 # objective input: (design variable value, SED)
-def objective(sumXp, xp, uKu):
-    return (Emin + np.power(xp, penal) * (Emax - Emin)) * uKu
+def objective(comp, sumXp, xp, uKu):
+    return comp
 
 def sensitivity(sumXp, xp, uKu):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
 
-def constraint(sumXp, xp, uKu):
-    return (sumXp / nEl - materialvolumefraction) / nEl
+def constraint(comp, sumXp, xp, uKu):
+    return sumXp / nEl - materialvolumefraction
 
 def constraintSensitivity(sumXp, xp, uKu):
     return 1.0 / nEl

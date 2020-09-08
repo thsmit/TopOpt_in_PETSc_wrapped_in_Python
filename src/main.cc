@@ -94,7 +94,9 @@ int solve(DataObj data) {
         CHKERRQ(ierr);
 
         if (opt->xPassiveStatus) {
-        
+            
+            //PetscPrintf(PETSC_COMM_WORLD, "just checking\n");
+            
             // map vectors
             opt->UpdateVariables(1, opt->x, opt->xMMA);
             opt->UpdateVariables(1, opt->dfdx, opt->dfdxMMA);
@@ -139,6 +141,8 @@ int solve(DataObj data) {
         // Filter design field
         ierr = filter->FilterProject(opt->x, opt->xTilde, opt->xPhys, opt->projectionFilter, opt->beta, opt->eta);
         CHKERRQ(ierr);
+
+        //VecView(opt->xPhys, PETSC_VIEWER_STDOUT_WORLD);
 
         // Discreteness measure
         PetscScalar mnd = filter->GetMND(opt->xPhys);

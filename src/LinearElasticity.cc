@@ -108,6 +108,9 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
         xc[3] = ne[1] * dy;
         xc[4] = 0.0;
         xc[5] = ne[2] * dz;
+        xc[6] = data.xc_w[6];
+        xc[7] = data.xc_w[7];
+        xc[8] = data.xc_w[8];
     }
 
     // Create the nodal mesh
@@ -164,6 +167,7 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
 
     // Compute epsilon parameter for finding points in space:
     PetscScalar epsi = PetscMin(dx * 0.05, PetscMin(dy * 0.05, dz * 0.05));
+    //PetscScalar epsi = PetscMin(dx * 2, PetscMin(dy * 2, dz * 2));
 
     // Print number of loadcases
     PetscPrintf(PETSC_COMM_WORLD, "Number of loadcases: %i\n", data.loadcases_list.size());
@@ -177,7 +181,10 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
             
             PetscPrintf(PETSC_COMM_WORLD, "Para: %i\n", data.loadcases_list.at(lc).at(j).Para);
             PetscPrintf(PETSC_COMM_WORLD, "BCType: %i\n", data.loadcases_list.at(lc).at(j).BCtype);
-            
+            //PetscPrintf(PETSC_COMM_WORLD, "check 1 %i, check 2 %i\n", data.loadcases_list.at(lc).at(j).Checker_vec.at(0), data.loadcases_list.at(lc).at(j).Checker_vec.at(1));
+            //PetscPrintf(PETSC_COMM_WORLD, "BC , coordinate %f\n", lcoorp[data.loadcases_list.at(lc).at(j).Checker_vec.at(0)]);
+            PetscPrintf(PETSC_COMM_WORLD, "BC , xc %f\n", xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]);
+
             if (data.loadcases_list.at(lc).at(j).Checker_vec.size() == 2 && data.loadcases_list.at(lc).at(j).Para == 1) {
                 //PetscPrintf(PETSC_COMM_WORLD, "Size Checker: %i\n", data.loadcases_list.at(j).Checker_vec.size());
                 
@@ -227,6 +234,15 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                                     VecSetValueLocal(RHS[lc], ii, valy, INSERT_VALUES);
                                     VecSetValueLocal(RHS[lc], ii + 1, -valx, INSERT_VALUES);
                                 }
+
+                                if (data.loadcases_list.at(lc).at(j).BCtype == 5) {
+                                    PetscScalar valx = (lcoorp[ii + 1] - 1) * 0.0000001; 
+                                    PetscScalar valy = (lcoorp[ii + 2] - 1) * 0.0000001; 
+                                    //PetscPrintf(PETSC_COMM_WORLD, "RHS\n");
+                                    //VecSetValueLocal(RHS[lc], ii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), valx * data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                                    VecSetValueLocal(RHS[lc], ii + 1, -valy, INSERT_VALUES);
+                                    VecSetValueLocal(RHS[lc], ii + 2, valx, INSERT_VALUES);
+                                }
                             }
                         }
                     }
@@ -235,17 +251,20 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
 
             if (data.loadcases_list.at(lc).at(j).Checker_vec.size() == 2 && data.loadcases_list.at(lc).at(j).Para == 0) {
                 //PetscPrintf(PETSC_COMM_WORLD, "Size Checker: %i\n", data.loadcases_list.at(j).Checker_vec.size());
-                
+
                 // iterate over dofs
                 for (PetscInt ii = 0; ii < nn; ii++) {
                     if (ii % 3 == 0 && PetscAbsScalar(lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]) < epsi) {
                         for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
-                         
+                            //PetscPrintf(PETSC_COMM_WORLD, "BC fix, coordinate %f, check %f\n", lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]);
+                            //PetscPrintf(PETSC_COMM_WORLD, "check 1 %f, check 2 %f\n", data.loadcases_list.at(lc).at(j).Checker_vec.at(0), data.loadcases_list.at(lc).at(j).Checker_vec.at(1));
                             if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
                                 VecSetValueLocal(N[lc], ii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                                //PetscPrintf(PETSC_COMM_WORLD, "BC fix, coordinate %f\n", lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)]);
                             }
                             if (data.loadcases_list.at(lc).at(j).BCtype == 2) {
                                 VecSetValueLocal(RHS[lc], ii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                                //PetscPrintf(PETSC_COMM_WORLD, "BC Load\n");
                             }
                             
                         }
@@ -262,7 +281,6 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                     PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(3)]) < epsi) {
                         
                         for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
-                            
                             if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
                                 VecSetValueLocal(N[lc], iii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
                             }
@@ -274,7 +292,7 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                 }
             }
 
-            if ((data.loadcases_list.at(lc).at(j).Checker_vec.size() / 2) == 3 && data.loadcases_list.at(lc).at(j).Para == 0) {
+            if (data.loadcases_list.at(lc).at(j).Checker_vec.size() == 6 && data.loadcases_list.at(lc).at(j).Para == 0) {
             
                 // iterate over dofs
                 for (PetscInt iii = 0; iii < nn; iii++) {
@@ -284,7 +302,6 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                     PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(5)]) < epsi) {
                         
                         for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
-                            
                             if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
                                 VecSetValueLocal(N[lc], iii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
                             }
@@ -605,6 +622,7 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
     }
 
     VecDestroy(&dftemp);
+    VecDestroy(&dgtemp);
     return (ierr);
 }
 
@@ -706,7 +724,7 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
     comp           = 0.0;
     MPI_Allreduce(&tmp, &(comp), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
 
-    fx[0] = data.obj_ev(comp, sumXP, 1.0, 1.0); // letop, = or +=
+    fx[0] = data.obj_ev(comp, sumXP, 1.0, 1.0); // let op, = or +=
     gx[0] = data.const_ev(comp, sumXP, 1.0, 1.0); // let op, = or +=
 
     // Loop over elements
