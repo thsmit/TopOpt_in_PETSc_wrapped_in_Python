@@ -79,6 +79,11 @@ class TopOpt {
     PetscScalar movlim;     // Max. change of design variables
     PetscScalar volfrac;    // Volume fraction
     PetscScalar penal;      // Penalization parameter
+    PetscInt continuation;
+    PetscScalar penalIni; 
+    PetscScalar penalFin;
+    PetscScalar penalStep;
+    PetscInt IterProj;
     PetscScalar Emin, Emax; // Modified SIMP, max and min E
 
     PetscInt maxItr; // Max iterations

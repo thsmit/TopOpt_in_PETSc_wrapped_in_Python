@@ -112,17 +112,4 @@ data.initialcondition(materialvolumefraction)
 # solve topopt problem with input data and wait for "complete" signal
 complete = data.solve()
 
-# step 4:
-# generate .vtu file to be viewed in paraview
-# generate .x3d file for import and modification in Blender
-#if complete:
-#    data.vtu()
-#    data.x3d()
-
-# step 5:
-# post processing by smoothning and output binary .stl
-# if complete:
-#    smooth = data.smoothening()
-# if smooth:
-#    data.stl(smooth)
-#    data.stp(smooth)
+print('True Compliance should be: ', 9.180731, '...', '...')

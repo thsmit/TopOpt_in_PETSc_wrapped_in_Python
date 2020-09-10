@@ -31,10 +31,11 @@ cd $id
 #path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/largescale.py
 #path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/beam.py
 #path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket.py
-path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/sphere.py
+#path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/sphere.py
+path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/test_continuation.py
 
 # ADJUSTABLE PARAMETERS
-EULER_MEMORY="1000"
+EULER_MEMORY="4000"
 NCPU=8
 WALL_TIME="1:00"
 

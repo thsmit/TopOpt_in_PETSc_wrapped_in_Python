@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Author: Thijs Smit, May 2020
+# Author: Thijs Smit, June 2020
 # Copyright (C) 2020 ETH Zurich
 
 # Disclaimer:
@@ -15,20 +15,16 @@ data = topoptlib.Data()
 data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (129, 65, 65))
 #data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (161, 81, 81))
 #data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (257, 129, 129))
-Emin, Emax, nu, dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 3.0
+Emin, Emax, nu, dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 1.0
 data.material(Emin, Emax, nu, dens, penal)
 data.filter(2, 0.08)
-data.continuation(50, 1)
+data.continuation()
 data.mma(40)
-data.loadcases(2)
+data.loadcases(1)
 data.bc(0, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
 data.bc(0, 2, [0, 1, 2, 4], [2], [-0.001], 0)
 data.bc(0, 2, [0, 1, 1, 2, 2, 4], [2], [-0.0005], 0)
 data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], 0)
-data.bc(1, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
-data.bc(1, 2, [0, 1, 1, 3], [1], [0.001], 0)
-data.bc(1, 2, [0, 1, 1, 3, 2, 4], [1], [0.0005], 0)
-data.bc(1, 2, [0, 1, 1, 3, 2, 5], [1], [0.0005], 0)
 
 materialvolumefraction = 0.12
 nEl = data.nElements
@@ -52,4 +48,4 @@ data.conssens(constraintSensitivity)
 data.initialcondition(materialvolumefraction)
 complete = data.solve()
 
-print('True Compliance should be: ', 2.164643, 3.361824, 8.570609)
+print('True Compliance should be: ', 18.722882, '...', '...')

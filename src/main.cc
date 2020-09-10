@@ -66,6 +66,18 @@ int solve(DataObj data) {
         // Update iteration counter
         itr++;
 
+        // UPDATING THE CONTINUATION PARAMETERS
+        // reference, Maximum Size...
+		if (opt->continuation == 1 & itr % opt->IterProj == 0){
+			opt->penal   = PetscMin(opt->penal+0.25,3); // penal = penal : 0.25 : 3.0
+			// move limits: initial 0.6, final 0.05
+			//opt->movlim  = (opt->movlimEnd-opt->movlimIni)/(3.0-1.0)*(opt->penal-1.0)+opt->movlimIni; 
+			//opt->Beta    = PetscMin((1.50*opt->Beta),38.0); // beta = beta*1.5 
+			//PetscPrintf(PETSC_COMM_WORLD,"===================================================\n");
+			PetscPrintf(PETSC_COMM_WORLD,"It.: %i, Penal: %2.2f   movlim: %f\n", itr, opt->penal, opt->movlim);
+			//PetscPrintf(PETSC_COMM_WORLD,"===================================================\n");
+		}
+
         // start timer
         t1 = MPI_Wtime();
 
@@ -81,7 +93,7 @@ int solve(DataObj data) {
         CHKERRQ(ierr);
 
         // Compute objective scale
-        if (itr == 1) {
+        if (itr == 1 || (itr % opt->IterProj == 0 & opt->continuation == 1)) {
             opt->fscale = 10.0 / opt->fx;
         }
         // Scale objectie and sens
@@ -141,8 +153,6 @@ int solve(DataObj data) {
         // Filter design field
         ierr = filter->FilterProject(opt->x, opt->xTilde, opt->xPhys, opt->projectionFilter, opt->beta, opt->eta);
         CHKERRQ(ierr);
-
-        //VecView(opt->xPhys, PETSC_VIEWER_STDOUT_WORLD);
 
         // Discreteness measure
         PetscScalar mnd = filter->GetMND(opt->xPhys);

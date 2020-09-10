@@ -105,7 +105,7 @@ data.objsens(sensitivity)
 data.cons(constraint)
 data.conssens(constraintSensitivity)
 
-# Volume constraint is standard, input (volume fraction)
+# Homogeniuos initial condition
 data.initialcondition(materialvolumefraction)
 
 # step 3:

@@ -31,6 +31,7 @@ cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib.so .
 cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/tests/test_beam.py .
 cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/tests/test_multiload.py .
 cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/tests/test_sphere.py .
+cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/tests/test_continuation.py .
 
 # ADJUSTABLE PARAMETERS
 EULER_MEMORY="1000"
@@ -41,6 +42,7 @@ WALL_TIME="1:00"
 bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python test_beam.py
 bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python test_multiload.py
 bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python test_sphere.py
+bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python test_continuation.py
 
 
 # VIEW JOBS

@@ -35,15 +35,17 @@ struct DataObj {
         // data storage
         double xc_w[9];
         double b_w[6];
-        int nxyz_w[3] = {65, 33, 33};
-        double Emin_w = 1.0e-9;
-        double Emax_w = 1.0;
-        double nu_w = 0.3;
-        double penal_w = 3.0;
-        int maxIter_w = 400;
-        int filter_w = 1;
-        double rmin_w = 0.08;
-        double volumefrac_w = 0.12;
+        int nxyz_w[3];
+        double Emin_w;
+        double Emax_w;
+        double nu_w;
+        double penal_w;
+        int maxIter_w;
+        int filter_w;
+        double rmin_w;
+        double volumefrac_w;
+
+        int continuation_w = 0;
 
         // needed as members to be used in python script
         int nNodes;

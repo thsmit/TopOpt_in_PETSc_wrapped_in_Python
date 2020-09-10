@@ -88,7 +88,7 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
     self->b_w[5] = b5;
 
     // print file path
-    //printf("Stl file, domain: %s\n", path);
+    printf("Stl file, domain: %s\n", path);
 
     // Create geometry and read stl
     Geometry geo(path);
@@ -191,8 +191,8 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
         }
     }
 
-    //std::cout << "total design var: " << ecount << std::endl;
-    //std::cout << "active design var: " << acount << std::endl;
+    std::cout << "total design var: " << ecount << std::endl;
+    std::cout << "active design var: " << acount << std::endl;
     self->nael = acount;
 
     // wirte vtk file of flag, use paraview to view the flag data
@@ -474,6 +474,18 @@ static PyObject *filter_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+// s
+static PyObject *continuation_py(DataObj *self, PyObject *args)
+{        
+    //if(!PyArg_ParseTuple(args, "id", &filter, &rmin)) { 
+    //    return NULL;
+    //}
+
+    self->continuation_w = 1;
+
+    Py_RETURN_NONE;
+}
+
 // set optimizer variables
 static PyObject *mma_py(DataObj *self, PyObject *args)
 {
@@ -659,9 +671,13 @@ static PyObject *objsens_py(DataObj *self, PyObject *args)
 
 static PyObject *initialcondition_py(DataObj *self, PyObject *args)
 {    
-    if(!PyArg_ParseTuple(args, "d", &self->volumefrac_w)) { 
+    double volufrac; 
+    
+    if(!PyArg_ParseTuple(args, "d", &volufrac)) { 
         return NULL;
     }
+
+    self->volumefrac_w = volufrac;
 
     Py_RETURN_NONE;
 }
@@ -745,6 +761,7 @@ static PyMethodDef methods[] =
       {"stlread_rigid", (PyCFunction)stlread_rigid_py, METH_VARARGS, "STL read\n"},
       {"material", (PyCFunction)material_py, METH_VARARGS, "Implement material\n"},
       {"filter", (PyCFunction)filter_py, METH_VARARGS, "Implement filter\n"},
+      {"continuation", (PyCFunction)continuation_py, METH_VARARGS, "Implement filter\n"},
       {"mma", (PyCFunction)mma_py, METH_VARARGS, "Implement mma\n"},
       {"passive", (PyCFunction)passive_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"bc", (PyCFunction)bc_py, METH_VARARGS, "Implement boundery conditions\n"},

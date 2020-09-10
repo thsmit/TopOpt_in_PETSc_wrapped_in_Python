@@ -161,7 +161,16 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     volfrac = data.volumefrac_w;
     maxItr  = data.maxIter_w;
     rmin    = data.rmin_w;
-    penal   = data.penal_w;
+
+    // continuation
+    continuation = data.continuation_w;
+    penalIni = 1.0; 
+    penal = data.penal_w;
+    penalFin = 3.0;
+    penalStep = 0.25;
+    IterProj = maxItr / ((penalFin - penalIni) / penalStep);
+    //PetscPrintf(PETSC_COMM_WORLD, "IterProj %i\n", IterProj);
+
     Emin    = data.Emin_w;
     Emax    = data.Emax_w;
     filter  = data.filter_w; // 0=sens,1=dens,2=PDE - other val == no filtering
@@ -175,7 +184,7 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
         xPassiveStatus = PETSC_TRUE;
     }
 
-    // Projection filter
+    // Projection filter, treshold designvar
     projectionFilter = PETSC_FALSE;
     beta             = 0.1;
     betaFinal        = 48;
@@ -488,7 +497,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         // count the number of active, solid and rigid elements
         // active is -1, passive is 1, solid is 2, rigid is 3
         for (PetscInt el = 0; el < nel; el++) {
-            if (xpPassive[el] < 0.0) {
+            if (xpPassive[el] == -1.0) {
                 acount++;
             }
             if (xpPassive[el] == 2.0) {
@@ -505,8 +514,8 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         // printing
         //PetscPrintf(PETSC_COMM_SELF, "tcount: %i\n", tcount);
         PetscPrintf(PETSC_COMM_SELF, "acount: %i\n", acount);
-        //PetscPrintf(PETSC_COMM_SELF, "scount: %i\n", scount);
-        //PetscPrintf(PETSC_COMM_SELF, "rcount: %i\n", rcount);
+        PetscPrintf(PETSC_COMM_SELF, "scount: %i\n", scount);
+        PetscPrintf(PETSC_COMM_SELF, "rcount: %i\n", rcount);
 
         // Allreduce, number of active elements
         // tmp number of var on proces
@@ -514,9 +523,17 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         PetscInt tmp = acount;
         acount = 0;
         MPI_Allreduce(&tmp, &acount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
+
+        // Allreduce, number of solid elements
+        // tmp number of var on proces
+        // acount total number of var sumed
+        PetscInt tmps = scount;
+        scount = 0;
+        MPI_Allreduce(&tmps, &scount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
         
         // printing
         PetscPrintf(PETSC_COMM_WORLD, "acount sum: %i\n", acount);
+        PetscPrintf(PETSC_COMM_WORLD, "scount sum: %i\n", scount);
 
         //// create MMA vectors
         VecCreateMPI(PETSC_COMM_WORLD, tmp, acount, &xMMA);
@@ -534,12 +551,12 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         // }
 
         //VecRestoreArray(xMMA, &xpMMA);
-        
+        PetscPrintf(PETSC_COMM_SELF, "volfrac %f\n", volfrac);
+
         // fill the indicator vector as mapping for x -> xMMA
         PetscInt count = 0;
-
         for (PetscInt el = 0; el < nel; el++) {       
-            if (xpPassive[el] < 0.0) {
+            if (xpPassive[el] == -1.0) {
                 xpIndicator[count] = el;
                 xpPhys[el] = volfrac;
                 xptilde[el] = volfrac;
@@ -548,7 +565,26 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
                 //PetscPrintf(PETSC_COMM_SELF, "aacount: %i, el: %i, low + el: %i\n", aacount, el, low + el);
                 count++;
             } 
+            if (xpPassive[el] == 2.0) {
+                //xpIndicator[count] = el;
+                xpPhys[el] = 1.0;
+                //xptilde[el] = volfrac;
+                xpx[el] = 1.0;
+                //xpold[el] = volfrac;
+                //PetscPrintf(PETSC_COMM_SELF, "aacount: %i, el: %i, low + el: %i\n", aacount, el, low + el);
+                //count++;
+            }
+            if (xpPassive[el] == 3.0) {
+                //xpIndicator[count] = el;
+                //xpPhys[el] = 1000.0;
+                //xptilde[el] = volfrac;
+                //xpx[el] = 1000.0;
+                //xpold[el] = volfrac;
+                //PetscPrintf(PETSC_COMM_SELF, "aacount: %i, el: %i, low + el: %i\n", aacount, el, low + el);
+                //count++;
+            }
         }
+
 
         VecRestoreArray(xPhys, &xpPhys);
         VecRestoreArray(xTilde, &xptilde);
