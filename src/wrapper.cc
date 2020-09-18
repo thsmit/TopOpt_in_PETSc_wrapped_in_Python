@@ -111,6 +111,7 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
     //printf("dz: %f\n", dz);
 
     // set grid bounding corner
+    // gridNum = number of voxels
     int3 gridNum = int3(gridExtend.x / dx, gridExtend.y / dy, gridExtend.z /dz);
 
     // make the grid equal to the PETSc grid
@@ -482,6 +483,19 @@ static PyObject *continuation_py(DataObj *self, PyObject *args)
     //}
 
     self->continuation_w = 1;
+    self->penal_w = 1.0;
+
+    Py_RETURN_NONE;
+}
+
+// s
+static PyObject *projection_py(DataObj *self, PyObject *args)
+{        
+    //if(!PyArg_ParseTuple(args, "id", &filter, &rmin)) { 
+    //    return NULL;
+    //}
+
+    self->projection_w = 1;
 
     Py_RETURN_NONE;
 }
@@ -762,6 +776,7 @@ static PyMethodDef methods[] =
       {"material", (PyCFunction)material_py, METH_VARARGS, "Implement material\n"},
       {"filter", (PyCFunction)filter_py, METH_VARARGS, "Implement filter\n"},
       {"continuation", (PyCFunction)continuation_py, METH_VARARGS, "Implement filter\n"},
+      {"projection", (PyCFunction)projection_py, METH_VARARGS, "Implement filter\n"},
       {"mma", (PyCFunction)mma_py, METH_VARARGS, "Implement mma\n"},
       {"passive", (PyCFunction)passive_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"bc", (PyCFunction)bc_py, METH_VARARGS, "Implement boundery conditions\n"},

@@ -3,6 +3,7 @@
 
 #include <Python.h>
 #include <vector>
+#include <string>
 
 /*
 Author: Thijs Smit, May 2020
@@ -46,6 +47,7 @@ struct DataObj {
         double volumefrac_w;
 
         int continuation_w = 0;
+        int projection_w = 0;
 
         // needed as members to be used in python script
         int nNodes;

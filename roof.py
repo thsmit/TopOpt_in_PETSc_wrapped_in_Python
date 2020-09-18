@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Author: Thijs Smit, April 2020
+# Author: Thijs Smit, May 2020
 # Copyright (C) 2020 ETH Zurich
 
 # Disclaimer:
@@ -17,75 +17,106 @@ data = topoptlib.Data()
 
 # step 2:
 # define input data
-# mesh: (domain)(mesh: number of nodes)
-dx = 3.0
-nx = 73
-nz = 25
-data.mesh((0.0, dx, 0.0, 0.5, 0.0, 1.0), (nx, 13, nz))
+# mesh: (domain: x, y, z, center)(mesh: number of nodes)
+#data.structuredGrid((0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (65, 65, 65))
+data.structuredGrid((0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (9, 9, 9))
+
+# readin STL file in binary format
+# TO DO: allow for ASCII format
+# stl read: ((box around stl: (min corner)(max corner)), full path to file)
+data.stlread_domain((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/box.stl')
+#data.stlread_domain((0.0, 0.0, 0.0), (1.2, 1.2, 1.2), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/hollowsphere.stl')
+#data.stlread_domain((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/tritext_demo.stl')
+# data.stlread_domain('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/jetEngineDesignDomainFine.stl')
+# data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/jetEngineSolidDomainFine.stl')
+# data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/jetEngineRigidDomainFine.stl')
+
+# Optional printing:
+#print(data.nNodes)
+#print(data.nElements)
+#print(data.nDOF)
 
 # material: (Emin, Emax, nu, penal)
-Emin = 1.0e-9
-Emax = 1.0
-penal = 3.0
-data.material(Emin, Emax, 0.3, penal)
+Emin, Emax, nu, dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 3.0
+data.material(Emin, Emax, nu, dens, penal)
 
 # filter: (type, radius)
-# filter types: sensitivity = 0, density = 1, denity + heaviside projection = 2
-rmin = (dx/float(nx))*2
-print(rmin)
-data.filter(3, rmin)
-
-# projection:
+# filter types: sensitivity = 0, density = 1, 
+data.filter(1, 0.30)
 
 # optimizer: (maxIter)
-data.mma(500)
+data.mma(5)
 
-nEl = data.nElements
-nnEl = nEl - ((nx - 1) * (nz - 1))
+# loadcases: (# of loadcases)
+data.loadcases(1)
 
-def roof(el):
-    if el > nnel:
-        val = 1.0
-    else:
-        val = -1.0
-    return val
+# bc: (loadcase, type, [checker: lcoorp[i+?], xc[?]], [setter: dof index], [setter: values])
 
-# passive elements
-data.passive(roof)
+#data.bc(0, 1, [0, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+#data.bc(0, 5, [0, 7], [1, 2], [-0.001], 1)
+#data.bc(0, 2, [0, 7], [0], [0.1], 0)
+
+#data.bc(1, 1, [[0, 0]], [0, 1, 2], [0.0, 0.0, 0.0], None)
+#data.bc(1, 2, [[0, 1], [1, 3]], [1], [0.001], None)
+#data.bc(1, 2, [[0, 1], [1, 3], [2, 4]], [1], [0.0005], None)
+#data.bc(1, 2, [[0, 1], [1, 3], [2, 5]], [1], [0.0005], None)
+
+data.bc(0, 1, [0, 0, 1, 2, 2, 4], [0, 1, 2], [0.0, 0.0, 0.0], 0) # fix (0,0,0)
+data.bc(0, 1, [2, 4], [2], [0.0], 0) # fix z = 0 plane
+data.bc(0, 2, [2, 5], [2], [-0.001], 0) # load roof z = 20 plane
+#data.bc(0, 2, [2, 5, 0, 0], [2], [-0.0005], 0) # correct side 1
+#data.bc(0, 2, [2, 5, 0, 1], [2], [-0.0005], 0) # correct side 2
+#data.bc(0, 2, [2, 5, 1, 2], [2], [-0.0005], 0) # correct side 3
+#data.bc(0, 2, [2, 5, 1, 3], [2], [-0.0005], 0) # correct side 4
+#data.bc(0, 2, [2, 5, 0, 0, 1, 2], [2], [-0.00025], 0) # correct proint 1
+#data.bc(0, 2, [2, 5, 0, 1, 1, 2], [2], [-0.00025], 0) # correct proint 2
+#data.bc(0, 2, [2, 5, 0, 0, 1, 3], [2], [-0.00025], 0) # correct proint 3
+#data.bc(0, 2, [2, 5, 0, 1, 1, 3], [2], [-0.00025], 0) # correct proint 4
+
+materialvolumefraction = 0.50
+#nEl = data.nElements
+nEl = data.nael
 
 # Calculate the objective function
 # objective input: (design variable value, SED)
-def objective(xp, uKu):
-    return (Emin + np.power(xp, penal) * (Emax - Emin)) * uKu
+def objective(comp, sumXp, xp, uKu):
+    return comp
 
-def sensitivity(xp, uKu):
+def sensitivity(sumXp, xp, uKu):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
+
+def constraint(comp, sumXp, xp, uKu):
+    return sumXp / nEl - materialvolumefraction
+
+def constraintSensitivity(sumXp, xp, uKu):
+    return 1.0 / nEl
 
 # Callback implementation
 data.obj(objective)
-data.obj_sens(sensitivity)
+data.objsens(sensitivity)
 
-# Volume constraint is standard, input (volume fraction)
-data.volumeConstraint(0.25)
+# Define constraint
+data.cons(constraint)
+data.conssens(constraintSensitivity)
 
-# Define additional constraints
-data.const(Constraint)
-data.const_sens(ConstraintSensitivity)
+# Homogeniuos initial condition
+data.initialcondition(materialvolumefraction)
 
 # step 3:
 # solve topopt problem with input data and wait for "complete" signal
 complete = data.solve()
 
-#print(data.it)
-#print(data.trueFx)
-#print(data.scaledFx)
-
 # step 4:
-# post processing, generate .vtu file to be viewed in paraview
-if complete:
-    data.vtu()
+# generate .vtu file to be viewed in paraview
+# generate .x3d file for import and modification in Blender
+#if complete:
+#    data.vtu()
+#    data.x3d()
 
 # step 5:
-# generate .stl file from final design for 3D printing
-#if complete:
-#    data.stl()
+# post processing by smoothning and output binary .stl
+# if complete:
+#    smooth = data.smoothening()
+# if smooth:
+#    data.stl(smooth)
+#    data.stp(smooth)

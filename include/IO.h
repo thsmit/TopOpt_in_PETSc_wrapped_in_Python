@@ -96,7 +96,7 @@ class Geometry {
     inline Bbox get_bound() const { return bound; };
     void set_bound();
     //void set_refPoint(V3& refPoint_);
-    //void scale_shift(double scale_, V3 shift_);
+    void scale_shift(double scale_, V3 shift_);
     inline Triangle get_tri(int i) const { return triangles[i];};
     ~Geometry();
   private:

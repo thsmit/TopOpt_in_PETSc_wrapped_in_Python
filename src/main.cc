@@ -68,7 +68,7 @@ int solve(DataObj data) {
 
         // UPDATING THE CONTINUATION PARAMETERS
         // reference, Maximum Size...
-		if (opt->continuation == 1 & itr % opt->IterProj == 0){
+		if (opt->continuationStatus & itr % opt->IterProj == 0){
 			opt->penal   = PetscMin(opt->penal+0.25,3); // penal = penal : 0.25 : 3.0
 			// move limits: initial 0.6, final 0.05
 			//opt->movlim  = (opt->movlimEnd-opt->movlimIni)/(3.0-1.0)*(opt->penal-1.0)+opt->movlimIni; 
@@ -93,7 +93,7 @@ int solve(DataObj data) {
         CHKERRQ(ierr);
 
         // Compute objective scale
-        if (itr == 1 || (itr % opt->IterProj == 0 & opt->continuation == 1)) {
+        if (itr == 1 || (itr % opt->IterProj == 0 & opt->continuationStatus)) {
             opt->fscale = 10.0 / opt->fx;
         }
         // Scale objectie and sens

@@ -26,10 +26,10 @@ data.structuredGrid((0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 0.0, 0.0, 0.0), (193, 65
 data.stlread_domain((-23.0, -1.0, -103.0), (169.0, 63.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/jetEngineDesignDomainFine.stl')
 
 # stl read: load the solid domain into the same coordinate system as the design domain
-data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/jetEngineSolidDomainFine.stl')
+#data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/jetEngineSolidDomainFine.stl')
 
 # stl read: load the solid domain into the same coordinate system as the design domain
-data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/jetEngineRigidDomainFine.stl')
+#data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/jetEngineRigidDomainFine.stl')
 
 # Optional printing:
 #print(data.nNodes)
@@ -45,7 +45,7 @@ data.material(Emin, Emax, nu, Dens, penal)
 data.filter(1, 5.0)
 
 # optimizer: (maxIter)
-data.mma(2)
+data.mma(5)
 
 # loadcases: (# of loadcases)
 data.loadcases(1)
@@ -54,7 +54,7 @@ data.loadcases(1)
 data.bc(0, 1, [1, 3], [0, 1, 2], [0.0, 0.0, 0.0], 0)
 data.bc(0, 2, [2, 5], [1], [0.001], 0)
 
-materialvolumefraction = 0.40
+materialvolumefraction = 0.30
 #nEl = data.nElements
 nEl = data.nael
 

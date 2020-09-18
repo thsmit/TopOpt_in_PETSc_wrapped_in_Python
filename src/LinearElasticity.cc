@@ -179,11 +179,11 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
         // iter over bc in load case
         for (auto j = 0; j < data.loadcases_list.at(lc).size(); j++) {
             
-            PetscPrintf(PETSC_COMM_WORLD, "Para: %i\n", data.loadcases_list.at(lc).at(j).Para);
-            PetscPrintf(PETSC_COMM_WORLD, "BCType: %i\n", data.loadcases_list.at(lc).at(j).BCtype);
+            //PetscPrintf(PETSC_COMM_WORLD, "Para: %i\n", data.loadcases_list.at(lc).at(j).Para);
+            //PetscPrintf(PETSC_COMM_WORLD, "BCType: %i\n", data.loadcases_list.at(lc).at(j).BCtype);
             //PetscPrintf(PETSC_COMM_WORLD, "check 1 %i, check 2 %i\n", data.loadcases_list.at(lc).at(j).Checker_vec.at(0), data.loadcases_list.at(lc).at(j).Checker_vec.at(1));
             //PetscPrintf(PETSC_COMM_WORLD, "BC , coordinate %f\n", lcoorp[data.loadcases_list.at(lc).at(j).Checker_vec.at(0)]);
-            PetscPrintf(PETSC_COMM_WORLD, "BC , xc %f\n", xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]);
+            //PetscPrintf(PETSC_COMM_WORLD, "BC , xc %f\n", xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]);
 
             if (data.loadcases_list.at(lc).at(j).Checker_vec.size() == 2 && data.loadcases_list.at(lc).at(j).Para == 1) {
                 //PetscPrintf(PETSC_COMM_WORLD, "Size Checker: %i\n", data.loadcases_list.at(j).Checker_vec.size());

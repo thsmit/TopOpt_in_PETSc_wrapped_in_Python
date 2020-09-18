@@ -151,9 +151,7 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     xc[3]   = data.xc_w[3];
     xc[4]   = data.xc_w[4];
     xc[5]   = data.xc_w[5];
-    //xc[6]   = data.xc_w[6]; done in linearelasticity
-    //xc[7]   = data.xc_w[7];
-    //xc[8]   = data.xc_w[8];
+    //xc[6], etc. is done in linearelasticity
     nu      = data.nu_w;
     nlvls   = 4;
 
@@ -162,8 +160,12 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     maxItr  = data.maxIter_w;
     rmin    = data.rmin_w;
 
-    // continuation
-    continuation = data.continuation_w;
+    // continuation of penalization
+    // Status
+    continuationStatus = PETSC_FALSE;
+    if (data.continuation_w == 1) {
+        continuationStatus = PETSC_TRUE;
+    }
     penalIni = 1.0; 
     penal = data.penal_w;
     penalFin = 3.0;
@@ -173,22 +175,26 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
 
     Emin    = data.Emin_w;
     Emax    = data.Emax_w;
-    filter  = data.filter_w; // 0=sens,1=dens,2=PDE - other val == no filtering
+    filter  = data.filter_w; // 0=sens,1=dens,2=PDE
     Xmin    = 0.0;
     Xmax    = 1.0;
     movlim  = 0.2;
     restart = PETSC_TRUE;
+    
+    // xPassive Status
     xPassiveStatus = PETSC_FALSE;
-
     if (data.xPassive_w.size() > 1) {
         xPassiveStatus = PETSC_TRUE;
     }
 
     // Projection filter, treshold designvar
     projectionFilter = PETSC_FALSE;
+    if (data.projection_w == 1) {
+        projectionFilter = PETSC_TRUE;
+    }
     beta             = 0.1;
     betaFinal        = 48;
-    eta              = 0.0;
+    eta              = 0.5;
 
     ierr = SetUpMESH();
     CHKERRQ(ierr);
@@ -576,9 +582,9 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
             }
             if (xpPassive[el] == 3.0) {
                 //xpIndicator[count] = el;
-                //xpPhys[el] = 1000.0;
+                xpPhys[el] = 1000.0;
                 //xptilde[el] = volfrac;
-                //xpx[el] = 1000.0;
+                xpx[el] = 1000.0;
                 //xpold[el] = volfrac;
                 //PetscPrintf(PETSC_COMM_SELF, "aacount: %i, el: %i, low + el: %i\n", aacount, el, low + el);
                 //count++;
@@ -589,7 +595,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         VecRestoreArray(xPhys, &xpPhys);
         VecRestoreArray(xTilde, &xptilde);
         VecRestoreArray(x, &xpx);
-        VecRestoreArray(x, &xpold);
+        VecRestoreArray(xold, &xpold);
 
         // restore xPassive, indicator
         ierr = VecRestoreArray(xPassive, &xpPassive);

@@ -419,6 +419,7 @@ GridBox::GridBox(V3& minCorner_, double dx_, int3 gridNum_)
 	: dx(dx_), gridNum(gridNum_)
 {
 	double lx = dx_ * gridNum.nx;
+	//std::cout << "lx " << lx << std::endl;
 	double ly = dx_ * gridNum.ny;
 	double lz = dx_ * gridNum.nz;
 	minCorner = minCorner_;
@@ -453,6 +454,29 @@ void Geometry::read_stl_file(std::string fname) {
 	{
 		std::cerr << "File openning error!" << std::endl;
 	}
+}
+
+void Geometry::scale_shift(double scale_, V3 shift_) {
+	// keep a track of the current shift and scale v.s. to the STL file
+	for (auto&& tri : triangles)
+	{
+		// scale then shift
+		tri.p1 *= scale_;
+		tri.p1 += shift_;
+		tri.p2 *= scale_;
+		tri.p2 += shift_;
+		tri.p3 *= scale_;
+		tri.p3 += shift_;
+		tri.norm *= scale_;
+	}
+	// min/max corner of the bound
+	V3 minCorner = bound.get_minCorner();
+	V3 maxCorner = bound.get_maxCorner();
+	minCorner *= scale_;
+	minCorner += shift_;
+	maxCorner *= scale_;
+	maxCorner += shift_;
+	bound = Bbox(minCorner, maxCorner);
 }
 
 void Geometry::set_bound() {
@@ -492,12 +516,15 @@ Voxelizer::Voxelizer(Geometry& geo_, GridBox& grid_) : geo(geo_), grid(grid_) {
 	Bbox bound = geo.get_bound();
 	//std::cout << "GEO bound = " << bound << std::endl;
 
-	double dx = grid.get_dx();
+	//double dx = grid.get_dx();
+	//std::cout << "dx vox= " << dx << std::endl;
 	//double scale = (grid.get_extend().z - 2.0 * dx )/ bound.get_extend().z;
+	//std::cout << "scale vox= " << scale << std::endl;
 	//geo.scale_shift(scale, V3::zero);
 
 	//V3 shift = grid.get_minCorner() - geo.get_bound().get_minCorner();
 	//shift += V3(2*dx, 2*dx, 2*dx);
+	//std::cout << "shift vox= " << shift << std::endl;
 	//geo.scale_shift(1.0, shift);
 
 	int3 gridNum = grid.get_gridNum();
@@ -506,6 +533,8 @@ Voxelizer::Voxelizer(Geometry& geo_, GridBox& grid_) : geo(geo_), grid(grid_) {
 	int nz = gridNum.nz;
 	std::cout << "nx = " << nx << ", ny = " << ny << ", nz = " << nz << std::endl;
 	long numTotal = nx * ny * nz;
+	
+	// flag is point data? 
 	flag = new char[numTotal];
 	for (int i = 0; i < numTotal; i++)
 		flag[i] = 0;

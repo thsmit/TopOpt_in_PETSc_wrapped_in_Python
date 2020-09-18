@@ -37,6 +37,7 @@ Filter::Filter(DM da_nodes, Vec x, Vec xPassive, PetscInt filterT, PetscScalar R
     SetUp(da_nodes, x, xPassive);
 }
 
+/*
 Filter::Filter(DM da_nodes, Vec x, PetscInt filterT, PetscScalar Rin) {
     // Set all pointers to NULL
     H       = NULL;
@@ -57,6 +58,7 @@ Filter::Filter(DM da_nodes, Vec x, PetscInt filterT, PetscScalar Rin) {
     SetUp(da_nodes, x, xPassive);
     VecDestroy(&xPassive);
 }
+*/
 
 Filter::~Filter() {
     // Deallocate data

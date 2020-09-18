@@ -32,9 +32,15 @@ data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (65, 33, 33))
 Emin, Emax, nu, Dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 3.0
 data.material(Emin, Emax, nu, Dens, penal)
 
+# setup continuation of penalization: (Pinitial, Pfinal, stepsize)
+#data.continuation()
+
+# setup heavyside projection filter (betaFinal, stepsize, eta)
+data.projection() 
+
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1, 
-data.filter(2, 0.08)
+data.filter(1, 0.08)
 
 # optimizer: (maxIter)
 data.mma(40)

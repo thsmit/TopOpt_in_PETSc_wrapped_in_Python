@@ -35,7 +35,7 @@ class Filter {
 
   public:
     // Constructor
-    Filter(DM da_nodes, Vec x, PetscInt filterT, PetscScalar Rin);
+    //Filter(DM da_nodes, Vec x, PetscInt filterT, PetscScalar Rin);
     Filter(DM da_nodes, Vec x, Vec xPassive, PetscInt filterT, PetscScalar Rin);
 
     // Destructor
