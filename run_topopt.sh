@@ -30,15 +30,20 @@ cd $id
 
 #path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/problem_definition_file.py 
 #path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/largescale.py
-path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/beam.py
-#path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket.py
+#path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/beam.py
+path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket.py
 #path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/sphere.py
 #path=../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/roof.py
 
 # ADJUSTABLE PARAMETERS
+#EULER_MEMORY="4000"
+#NCPU=32
+#WALL_TIME="8:00"
+
+# ADJUSTABLE PARAMETERS
 EULER_MEMORY="2000"
-NCPU=8
-WALL_TIME="1:00"
+NCPU=16
+WALL_TIME="4:00"
 
 # FUNCTION CALL
 bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python $path 

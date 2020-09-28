@@ -20,8 +20,10 @@ data = topoptlib.Data()
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
 #data.structuredGrid((0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0625, 1.9375, 0.0), (65, 65, 65))
 #data.structuredGrid((0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0625, 1.9375, 0.0), (65, 65, 65))
-#data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.3, 0.00625, 0.0), (161, 193, 193))
-data.structuredGrid((0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.3, 0.0125, 0.0), (81, 97, 97))
+#data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.2, 0.00625, 0.20625), (161, 193, 193))
+#data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.2, 0.025, 0.2125), (81, 97, 97))
+data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.2, 0.025, 0.2125), (161, 193, 193))
+
 
 # readin STL file in binary format
 # TO DO: allow for ASCII format
@@ -32,25 +34,26 @@ data.stlread_domain((0.0, 0.0, 0.0), (1.0, 1.2, 1.2), '/cluster/home/thsmit/TopO
 #data.stlread_domain((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/tritext_demo.stl')
 # data.stlread_domain('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/jetEngineDesignDomainFine.stl')
 #data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/solidtorsion.stl')
-data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/rigidtorsion.stl')
+data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/rigidtorsionbig.stl')
 
 # Optional printing:
 #print(data.nNodes)
 #print(data.nElements)
 #print(data.nDOF)
 
-
-
 # material: (Emin, Emax, nu, penal)
-Emin, Emax, nu, dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 3.0
+Emin, Emax, nu, dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 1.0
 data.material(Emin, Emax, nu, dens, penal)
+
+#data.continuation()
+#data.projection()
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1, 
-data.filter(1, 0.000065)
+data.filter(1, 0.025)
 
 # optimizer: (maxIter)
-data.mma(40)
+data.mma(200) # or 1
 
 # loadcases: (# of loadcases)
 data.loadcases(1)
@@ -77,10 +80,10 @@ data.loadcases(1)
 #data.bc(0, 1, [0, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
 #data.bc(0, 5, [0, 7], [1, 2], [-0.001], 1)
 data.bc(0, 1, [0, 1], [0, 1, 2], [0.0, 0.0, 0.0], 0)
-data.bc(0, 1, [2, 4], [2], [0.0], 0)
-data.bc(0, 1, [1, 2], [1], [0.0], 0)
-data.bc(0, 2, [0, 7, 1, 2, 2, 6], [1], [0.1], 0)
-data.bc(0, 2, [0, 7, 2, 7, 1, 6], [2], [-0.1], 0)
+#data.bc(0, 1, [2, 4], [2], [0.0], 0)
+#data.bc(0, 1, [1, 2], [1], [0.0], 0)
+data.bc(0, 2, [0, 7, 1, 7, 2, 6], [1], [-0.001], 0)
+data.bc(0, 2, [0, 7, 2, 7, 1, 6], [2], [0.001], 0)
 
 #data.bc(1, 1, [[0, 0]], [0, 1, 2], [0.0, 0.0, 0.0], None)
 #data.bc(1, 2, [[0, 1], [1, 3]], [1], [0.001], None)
@@ -90,6 +93,7 @@ data.bc(0, 2, [0, 7, 2, 7, 1, 6], [2], [-0.1], 0)
 materialvolumefraction = 0.02
 #nEl = data.nElements
 nEl = data.nael
+rigidVol = data.nrel * 1000.0
 
 # Calculate the objective function
 # objective input: (design variable value, SED)
@@ -100,7 +104,7 @@ def sensitivity(sumXp, xp, uKu):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
 
 def constraint(comp, sumXp, xp, uKu):
-    return sumXp / nEl - materialvolumefraction
+    return (sumXp - rigidVol) / nEl - materialvolumefraction
 
 def constraintSensitivity(sumXp, xp, uKu):
     return 1.0 / nEl

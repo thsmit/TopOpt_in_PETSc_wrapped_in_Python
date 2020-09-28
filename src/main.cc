@@ -68,7 +68,7 @@ int solve(DataObj data) {
 
         // UPDATING THE CONTINUATION PARAMETERS
         // reference, Maximum Size...
-		if (opt->continuationStatus & itr % opt->IterProj == 0){
+		if (opt->continuationStatus && itr % opt->IterProj == 0){
 			opt->penal   = PetscMin(opt->penal+0.25,3); // penal = penal : 0.25 : 3.0
 			// move limits: initial 0.6, final 0.05
 			//opt->movlim  = (opt->movlimEnd-opt->movlimIni)/(3.0-1.0)*(opt->penal-1.0)+opt->movlimIni; 
@@ -93,7 +93,7 @@ int solve(DataObj data) {
         CHKERRQ(ierr);
 
         // Compute objective scale
-        if (itr == 1 || (itr % opt->IterProj == 0 & opt->continuationStatus)) {
+        if (itr == 1 || (itr % opt->IterProj == 0 && opt->continuationStatus)) {
             opt->fscale = 10.0 / opt->fx;
         }
         // Scale objectie and sens
@@ -115,6 +115,7 @@ int solve(DataObj data) {
             opt->UpdateVariables(1, opt->dgdx[0], opt->dgdxMMA[0]);
             opt->UpdateVariables(1, opt->xmin, opt->xminMMA);
             opt->UpdateVariables(1, opt->xmax, opt->xmaxMMA);
+            opt->UpdateVariables(1, opt->xold, opt->xoldMMA);
 
             // Sets outer movelimits on design variables
             ierr = mma->SetOuterMovelimit(opt->Xmin, opt->Xmax, opt->movlim, opt->xMMA, opt->xminMMA, opt->xmaxMMA);
@@ -124,11 +125,15 @@ int solve(DataObj data) {
             ierr = mma->Update(opt->xMMA, opt->dfdxMMA, opt->gx, opt->dgdxMMA, opt->xminMMA, opt->xmaxMMA);
             CHKERRQ(ierr);
 
+            // Inf norm on the design change
+            ch = mma->DesignChange(opt->xMMA, opt->xoldMMA);
+
             opt->UpdateVariables(-1, opt->x, opt->xMMA);
             opt->UpdateVariables(-1, opt->dfdx, opt->dfdxMMA);
             opt->UpdateVariables(-1, opt->dgdx[0], opt->dgdxMMA[0]);
             opt->UpdateVariables(-1, opt->xmin, opt->xminMMA);
             opt->UpdateVariables(-1, opt->xmax, opt->xmaxMMA);
+            opt->UpdateVariables(-1, opt->xold, opt->xoldMMA);
             
         } else {
             
@@ -139,10 +144,11 @@ int solve(DataObj data) {
             // Update design by MMA
             ierr = mma->Update(opt->x, opt->dfdx, opt->gx, opt->dgdx, opt->xmin, opt->xmax);
             CHKERRQ(ierr);
-        }
 
-        // Inf norm on the design change
-        ch = mma->DesignChange(opt->x, opt->xold);
+            // Inf norm on the design change
+            ch = mma->DesignChange(opt->x, opt->xold);
+
+        }
 
         // Increase beta if needed
         PetscBool changeBeta = PETSC_FALSE;

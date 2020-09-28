@@ -30,6 +30,8 @@ static PyMemberDef members[] =
       {"trueFx", T_DOUBLE, offsetof(DataObj, trueFx), 0, "nNodes docstring"},
       {"scaledFx", T_DOUBLE, offsetof(DataObj, scaledFx), 0, "nNodes docstring"},
       {"nael", T_INT, offsetof(DataObj, nael), 0, "nael docstring"},
+      {"nrel", T_INT, offsetof(DataObj, nrel), 0, "nael docstring"},
+      {"nsel", T_INT, offsetof(DataObj, nsel), 0, "nael docstring"},
       {NULL}  /* Sentinel */
 };
 
@@ -197,7 +199,7 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
     self->nael = acount;
 
     // wirte vtk file of flag, use paraview to view the flag data
-    vox.write_vtk_image();
+    //vox.write_vtk_image();
 
     Py_RETURN_NONE;
 }
@@ -314,7 +316,7 @@ static PyObject *stlread_solid_py(DataObj *self, PyObject *args)
     }
 
     std::cout << "active solids : " << acount << std::endl;
-    self->nael = acount;
+    self->nsel = acount;
 
     // wirte vtk file of flag, use paraview to view the flag data
     //vox.write_vtk_image();
@@ -434,7 +436,7 @@ static PyObject *stlread_rigid_py(DataObj *self, PyObject *args)
     }
 
     std::cout << "active rigid : " << acount << std::endl;
-    self->nael = acount;
+    self->nrel = acount;
 
     // wirte vtk file of flag, use paraview to view the flag data
     //vox.write_vtk_image();
@@ -618,16 +620,18 @@ static PyObject *bc_py(DataObj *self, PyObject *args)
 
     Py_DECREF(iteratorrr);
 
+
+    condition.Para = param_funci;
     // Check param_func is a function
-    if (param_funci) {
+    //if (param_funci) {
         //self->para_func = param_func;
         //Py_INCREF(self->para_func);
-        condition.Para = 1;
-    }
-    else {
+    //    condition.Para = 1;
+    //}
+    //else {
         //self->para_func = NULL;
-        condition.Para = 0;
-    }
+    //    condition.Para = 0;
+    //}
         
     self->loadcases_list.at(loadcase_ID).push_back(condition);
 
@@ -739,7 +743,7 @@ static PyObject *solve_py(DataObj *self)
 
     // read in from .dat binary file
     // safe data in Data.vtkPolyData objects, one object per iteration
-    writeVTKPolyData();
+    //writeVTKPolyData();
 
     // return "complete" signal
     return PyLong_FromLong(complete);

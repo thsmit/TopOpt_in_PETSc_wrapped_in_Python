@@ -52,6 +52,7 @@ TopOpt::TopOpt(DataObj data) {
     dgdxMMA = NULL;
     xminMMA = NULL;
     xmaxMMA = NULL;
+    xoldMMA = NULL;
 
     xo1 = NULL;
     xo2 = NULL;
@@ -108,6 +109,9 @@ TopOpt::~TopOpt() {
     }
     if (xmaxMMA != NULL) {
         VecDestroy(&xmaxMMA);
+    }
+    if (xoldMMA != NULL) {
+        VecDestroy(&xoldMMA);
     }
     if (da_nodes != NULL) {
         DMDestroy(&(da_nodes));
@@ -171,6 +175,7 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     penalFin = 3.0;
     penalStep = 0.25;
     IterProj = maxItr / ((penalFin - penalIni) / penalStep);
+    //IterProj = 10;
     //PetscPrintf(PETSC_COMM_WORLD, "IterProj %i\n", IterProj);
 
     Emin    = data.Emin_w;
@@ -192,8 +197,8 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     if (data.projection_w == 1) {
         projectionFilter = PETSC_TRUE;
     }
-    beta             = 0.1;
-    betaFinal        = 48;
+    beta             = 1.0;
+    betaFinal        = 64;
     eta              = 0.5;
 
     ierr = SetUpMESH();
@@ -536,10 +541,18 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         PetscInt tmps = scount;
         scount = 0;
         MPI_Allreduce(&tmps, &scount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
+
+        // Allreduce, number of active elements
+        // tmp number of var on proces
+        // acount total number of var sumed
+        PetscInt tmpr = rcount;
+        rcount = 0;
+        MPI_Allreduce(&tmpr, &rcount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
         
         // printing
         PetscPrintf(PETSC_COMM_WORLD, "acount sum: %i\n", acount);
         PetscPrintf(PETSC_COMM_WORLD, "scount sum: %i\n", scount);
+        PetscPrintf(PETSC_COMM_WORLD, "rcount sum: %i\n", rcount);
 
         //// create MMA vectors
         VecCreateMPI(PETSC_COMM_WORLD, tmp, acount, &xMMA);
@@ -614,6 +627,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         VecDuplicateVecs(xMMA, m, &dgdxMMA);
         VecDuplicate(xMMA, &xminMMA);
         VecDuplicate(xMMA, &xmaxMMA);
+        VecDuplicate(xMMA, &xoldMMA);
 
         //VecSet(xMMA, volfrac);
 

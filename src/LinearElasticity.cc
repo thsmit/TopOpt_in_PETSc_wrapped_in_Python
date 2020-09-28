@@ -170,17 +170,21 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
     //PetscScalar epsi = PetscMin(dx * 2, PetscMin(dy * 2, dz * 2));
 
     // Print number of loadcases
+    PetscPrintf(PETSC_COMM_WORLD, "############################# BC ################################\n");
     PetscPrintf(PETSC_COMM_WORLD, "Number of loadcases: %i\n", data.loadcases_list.size());
     //PetscPrintf(PETSC_COMM_WORLD, "epsi: %f\n", epsi);
 
     // Loop over the load cases
     for (auto lc = 0; lc < data.loadcases_list.size(); lc++) {
-
+        
+        // print info
+        PetscPrintf(PETSC_COMM_WORLD, "For loadcase %i\n", lc);
+        
         // iter over bc in load case
         for (auto j = 0; j < data.loadcases_list.at(lc).size(); j++) {
             
-            //PetscPrintf(PETSC_COMM_WORLD, "Para: %i\n", data.loadcases_list.at(lc).at(j).Para);
-            //PetscPrintf(PETSC_COMM_WORLD, "BCType: %i\n", data.loadcases_list.at(lc).at(j).BCtype);
+            PetscPrintf(PETSC_COMM_WORLD, "Parametrization number: %i\n", data.loadcases_list.at(lc).at(j).Para);
+            PetscPrintf(PETSC_COMM_WORLD, "BC Type: %i\n", data.loadcases_list.at(lc).at(j).BCtype);
             //PetscPrintf(PETSC_COMM_WORLD, "check 1 %i, check 2 %i\n", data.loadcases_list.at(lc).at(j).Checker_vec.at(0), data.loadcases_list.at(lc).at(j).Checker_vec.at(1));
             //PetscPrintf(PETSC_COMM_WORLD, "BC , coordinate %f\n", lcoorp[data.loadcases_list.at(lc).at(j).Checker_vec.at(0)]);
             //PetscPrintf(PETSC_COMM_WORLD, "BC , xc %f\n", xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]);
@@ -254,7 +258,12 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
 
                 // iterate over dofs
                 for (PetscInt ii = 0; ii < nn; ii++) {
+                    //PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i, xc %f\n", lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], data.loadcases_list.at(lc).at(j).Checker_vec.at(0), xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]);
+
                     if (ii % 3 == 0 && PetscAbsScalar(lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]) < epsi) {
+                        
+                        //PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i, xc %f\n", lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], data.loadcases_list.at(lc).at(j).Checker_vec.at(0), xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]);
+                        
                         for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
                             //PetscPrintf(PETSC_COMM_WORLD, "BC fix, coordinate %f, check %f\n", lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]);
                             //PetscPrintf(PETSC_COMM_WORLD, "check 1 %f, check 2 %f\n", data.loadcases_list.at(lc).at(j).Checker_vec.at(0), data.loadcases_list.at(lc).at(j).Checker_vec.at(1));
@@ -301,6 +310,10 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                     PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(3)]) < epsi && 
                     PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(5)]) < epsi) {
                         
+                        PetscPrintf(PETSC_COMM_WORLD, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], data.loadcases_list.at(lc).at(j).Checker_vec.at(0));
+                        PetscPrintf(PETSC_COMM_WORLD, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)], data.loadcases_list.at(lc).at(j).Checker_vec.at(2));
+                        PetscPrintf(PETSC_COMM_WORLD, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)], data.loadcases_list.at(lc).at(j).Checker_vec.at(4));
+
                         for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
                             if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
                                 VecSetValueLocal(N[lc], iii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
@@ -311,7 +324,31 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                         }
                     }
                 }
+            }
 
+            if (data.loadcases_list.at(lc).at(j).Checker_vec.size() == 6 && data.loadcases_list.at(lc).at(j).Para == 2) {
+            
+                // iterate over dofs
+                for (PetscInt iii = 0; iii < nn; iii++) {
+                    
+                    if (iii % 3 == 0 && PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(1)) < epsi && 
+                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)] - (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(3)) < epsi && 
+                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)] - (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(5)) < epsi) {
+                        
+                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(0));
+                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)], (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(2));
+                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)], (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(4));
+
+                        for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
+                            if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
+                                VecSetValueLocal(N[lc], iii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                            }
+                            if (data.loadcases_list.at(lc).at(j).BCtype == 2) {
+                                VecSetValueLocal(RHS[lc], iii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -435,6 +472,11 @@ PetscErrorCode LinearElasticity::SolveState(Vec xPhys, PetscScalar Emin, PetscSc
     ierr = VecNorm(RHS[loadcase], NORM_2, &RHSnorm);
     CHKERRQ(ierr);
     rnorm = rnorm / RHSnorm;
+
+    // catch bad solve
+    if (KSPreason == -3) {
+        PetscPrintf(PETSC_COMM_WORLD, "Not converged!! KSPConvergedReason = %i\n", KSPreason);
+    }
 
     t2 = MPI_Wtime();
     //PetscPrintf(PETSC_COMM_WORLD, "State solver:  iter: %i, rerr.: %e, time: %f\n", niter, rnorm, t2 - t1);
@@ -974,7 +1016,8 @@ PetscErrorCode LinearElasticity::SetUpSolver() {
     PetscScalar atol         = 1.0e-50;
     PetscScalar dtol         = 1.0e5;
     PetscInt    restart      = 100;
-    PetscInt    maxitsGlobal = 200;
+    PetscInt    maxitsGlobal = 400;
+    //PetscInt    maxitsGlobal = 200;
 
     // Coarsegrid solver
     PetscScalar coarse_rtol    = 1.0e-8;

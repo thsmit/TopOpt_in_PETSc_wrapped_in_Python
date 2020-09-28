@@ -114,6 +114,7 @@ class TopOpt {
     Vec* dgdxMMA;
     Vec xminMMA;
     Vec xmaxMMA;
+    Vec xoldMMA;
     
     // Restart data for MMA:
     PetscBool   restart, flip;

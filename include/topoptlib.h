@@ -65,6 +65,8 @@ struct DataObj {
         // xPassive
         std::vector<double> xPassive_w;
         int nael; // number of active design variables
+        int nrel; // number of rigid elements
+        int nsel; // number of solid elements
 
         // Loadcases
         int nL = 1;
