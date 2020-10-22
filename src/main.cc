@@ -1,5 +1,6 @@
 #include "topoptlib.h" // for wrapper
 #include "Filter.h"
+#include "LocalVolume.h"
 #include "LinearElasticity.h"
 #include "MMA.h"
 #include "MPIIO.h"
@@ -45,31 +46,58 @@ int solve(DataObj data) {
     //Filter* filter = new Filter(opt->da_nodes, opt->xPhys, opt->filter, opt->rmin);
     Filter* filter = new Filter(opt->da_nodes, opt->xPhys, opt->xPassive, opt->filter, opt->rmin);
 
+    // Initialize local volume constraint
+    LocalVolume* local = new LocalVolume(opt->da_nodes, opt->x);
+
     // STEP 4: VISUALIZATION USING VTK
-    MPIIO* output = new MPIIO(opt->da_nodes, 3, "ux, uy, uz", 3, "x, xTilde, xPhys");
+    MPIIO* output = new MPIIO(opt->da_nodes, 3, "ux, uy, uz", 4, "x, xTilde, xPhys, dfdx");
     
     // STEP 5: THE OPTIMIZER MMA
     MMA* mma;
-    //MMA* mma = new MMA(data.nael, 1, opt->xMMA);
     PetscInt itr = 0;
     opt->AllocateMMAwithRestart(&itr, &mma); // allow for restart !
-    // mma->SetAsymptotes(0.2, 0.65, 1.05);
+    /////////1e-5, 1e-2 firstnumber
+    //mma->SetAsymptotes(1e-2, 0.65, 1.05);
+    //mma->SetAsymptotes(0.2, 0.65, 1.05);
 
     // STEP 6: FILTER THE INITIAL DESIGN/RESTARTED DESIGN
     ierr = filter->FilterProject(opt->x, opt->xTilde, opt->xPhys, opt->projectionFilter, opt->beta, opt->eta);
     CHKERRQ(ierr);
 
+    // Add rigid and solid elements
+    PetscScalar *xpPassive;
+    PetscScalar *xpPhys;
+    VecGetArray(opt->xPassive, &xpPassive);
+    VecGetArray(opt->xPhys, &xpPhys);
+        
+    PetscInt nel;
+    VecGetLocalSize(opt->xPhys, &nel);
+        
+    for (PetscInt el = 0; el < nel; el++) {  
+        if (xpPassive[el] == 3.0) {
+            xpPhys[el] = 10.0;
+        }
+        if (xpPassive[el] == 2.0) {
+            xpPhys[el] = 1.0;
+        }
+    }
+    VecRestoreArray(opt->xPassive, &xpPassive);
+    VecRestoreArray(opt->xPhys, &xpPhys);
+
+    // print initial condition to vtk
+    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, opt->dfdx, itr);
+
     // STEP 7: OPTIMIZATION LOOP
     PetscScalar ch = 1.0;
     double      t1, t2;
-    while (itr < opt->maxItr && ch > 0.01) {
+    while (itr < opt->maxItr && ch > 0.001) {
         // Update iteration counter
         itr++;
 
         // UPDATING THE CONTINUATION PARAMETERS
         // reference, Maximum Size...
 		if (opt->continuationStatus && itr % opt->IterProj == 0){
-			opt->penal   = PetscMin(opt->penal+0.25,3); // penal = penal : 0.25 : 3.0
+			opt->penal   = PetscMin(opt->penal+0.125,3); // penal = penal : 0.25 : 3.0
 			// move limits: initial 0.6, final 0.05
 			//opt->movlim  = (opt->movlimEnd-opt->movlimIni)/(3.0-1.0)*(opt->penal-1.0)+opt->movlimIni; 
 			//opt->Beta    = PetscMin((1.50*opt->Beta),38.0); // beta = beta*1.5 
@@ -81,6 +109,7 @@ int solve(DataObj data) {
         // start timer
         t1 = MPI_Wtime();
 
+
         // Compute (a) obj+const, (b) sens, (c) obj+const+sens
         // input -> xPhys + SIMP settings + material properties
         // output -> objective + sensitivities + constraint value + cons sensitivies
@@ -89,7 +118,6 @@ int solve(DataObj data) {
                                                                  opt->xPhys, opt->Emin, opt->Emax, opt->penal,
                                                                  opt->volfrac, data);
 
-        
         CHKERRQ(ierr);
 
         // Compute objective scale
@@ -103,6 +131,10 @@ int solve(DataObj data) {
         // Filter sensitivities (chainrule)
         ierr = filter->Gradients(opt->x, opt->xTilde, opt->dfdx, opt->m, opt->dgdx, opt->projectionFilter, opt->beta,
                                  opt->eta);
+        CHKERRQ(ierr);
+
+        // Calculate g and dgdx for the local volume constraint
+        ierr = local->Constraint(opt->x, &(opt->gx[0]), opt->dgdx[0]);
         CHKERRQ(ierr);
 
         if (opt->xPassiveStatus) {
@@ -160,6 +192,26 @@ int solve(DataObj data) {
         ierr = filter->FilterProject(opt->x, opt->xTilde, opt->xPhys, opt->projectionFilter, opt->beta, opt->eta);
         CHKERRQ(ierr);
 
+        // Reset rigid and solid elements
+        PetscScalar *xpPassive;
+        PetscScalar *xpPhys;
+        VecGetArray(opt->xPassive, &xpPassive);
+        VecGetArray(opt->xPhys, &xpPhys);
+            
+        PetscInt nel;
+        VecGetLocalSize(opt->xPhys, &nel);
+            
+        for (PetscInt el = 0; el < nel; el++) {  
+            if (xpPassive[el] == 3.0) {
+                xpPhys[el] = 10.0;
+            }
+            if (xpPassive[el] == 2.0) {
+                xpPhys[el] = 1.0;
+            }
+        }
+        VecRestoreArray(opt->xPassive, &xpPassive);
+        VecRestoreArray(opt->xPhys, &xpPhys);
+
         // Discreteness measure
         PetscScalar mnd = filter->GetMND(opt->xPhys);
 
@@ -174,22 +226,26 @@ int solve(DataObj data) {
 
         // Write field data: first 10 iterations and then every 20th
         if (itr < 11 || itr % 20 == 0 || changeBeta) {
-            output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr);
+            //output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr);
+            output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, opt->dfdx, itr);
+
         }
 
         // Dump data needed for restarting code at termination
         if (itr % 10 == 0) {
-            opt->WriteRestartFiles(&itr, mma);
+            //opt->WriteRestartFiles(&itr, mma);
             physics->WriteRestartFiles();
         }
     }
         
     // Write restart WriteRestartFiles
-    opt->WriteRestartFiles(&itr, mma);
+    //opt->WriteRestartFiles(&itr, mma);
     physics->WriteRestartFiles();
 
     // Dump final design
-    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr + 1);
+    //output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr + 1);
+    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, opt->dfdx, itr);
+
 
     // STEP 7: CLEAN UP AFTER YOURSELF
     delete mma;

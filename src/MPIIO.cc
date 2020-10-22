@@ -144,6 +144,69 @@ MPIIO::~MPIIO() {
     delete[] nCFields;
 }
 
+PetscErrorCode MPIIO::WriteVTK(DM da_nodes, Vec U, Vec x, Vec xTilde, Vec xPhys, Vec dfdx, PetscInt itr) {
+
+    // Here we only have one "timestep" (no optimization)
+    unsigned long int timestep = itr;
+
+    PetscErrorCode ierr;
+
+    // POINT FIELD(S)
+    // Displacement
+    Vec Ulocal;
+    DMCreateLocalVector(da_nodes, &Ulocal);
+    ierr = VecSet(Ulocal, 0.0);
+    CHKERRQ(ierr);
+    // Update the local vector from global solution
+    ierr = DMGlobalToLocalBegin(da_nodes, U, INSERT_VALUES, Ulocal);
+    CHKERRQ(ierr);
+    ierr = DMGlobalToLocalEnd(da_nodes, U, INSERT_VALUES, Ulocal);
+    CHKERRQ(ierr);
+    // We need a pointer to the local vector
+    PetscScalar* UlocalPointer;
+    ierr = VecGetArray(Ulocal, &UlocalPointer);
+    CHKERRQ(ierr);
+    for (unsigned long int i = 0; i < nPointsMyrank[0]; i++) {
+        // Ux
+        workPointField[i] = float(UlocalPointer[3 * i]);
+        // Uy
+        workPointField[i + nPointsMyrank[0]] = float(UlocalPointer[3 * i + 1]);
+        // Uz
+        workPointField[i + 2 * nPointsMyrank[0]] = float(UlocalPointer[3 * i + 2]);
+    }
+    writePointFields(timestep, 0, workPointField);
+    // Restore Ulocal array
+    ierr = VecRestoreArray(Ulocal, &UlocalPointer);
+    CHKERRQ(ierr);
+
+    // CELL FIELD(S)
+    PetscScalar *xpp, *xp, *xt, *xd;
+    VecGetArray(x, &xp);
+    VecGetArray(xTilde, &xt);
+    VecGetArray(xPhys, &xpp);
+    VecGetArray(dfdx, &xd);
+
+    for (unsigned long int i = 0; i < nCellsMyrank[0]; i++) {
+        // Density
+        workCellField[i + 0 * nCellsMyrank[0]] = float(xp[i]);
+        workCellField[i + 1 * nCellsMyrank[0]] = float(xt[i]);
+        workCellField[i + 2 * nCellsMyrank[0]] = float(xpp[i]);
+        workCellField[i + 3 * nCellsMyrank[0]] = float(xd[i]);
+    }
+    writeCellFields(0, workCellField);
+    // Restore arrays
+    VecRestoreArray(x, &xp);
+    VecRestoreArray(xTilde, &xt);
+    VecRestoreArray(xPhys, &xpp);
+    VecRestoreArray(dfdx, &xd);
+
+    // clean up
+    ierr = VecDestroy(&Ulocal);
+    CHKERRQ(ierr);
+
+    return ierr;
+}
+
 PetscErrorCode MPIIO::WriteVTK(DM da_nodes, Vec U, Vec x, Vec xTilde, Vec xPhys, PetscInt itr) {
 
     // Here we only have one "timestep" (no optimization)

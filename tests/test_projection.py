@@ -12,11 +12,11 @@ import topoptlib
 import numpy as np
 
 data = topoptlib.Data()
-data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (65, 33, 33))
+data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (65, 33, 33))
 #data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (129, 65, 65))
 Emin, Emax, nu, Dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 3.0
 data.material(Emin, Emax, nu, Dens, penal)
-data.projection() 
+data.projection(64.0, 1.0, 0.5) 
 data.filter(1, 0.08)
 data.mma(40)
 data.loadcases(1)

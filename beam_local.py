@@ -19,7 +19,7 @@ data = topoptlib.Data()
 # define input data
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
 #data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (129, 65, 65))
-#data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (17, 9, 9))
+#data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (17, 9, 9))
 #data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (33, 17, 17))
 data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (65, 33, 33))
 
@@ -35,22 +35,22 @@ data.material(Emin, Emax, nu, Dens, penal)
 # setup continuation of penalization: (Pinitial, Pfinal, stepsize)
 #data.continuation()
 
-# setup heavyside projection filter (betaFinal, stepsize, eta)
-#data.projection() 
+# setup heavyside projection filter (betaFinal, betaInit, eta)
+data.projection(64.0, 1.0, 0.5) 
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1, 
 data.filter(1, 0.08)
 
 # optimizer: (maxIter)
-data.mma(1600)
+data.mma(40)
 
 # loadcases: (# of loadcases)
 data.loadcases(1)
 
 # bc: (loadcase, type, [checker: lcoorp[i+?], xc[?]], [setter: dof index], [setter: values])
 data.bc(0, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
-#data.bc(0, 2, [0, 1, 2, 4], [2], [-0.001], 0)
+data.bc(0, 2, [0, 1, 2, 4], [2], [-0.001], 0)
 data.bc(0, 2, [0, 1, 1, 2, 2, 4], [2], [-0.0005], 0)
 data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], 0)
 
@@ -70,19 +70,28 @@ def objective(comp, sumXp, xp, uKu):
 def sensitivity(sumXp, xp, uKu):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
 
-def constraint(comp, sumXp, xp, uKu):
+# constraints: (# of constraints)
+data.constraints(1)
+
+def TotalVol(comp, sumXp, xp, uKu):
     return sumXp / nEl - materialvolumefraction
 
-def constraintSensitivity(sumXp, xp, uKu):
+def TotalVolSensitivity(sumXp, xp, uKu):
     return 1.0 / nEl
 
-# Callback implementatio
+def LocalVol(comp, sumXp, xp, uKu):
+    return sumXp / nEl - materialvolumefraction
+
+def LocalVolSensitivity(sumXp, xp, uKu):
+    return 1.0 / nEl
+
+# Callback implementation
 data.obj(objective)
 data.objsens(sensitivity)
 
 # Define constraint
-data.cons(constraint)
-data.conssens(constraintSensitivity)
+data.cons(TotalVol)
+data.conssens(TotalVolSensitivity)
 
 # Volume constraint is standard, input (volume fraction)
 data.initialcondition(materialvolumefraction)
@@ -95,3 +104,5 @@ complete = data.solve()
 # post processing, generate .vtu file to be viewed in paraview
 #if complete:
 #    data.vtu()
+
+print('True Compliance should be: ', 0.522077)

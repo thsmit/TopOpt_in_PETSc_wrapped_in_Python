@@ -21,20 +21,21 @@ data = topoptlib.Data()
 #data.structuredGrid((0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0625, 1.9375, 0.0), (65, 65, 65))
 #data.structuredGrid((0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0625, 1.9375, 0.0), (65, 65, 65))
 #data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.2, 0.00625, 0.20625), (161, 193, 193))
-#data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.2, 0.025, 0.2125), (81, 97, 97))
-data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.2, 0.025, 0.2125), (161, 193, 193))
+#data.structuredGrid((0.0, 2.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.1875, 1.9875, 0.0), (161, 97, 97))
+data.structuredGrid((0.0, 2.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.1875, 1.9875, 0.0), (321, 193, 193))
+#data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.2, 0.025, 0.2125), (161, 193, 193))
 
 
 # readin STL file in binary format
 # TO DO: allow for ASCII format
 # stl read: ((box around stl: (min corner)(max corner)), full path to file)
-data.stlread_domain((0.0, 0.0, 0.0), (1.0, 1.2, 1.2), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/domaintorsion.stl')
+data.stlread_domain((0.0, 0.0, 0.0), (2.0, 1.2, 1.2), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/domaintorsionq.stl')
 #data.stlread_domain((0.0, 0.0, 0.0), (1.0, 1.2, 1.2), 'full')
 #data.stlread_domain((0.0, 0.0, 0.0), (1.2, 1.2, 1.2), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/hollowsphere.stl')
 #data.stlread_domain((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/tritext_demo.stl')
 # data.stlread_domain('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/jetEngineDesignDomainFine.stl')
 #data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/solidtorsion.stl')
-data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/rigidtorsionbig.stl')
+data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/rigidtorsionbigq.stl')
 
 # Optional printing:
 #print(data.nNodes)
@@ -42,18 +43,18 @@ data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input
 #print(data.nDOF)
 
 # material: (Emin, Emax, nu, penal)
-Emin, Emax, nu, dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 1.0
+Emin, Emax, nu, dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 3.0
 data.material(Emin, Emax, nu, dens, penal)
 
 #data.continuation()
-#data.projection()
+data.projection()
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1, 
 data.filter(1, 0.025)
 
 # optimizer: (maxIter)
-data.mma(200) # or 1
+data.mma(1600)
 
 # loadcases: (# of loadcases)
 data.loadcases(1)
@@ -79,11 +80,33 @@ data.loadcases(1)
 #data.bcpara(parametrization)
 #data.bc(0, 1, [0, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
 #data.bc(0, 5, [0, 7], [1, 2], [-0.001], 1)
-data.bc(0, 1, [0, 1], [0, 1, 2], [0.0, 0.0, 0.0], 0)
-#data.bc(0, 1, [2, 4], [2], [0.0], 0)
-#data.bc(0, 1, [1, 2], [1], [0.0], 0)
-data.bc(0, 2, [0, 7, 1, 7, 2, 6], [1], [-0.001], 0)
-data.bc(0, 2, [0, 7, 2, 7, 1, 6], [2], [0.001], 0)
+#data.bc(0, 1, [0, 1, 1, 0, 2, 6], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+#data.bc(0, 1, [0, 1, 2, 6, 1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+
+# symmetry
+#data.bc(0, 1, [2, 7], [0, 1], [0.0, 0.0], 0)
+#data.bc(0, 1, [1, 0], [0, 2], [0.0, 0.0], 0)
+data.bc(0, 1, [2, 0], [0, 1], [0.0, 0.0], 0)
+data.bc(0, 1, [1, 0], [0, 2], [0.0, 0.0], 0)
+
+# back
+#data.bc(0, 1, [0, 1, 1, 0, 2, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+#data.bc(0, 1, [0, 1, 1, 0, 2, 8], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+#data.bc(0, 1, [0, 1, 1, 6, 2, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+#data.bc(0, 1, [0, 1, 1, 6, 2, 8], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+
+#data.bc(0, 1, [0, 1, 1, 0, 2, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+#data.bc(0, 1, [0, 1, 1, 0, 2, 8], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+#data.bc(0, 1, [0, 1, 1, 6, 2, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+#data.bc(0, 1, [0, 1, 1, 6, 2, 8], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+data.bc(0, 2, [0, 9, 1, 7, 2, 8], [1], [-0.001], 0)
+data.bc(0, 2, [0, 9, 1, 8, 2, 7], [2], [0.001], 0)
+
+# front
+#data.bc(0, 2, [0, 7, 1, 6, 2, 8], [1], [0.001], 0)
+#data.bc(0, 2, [0, 7, 1, 6, 2, 8], [2], [-0.001], 0)
+data.bc(0, 2, [0, 7, 1, 7, 2, 8], [1], [0.001], 0)
+data.bc(0, 2, [0, 7, 1, 8, 2, 7], [2], [-0.001], 0)
 
 #data.bc(1, 1, [[0, 0]], [0, 1, 2], [0.0, 0.0, 0.0], None)
 #data.bc(1, 2, [[0, 1], [1, 3]], [1], [0.001], None)
@@ -93,7 +116,7 @@ data.bc(0, 2, [0, 7, 2, 7, 1, 6], [2], [0.001], 0)
 materialvolumefraction = 0.02
 #nEl = data.nElements
 nEl = data.nael
-rigidVol = data.nrel * 1000.0
+rigidVol = data.nrel * 10.0
 
 # Calculate the objective function
 # objective input: (design variable value, SED)

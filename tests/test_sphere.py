@@ -19,7 +19,7 @@ data = topoptlib.Data()
 # define input data
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
 #data.structuredGrid((0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0625, 1.9375, 0.0), (65, 65, 65))
-data.structuredGrid((0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0625, 1.9375, 0.0), (65, 65, 65))
+data.structuredGrid((0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0625, 1.9375, 0.0, 0.0, 0.0), (65, 65, 65))
 #data.structuredGrid((0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0), (9, 9, 9))
 
 # readin STL file in binary format

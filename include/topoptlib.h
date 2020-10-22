@@ -34,7 +34,7 @@ struct DataObj {
     
     public:
         // data storage
-        double xc_w[9];
+        double xc_w[11];
         double b_w[6];
         int nxyz_w[3];
         double Emin_w;
@@ -48,6 +48,9 @@ struct DataObj {
 
         int continuation_w = 0;
         int projection_w = 0;
+        double betaInit_w = 1.0;
+        double betaFinal_w = 64.0;
+        double eta_w = 0.5;
 
         // needed as members to be used in python script
         int nNodes;
@@ -67,6 +70,10 @@ struct DataObj {
         int nael; // number of active design variables
         int nrel; // number of rigid elements
         int nsel; // number of solid elements
+
+        // constraints
+        int m = 1;
+        std::vector<void (*)()> constraints_list;
 
         // Loadcases
         int nL = 1;

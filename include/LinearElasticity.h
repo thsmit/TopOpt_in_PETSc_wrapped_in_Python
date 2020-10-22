@@ -68,7 +68,7 @@ class LinearElasticity {
     // Logical mesh
     PetscInt    nn[3]; // Number of nodes in each direction
     PetscInt    ne[3]; // Number of elements in each direction
-    PetscScalar xc[9]; // Domain coordinates
+    PetscScalar xc[11]; // Domain coordinates
 
     // Linear algebra
     PetscInt numLoadCases;

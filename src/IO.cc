@@ -514,27 +514,31 @@ Voxelizer::Voxelizer(Geometry& geo_, GridBox& grid_) : geo(geo_), grid(grid_) {
 	// scale (in the z direction) and shift the geometry to fit the grid
 	//std::cout << "Generating voxilzer ..." << std::endl;
 	Bbox bound = geo.get_bound();
-	//std::cout << "GEO bound = " << bound << std::endl;
+	std::cout << "GEO bound = " << bound << std::endl;
 
 	//double dx = grid.get_dx();
 	//std::cout << "dx vox= " << dx << std::endl;
 	//double scale = (grid.get_extend().z - 2.0 * dx )/ bound.get_extend().z;
+	// double scale = 1.126; // small MBB Example
+	//double scale = 1.05; // big MBB Example
 	//std::cout << "scale vox= " << scale << std::endl;
 	//geo.scale_shift(scale, V3::zero);
 
+
 	//V3 shift = grid.get_minCorner() - geo.get_bound().get_minCorner();
-	//shift += V3(2*dx, 2*dx, 2*dx);
+	//shift += V3(1.0, 0.5, 0.5); // MBB Example
 	//std::cout << "shift vox= " << shift << std::endl;
 	//geo.scale_shift(1.0, shift);
 
 	int3 gridNum = grid.get_gridNum();
-	int nx = gridNum.nx;
-	int ny = gridNum.ny;
-	int nz = gridNum.nz;
+	// + 1 added
+	int nx = gridNum.nx + 1;
+	int ny = gridNum.ny + 1;
+	int nz = gridNum.nz + 1;
 	std::cout << "nx = " << nx << ", ny = " << ny << ", nz = " << nz << std::endl;
 	long numTotal = nx * ny * nz;
 	
-	// flag is point data? 
+	// flag is point data!
 	flag = new char[numTotal];
 	for (int i = 0; i < numTotal; i++)
 		flag[i] = 0;

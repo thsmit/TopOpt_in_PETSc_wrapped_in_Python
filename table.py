@@ -8,10 +8,6 @@
 # free from errors. Furthermore, we shall not be liable in any event
 # caused by the use of the program.
 
-##EULER_MEMORY="2500"
-#NCPU=32
-#WALL_TIME="24:00"
-
 import topoptlib
 import numpy as np
 
@@ -22,18 +18,18 @@ data = topoptlib.Data()
 # step 2:
 # define input data
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
-data.structuredGrid((0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 0.0, 0.0, 0.0, 0.0), (193, 65, 105))
+data.structuredGrid((0.0, 500.0, 0.0, 500.0, 0.0, 500.0, 492.188, 0.0, 0.0), (65, 65, 65))
 #data.structuredGrid((0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 0.0, 0.0), (385, 129, 209))
 
 # readin STL file in binary format
 # stl read: ((box around stl: (min corner)(max corner))full path to file)
-data.stlread_domain((-23.0, -1.0, -103.0), (169.0, 63.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/jetEngineDesignDomainFine.stl')
+data.stlread_domain((0.0, 0.0, 0.0), (500.0, 500.0, 500.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/tabledomain.stl')
 
 # stl read: load the solid domain into the same coordinate system as the design domain
-data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/jetEngineSolidDomainFine.stl')
+data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/tablesolid.stl')
 
 # stl read: load the solid domain into the same coordinate system as the design domain
-data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/jetEngineRigidDomainFine.stl')
+#data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/jetEngineRigidDomainFine.stl')
 
 # Optional printing:
 #print(data.nNodes)
@@ -41,19 +37,18 @@ data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input
 #print(data.nDOF)
 
 # material: (Emin, Emax, nu, penal)
-Emin, Emax, nu, Dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 3.0
+Emin, Emax, nu, Dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 1.0
 data.material(Emin, Emax, nu, Dens, penal)
 
-# Iterpro = 20, stepsize = 0.125, penalinit = 1.0, penalfinal = 3.0
 #data.continuation()
 #data.projection()
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1, 
-data.filter(1, 5.0)
+data.filter(1, 50.0)
 
 # optimizer: (maxIter)
-data.mma(1600)
+data.mma(200)
 
 def parametrization(lcx, lcy, lcz):
     # radius of bolt face 14.17= r7.5 mm
@@ -82,35 +77,34 @@ def parametrization(lcx, lcy, lcz):
     return val
 
 # loadcases: (# of loadcases)
-data.loadcases(4)
+data.loadcases(1)
 
 # use parametrization fuction
-data.bcpara(parametrization)
+#data.bcpara(parametrization)
 
 # bc: (loadcase, type, [checker: lcoorp[i+?], xc[?]], [setter: dof index], [setter: values], parametrization)
 # up
-data.bc(0, 1, [1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(0, 2, [0, 89.0, 1, 45.0, 2, 21.0], [1], [0.008], 2)
+data.bc(0, 1, [2, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+data.bc(0, 2, [2, 6], [2], [-0.008], 0)
 
 # out
-data.bc(1, 1, [1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(1, 2, [0, 89.0, 1, 45.0, 2, 21.0], [2], [-0.0085], 2)
+#data.bc(1, 1, [1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+#data.bc(1, 2, [0, 89.0, 1, 45.0, 2, 21.0], [2], [-0.0085], 2)
 
 #42deg
-data.bc(2, 1, [1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(2, 2, [0, 89.0, 1, 45.0, 2, 21.0], [2], [-0.0095*np.sin(np.deg2rad(42))], 2)
-data.bc(2, 2, [0, 89.0, 1, 45.0, 2, 21.0], [1], [0.0095*np.cos(np.deg2rad(42))], 2)
+#data.bc(2, 1, [1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+#data.bc(2, 2, [0, 89.0, 1, 45.0, 2, 21.0], [2], [-0.0095*np.sin(np.deg2rad(42))], 2)
+#data.bc(2, 2, [0, 89.0, 1, 45.0, 2, 21.0], [1], [0.0095*np.cos(np.deg2rad(42))], 2)
 
 # torsion
-data.bc(3, 1, [1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(3, 2, [0, 68.0, 1, 45.0, 2, 23.0], [2], [0.005], 2)
-data.bc(3, 2, [0, 111.0, 1, 45.0, 2, 19.0], [2], [-0.005], 2)
+#data.bc(3, 1, [1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+#data.bc(3, 2, [0, 68.0, 1, 45.0, 2, 23.0], [2], [0.005], 2)
+#data.bc(3, 2, [0, 111.0, 1, 45.0, 2, 19.0], [2], [-0.005], 2)
 
-materialvolumefraction = 0.3
+materialvolumefraction = 0.2
 #nEl = data.nElements
-nEl = data.nael - data.nrel - data.nsel
-#nEl = data.nael
-rigidVol = data.nrel * 10.0
+nEl = data.nael - data.nsel
+#rigidVol = data.nrel * 1000.0
 solidVol = data.nsel * 1.0
 
 # Calculate the objective function
@@ -126,7 +120,7 @@ def constraint(comp, sumXp, xp, uKu):
     #print('rigidVol',rigidVol)
     #print('solidVol',solidVol)
     #print('nEl',nEl)
-    return (sumXp - rigidVol - solidVol) / nEl - materialvolumefraction
+    return (sumXp - solidVol) / nEl - materialvolumefraction
 
 def constraintSensitivity(sumXp, xp, uKu):
     return 1.0 / nEl

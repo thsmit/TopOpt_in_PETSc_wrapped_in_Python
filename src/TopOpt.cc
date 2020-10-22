@@ -35,7 +35,10 @@
 TopOpt::TopOpt(DataObj data) {
     
     m = 1;
-    
+    if (data.m > 1) {
+        m = data.m;
+    }
+
     x        = NULL;
     xPhys    = NULL;
     dfdx     = NULL;
@@ -155,7 +158,11 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     xc[3]   = data.xc_w[3];
     xc[4]   = data.xc_w[4];
     xc[5]   = data.xc_w[5];
-    //xc[6], etc. is done in linearelasticity
+    xc[6]   = data.xc_w[6];
+    xc[7]   = data.xc_w[7];
+    xc[8]   = data.xc_w[8];
+    xc[9]   = data.xc_w[9];
+    xc[10]   = data.xc_w[10];
     nu      = data.nu_w;
     nlvls   = 4;
 
@@ -173,9 +180,9 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     penalIni = 1.0; 
     penal = data.penal_w;
     penalFin = 3.0;
-    penalStep = 0.25;
-    IterProj = maxItr / ((penalFin - penalIni) / penalStep);
-    //IterProj = 10;
+    penalStep = 0.125;
+    //IterProj = maxItr / ((penalFin - penalIni) / penalStep);
+    IterProj = 10;
     //PetscPrintf(PETSC_COMM_WORLD, "IterProj %i\n", IterProj);
 
     Emin    = data.Emin_w;
@@ -194,12 +201,16 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
 
     // Projection filter, treshold designvar
     projectionFilter = PETSC_FALSE;
+    beta             = 1.0;
+    betaFinal        = 64.0;
+    eta              = 0.5;
     if (data.projection_w == 1) {
         projectionFilter = PETSC_TRUE;
+        beta             = data.betaInit_w;
+        betaFinal        = data.betaFinal_w;
+        eta              = data.eta_w;
     }
-    beta             = 1.0;
-    betaFinal        = 64;
-    eta              = 0.5;
+    
 
     ierr = SetUpMESH();
     CHKERRQ(ierr);
@@ -551,6 +562,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         
         // printing
         PetscPrintf(PETSC_COMM_WORLD, "acount sum: %i\n", acount);
+        //data.nael = acount;
         PetscPrintf(PETSC_COMM_WORLD, "scount sum: %i\n", scount);
         PetscPrintf(PETSC_COMM_WORLD, "rcount sum: %i\n", rcount);
 
@@ -583,24 +595,6 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
                 xpold[el] = volfrac;
                 //PetscPrintf(PETSC_COMM_SELF, "aacount: %i, el: %i, low + el: %i\n", aacount, el, low + el);
                 count++;
-            } 
-            if (xpPassive[el] == 2.0) {
-                //xpIndicator[count] = el;
-                xpPhys[el] = 1.0;
-                //xptilde[el] = volfrac;
-                xpx[el] = 1.0;
-                //xpold[el] = volfrac;
-                //PetscPrintf(PETSC_COMM_SELF, "aacount: %i, el: %i, low + el: %i\n", aacount, el, low + el);
-                //count++;
-            }
-            if (xpPassive[el] == 3.0) {
-                //xpIndicator[count] = el;
-                xpPhys[el] = 1000.0;
-                //xptilde[el] = volfrac;
-                xpx[el] = 1000.0;
-                //xpold[el] = volfrac;
-                //PetscPrintf(PETSC_COMM_SELF, "aacount: %i, el: %i, low + el: %i\n", aacount, el, low + el);
-                //count++;
             }
         }
 
@@ -629,7 +623,6 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         VecDuplicate(xMMA, &xmaxMMA);
         VecDuplicate(xMMA, &xoldMMA);
 
-        //VecSet(xMMA, volfrac);
 
     } else {
         VecSet(xPassive, -1.0);
@@ -642,7 +635,7 @@ PetscErrorCode TopOpt::AllocateMMAwithRestart(PetscInt* itr, MMA** mma) {
 
     PetscErrorCode ierr = 0;
 
-    // Set MMA parameters (for multiple load cases)
+    // Set MMA parameters (for multiple load cases)? for multiple constraints
     PetscScalar aMMA[m];
     PetscScalar cMMA[m];
     PetscScalar dMMA[m];

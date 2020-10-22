@@ -49,4 +49,4 @@ bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCP
 bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python test_projection.py
 
 # VIEW JOBS
-#bjobs
+bjobs

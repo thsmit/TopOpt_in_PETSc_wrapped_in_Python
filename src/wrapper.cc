@@ -38,10 +38,10 @@ static PyMemberDef members[] =
 // set mesh variables
 static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
 {
-    double xc0, xc1, xc2, xc3, xc4, xc5, xc6, xc7, xc8;
+    double xc0, xc1, xc2, xc3, xc4, xc5, xc6, xc7, xc8, xc9, xc10;
     int nxyz0, nxyz1, nxyz2;
 
-    if(!PyArg_ParseTuple(args, "(ddddddddd)(iii)", &xc0, &xc1, &xc2, &xc3, &xc4, &xc5, &xc6, &xc7, &xc8, &nxyz0, &nxyz1, &nxyz2)) { 
+    if(!PyArg_ParseTuple(args, "(ddddddddddd)(iii)", &xc0, &xc1, &xc2, &xc3, &xc4, &xc5, &xc6, &xc7, &xc8, &xc9, &xc10, &nxyz0, &nxyz1, &nxyz2)) { 
         return NULL;
     }
 
@@ -54,6 +54,8 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
     self->xc_w[6] = xc6;
     self->xc_w[7] = xc7;
     self->xc_w[8] = xc8;
+    self->xc_w[9] = xc9;
+    self->xc_w[10] = xc10;
 
     self->nxyz_w[0] = nxyz0;
     self->nxyz_w[1] = nxyz1;
@@ -100,21 +102,25 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
     V3 gridMaxCorner(b3, b4, b5);
     V3 gridExtend = gridMaxCorner - gridMinCorner;
 
-    double dx = gridExtend.x / self->nxyz_w[0];
-    double dy = gridExtend.y / self->nxyz_w[1];
-    double dz = gridExtend.z / self->nxyz_w[2];
+    //double dx = gridExtend.x / self->nxyz_w[0];
+    //double dy = gridExtend.y / self->nxyz_w[1];
+    //double dz = gridExtend.z / self->nxyz_w[2];
+
+    double dx = self->xc_w[1] / (self->nxyz_w[0] - 1);
+    double dy = self->xc_w[3] / (self->nxyz_w[1] - 1);
+    double dz = self->xc_w[5] / (self->nxyz_w[2] - 1);
 
     //printf("gridextend: %f\n", gridExtend.x);
     //printf("meshx: %i\n", self->nxyz_w[0]);
 
     // print dx
-    //printf("dx: %f\n", dx);
+    printf("dx: %f\n", dx);
     //printf("dy: %f\n", dy);
     //printf("dz: %f\n", dz);
 
     // set grid bounding corner
     // gridNum = number of voxels
-    int3 gridNum = int3(gridExtend.x / dx, gridExtend.y / dy, gridExtend.z /dz);
+    int3 gridNum = int3(gridExtend.x / dx, gridExtend.y / dy, gridExtend.z / dz);
 
     // make the grid equal to the PETSc grid
     GridBox grid(gridMinCorner, dx, gridNum);
@@ -126,6 +132,7 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
     // get flag
     const char* flag = vox.get_flag();
     gridNum = grid.get_gridNum();
+    //printf("gridNum nx: %i\n", gridNum.nx);
 
     // count solid flag
     int count = 0;
@@ -133,12 +140,13 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
     {
         //if (*(flag+i) == 0) count++;
         if (flag[i] == 1) count++;
+        //printf("flag: %i, %i\n", i, flag[i]);
     }
-    //cout << "count of flag == 1 : " << count << endl;
+    printf("flag count: %i\n", count);
     
     // resize the xPassive_wrapper vector and set defauld value 1 for void elements
     self->xPassive_w.resize(self->nElements, 1);
-    //std::cout << "Size xPassive_w, domain: " << self->xPassive_w.size() << std::endl;
+    std::cout << "Size xPassive_w, domain: " << self->xPassive_w.size() << std::endl;
 
     // Point data to cell data
     // set xPassive with active elements: -1
@@ -157,6 +165,7 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
         for (int y = 0; y < nely; y++) {
             for (int x = 0; x < nelx; x++) {
                 
+                /*
                 bool node1 = flag[nox];
                 bool node2 = flag[nox + 1];
                 bool node3 = flag[noy + 1];
@@ -165,6 +174,16 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
                 bool node6 = flag[nox + 1 + noz];
                 bool node7 = flag[noy + 1 + noz];
                 bool node8 = flag[noy + noz];
+                */
+
+                int node1 = flag[nox];
+                int node2 = flag[nox + 1];
+                int node3 = flag[noy + 1];
+                int node4 = flag[noy];
+                int node5 = flag[nox + noz];
+                int node6 = flag[nox + 1 + noz];
+                int node7 = flag[noy + 1 + noz];
+                int node8 = flag[noy + noz];
 
                 nox++;
                 noy++;
@@ -179,9 +198,30 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
                     noy = (z + 1) * ((nelx + 1) * (nely + 1)) + nelx + 1;
                 }
 
-                if (node1 && node2 && node3 && node4 && node5 && node6 && node7 && node8) {
-                    self->xPassive_w.at(ecount) = -1.0; // active elements
+                // standard
+                //if (node1 && node2 && node3 && node4 && node5 && node6 && node7 && node8) {
+                    
+                    // small MBB Example
+                    //if (z != 11) {
+                    //    self->xPassive_w.at(ecount) = -1.0; // active elements
+                    //    acount++;
+                    //}
+
+                    // big MBB Example
+                    //if (z != 47 && x != 97) {
+                    //    self->xPassive_w.at(ecount) = -1.0; // active elements
+                    //    acount++;
+                    //}
+
+                    //self->xPassive_w.at(ecount) = -1.0; // active elements
+                    //acount++;
+                
+                int sum = node1 + node2 + node3 + node4 + node5 + node6 + node7 + node8;
+                if (sum >= 3) {
+                    self->xPassive_w.at(ecount) = -1.0;
                     acount++;
+                    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                
                     //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
                 } else {
                     self->xPassive_w.at(ecount) = 1.0; // passive elements
@@ -225,9 +265,13 @@ static PyObject *stlread_solid_py(DataObj *self, PyObject *args)
     V3 gridMaxCorner(self->b_w[3], self->b_w[4], self->b_w[5]);
     V3 gridExtend = gridMaxCorner - gridMinCorner;
 
-    double dx = gridExtend.x / self->nxyz_w[0];
-    double dy = gridExtend.y / self->nxyz_w[1];
-    double dz = gridExtend.z / self->nxyz_w[2];
+    //double dx = gridExtend.x / self->nxyz_w[0];
+    //double dy = gridExtend.y / self->nxyz_w[1];
+    //double dz = gridExtend.z / self->nxyz_w[2];
+
+    double dx = self->xc_w[1] / (self->nxyz_w[0] - 1);
+    double dy = self->xc_w[3] / (self->nxyz_w[1] - 1);
+    double dz = self->xc_w[5] / (self->nxyz_w[2] - 1);
 
     //printf("gridextend: %f\n", gridExtend.x);
     //printf("meshx: %i\n", self->nxyz_w[0]);
@@ -241,8 +285,8 @@ static PyObject *stlread_solid_py(DataObj *self, PyObject *args)
     int3 gridNum = int3(gridExtend.x / dx, gridExtend.y / dy, gridExtend.z /dz);
 
     // make the grid equal to the PETSc grid
-    GridBox grid(gridMinCorner, dx, gridNum);
-    //GridBox grid(gridMinCorner, gridMaxCorner, dx);
+    //GridBox grid(gridMinCorner, dx, gridNum);
+    GridBox grid(gridMinCorner, gridMaxCorner, dx);
 
     // voxelize geo in grid
     Voxelizer vox(geo, grid);
@@ -303,10 +347,24 @@ static PyObject *stlread_solid_py(DataObj *self, PyObject *args)
                     noy = (z + 1) * ((nelx + 1) * (nely + 1)) + nelx + 1;
                 }
 
+                // small MBB Example
+                //if (x == 8 && y >= 4 && y <= 11 && z >= 3 && z <= 10) {
+                //    self->xPassive_w.at(ecount) = 2.0; // rigid elements
+                    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                //    acount++;
+                //}
+
+                // big MBB Example
+                //if (x == 32 && y >= 16 && y <= 47 && z >= 15 && z <= 46) {
+                //    self->xPassive_w.at(ecount) = 2.0; // rigid elements
+                    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                //    acount++;
+                //}
+
                 if (node1 && node2 && node3 && node4 && node5 && node6 && node7 && node8) {
                     self->xPassive_w.at(ecount) = 2.0;
                     acount++;
-                    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                //    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
                 }
                 
                 ecount++;
@@ -317,6 +375,7 @@ static PyObject *stlread_solid_py(DataObj *self, PyObject *args)
 
     std::cout << "active solids : " << acount << std::endl;
     self->nsel = acount;
+    //self->nael = self->nael - acount;
 
     // wirte vtk file of flag, use paraview to view the flag data
     //vox.write_vtk_image();
@@ -345,9 +404,13 @@ static PyObject *stlread_rigid_py(DataObj *self, PyObject *args)
     V3 gridMaxCorner(self->b_w[3], self->b_w[4], self->b_w[5]);
     V3 gridExtend = gridMaxCorner - gridMinCorner;
 
-    double dx = gridExtend.x / self->nxyz_w[0];
-    double dy = gridExtend.y / self->nxyz_w[1];
-    double dz = gridExtend.z / self->nxyz_w[2];
+    //double dx = gridExtend.x / self->nxyz_w[0];
+    //double dy = gridExtend.y / self->nxyz_w[1];
+    //double dz = gridExtend.z / self->nxyz_w[2];
+
+    double dx = self->xc_w[1] / (self->nxyz_w[0] - 1);
+    double dy = self->xc_w[3] / (self->nxyz_w[1] - 1);
+    double dz = self->xc_w[5] / (self->nxyz_w[2] - 1);
 
     //printf("gridextend: %f\n", gridExtend.x);
     //printf("meshx: %i\n", self->nxyz_w[0]);
@@ -362,7 +425,7 @@ static PyObject *stlread_rigid_py(DataObj *self, PyObject *args)
 
     // make the grid equal to the PETSc grid
     GridBox grid(gridMinCorner, dx, gridNum);
-    //GridBox grid(gridMinCorner, gridMaxCorner, dx);
+    //GridBox grid(gridMinCorner, gridMaxCorner, dx); // for bracket example
 
     // voxelize geo in grid
     Voxelizer vox(geo, grid);
@@ -401,6 +464,7 @@ static PyObject *stlread_rigid_py(DataObj *self, PyObject *args)
         for (int y = 0; y < nely; y++) {
             for (int x = 0; x < nelx; x++) {
                 
+                /*
                 bool node1 = flag[nox];
                 bool node2 = flag[nox + 1];
                 bool node3 = flag[noy + 1];
@@ -409,6 +473,16 @@ static PyObject *stlread_rigid_py(DataObj *self, PyObject *args)
                 bool node6 = flag[nox + 1 + noz];
                 bool node7 = flag[noy + 1 + noz];
                 bool node8 = flag[noy + noz];
+                */
+
+                int node1 = flag[nox];
+                int node2 = flag[nox + 1];
+                int node3 = flag[noy + 1];
+                int node4 = flag[noy];
+                int node5 = flag[nox + noz];
+                int node6 = flag[nox + 1 + noz];
+                int node7 = flag[noy + 1 + noz];
+                int node8 = flag[noy + noz];
 
                 nox++;
                 noy++;
@@ -423,7 +497,29 @@ static PyObject *stlread_rigid_py(DataObj *self, PyObject *args)
                     noy = (z + 1) * ((nelx + 1) * (nely + 1)) + nelx + 1;
                 }
 
-                if (node1 && node2 && node3 && node4 && node5 && node6 && node7 && node8) {
+                // small MBB Example
+                //if (x == 25 && y >= 4 && y <= 11 && z == 2) {
+                //    self->xPassive_w.at(ecount) = 3.0; // rigid elements
+                    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                //    acount++;
+                //}
+
+                // big MBB Example
+                //if (x == 97 && y >= 16 && y <= 47 && z == 14) {
+                //    self->xPassive_w.at(ecount) = 3.0; // rigid elements
+                    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                //    acount++;
+                //}
+
+                // Standard
+                //if (node1 && node2 && node3 && node4 && node5 && node6 && node7 && node8) {
+                //    self->xPassive_w.at(ecount) = 3.0;
+                //    acount++;
+                    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                //}
+
+                int sum = node1 + node2 + node3 + node4 + node5 + node6 + node7 + node8;
+                if (sum >= 4 && (x < 15 || x > 305)) {
                     self->xPassive_w.at(ecount) = 3.0;
                     acount++;
                     //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
@@ -492,10 +588,15 @@ static PyObject *continuation_py(DataObj *self, PyObject *args)
 
 // s
 static PyObject *projection_py(DataObj *self, PyObject *args)
-{        
-    //if(!PyArg_ParseTuple(args, "id", &filter, &rmin)) { 
-    //    return NULL;
-    //}
+{   
+    double betaFinal, betaInit, eta;     
+    if(!PyArg_ParseTuple(args, "ddd", &betaFinal, &betaInit, &eta)) { 
+        return NULL;
+    }
+
+    self->betaFinal_w = betaFinal;
+    self->betaInit_w = betaInit;
+    self->eta_w = eta;
 
     self->projection_w = 1;
 
@@ -655,6 +756,23 @@ static PyObject *loadcases_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *constraints_py(DataObj *self, PyObject *args)
+{
+    int n;
+
+    if (!PyArg_ParseTuple(args, "i", &n)) {
+        return NULL;
+    }
+    
+    // Set number of loadcases variable
+    self->m = n;
+
+    // Resize the loadcases list according to user input
+    self->constraints_list.resize(n);
+
+    Py_RETURN_NONE;
+}
+
 static PyObject *obj_py(DataObj *self, PyObject *args)
 {
     PyObject *pyobj_func;
@@ -749,6 +867,23 @@ static PyObject *solve_py(DataObj *self)
     return PyLong_FromLong(complete);
 }
 
+static PyObject *fem_py(DataObj *self)
+{
+    // variable to store output variables
+    int complete = 0;
+    double trueFX = 0.0;
+
+    // initialte TopOpt loop
+    //complete = fem(*self);
+
+    // read in from .dat binary file
+    // safe data in Data.vtkPolyData objects, one object per iteration
+    //writeVTKPolyData();
+
+    // return "complete" signal
+    return PyLong_FromLong(complete);
+}
+
 static PyObject *vtu_py(DataObj *self, PyObject *args)
 {
     //PyObject *bin2vtu = PyImport_ImportModule("bin2vtu");
@@ -786,12 +921,14 @@ static PyMethodDef methods[] =
       {"bc", (PyCFunction)bc_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"bcpara", (PyCFunction)bcpara_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"loadcases", (PyCFunction)loadcases_py, METH_VARARGS, "Implement boundery conditions\n"},
+      {"constraints", (PyCFunction)constraints_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"obj", (PyCFunction)obj_py, METH_VARARGS, "Callback for Objective function\n"},
       {"objsens", (PyCFunction)objsens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"initialcondition", (PyCFunction)initialcondition_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"cons", (PyCFunction)cons_py, METH_VARARGS, "Callback for Objective function\n"},
       {"conssens", (PyCFunction)conssens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"solve", (PyCFunction)solve_py, METH_NOARGS, "Python bindings to solve() in topoptlib\n"},
+      {"fem", (PyCFunction)fem_py, METH_NOARGS, "Python bindings to solve() in topoptlib\n"},
       {"vtu", (PyCFunction)vtu_py, METH_VARARGS, "Generate vtu\n"},
       {"stl", (PyCFunction)stl_py, METH_VARARGS, "Generate vtu\n"},
       {NULL, NULL, 0, NULL}

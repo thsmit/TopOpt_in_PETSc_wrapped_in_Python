@@ -24,7 +24,7 @@ data.structuredGrid((0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0), (9, 9, 9))
 # readin STL file in binary format
 # TO DO: allow for ASCII format
 # stl read: ((box around stl: (min corner)(max corner)), full path to file)
-data.stlread_domain((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/box.stl')
+#data.stlread_domain((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/box.stl')
 #data.stlread_domain((0.0, 0.0, 0.0), (1.2, 1.2, 1.2), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/hollowsphere.stl')
 #data.stlread_domain((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/tritext_demo.stl')
 # data.stlread_domain('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket/jetEngineDesignDomainFine.stl')
@@ -87,19 +87,30 @@ def objective(comp, sumXp, xp, uKu):
 def sensitivity(sumXp, xp, uKu):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
 
-def constraint(comp, sumXp, xp, uKu):
+def totalvolumeconstraint(comp, sumXp, xp, uKu):
+    return return sumXp / nEl - materialvolumefraction
+
+def totalvolumeconstraintsensitivity(sumXp, xp, uKu):
+    return 1.0 / nEl
+
+def localvolumeconstraint(comp, sumXp, xp, uKu):
     return (np.power(((1 / nEl) * np.power(sumXp, localvolumepenal)), (1 / localvolumepenal)) / localvolumefraction) - 1.0
 
-def constraintsensitivity(sumXp, xp, uKu):
+def localvolumeconstraintsensitivity(sumXp, xp, uKu):
     return (1 / (localvolumefraction * nEl)) * np.power((1 / nEl) * np.power(sumXp, localvolumepenal), (1 / localvolumepenal) - 1) * np.power(xp, localvolumepenal - 1)
+
 
 # Callback implementation
 data.obj(objective)
 data.objsens(sensitivity)
 
-# Define constraint
-data.cons(constraint)
-data.conssens(constraintsensitivity)
+# Define total volume constraint
+data.cons(totalvolumeconstraint)
+data.conssens(totalvolumeconstraintsensitivity)
+
+# Define local volume constraint
+#data.cons(localvolumeconstraint)
+#data.conssens(localvolumeconstraintsensitivity)
 
 # Homogeniuos initial condition
 data.initialcondition(materialvolumefraction)

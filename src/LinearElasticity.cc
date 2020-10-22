@@ -108,9 +108,11 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
         xc[3] = ne[1] * dy;
         xc[4] = 0.0;
         xc[5] = ne[2] * dz;
-        xc[6] = data.xc_w[6];
-        xc[7] = data.xc_w[7];
-        xc[8] = data.xc_w[8];
+        xc[6]   = data.xc_w[6];
+        xc[7]   = data.xc_w[7];
+        xc[8]   = data.xc_w[8];
+        xc[9]   = data.xc_w[9];
+        xc[10]   = data.xc_w[10];
     }
 
     // Create the nodal mesh
@@ -310,9 +312,9 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                     PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(3)]) < epsi && 
                     PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(5)]) < epsi) {
                         
-                        PetscPrintf(PETSC_COMM_WORLD, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], data.loadcases_list.at(lc).at(j).Checker_vec.at(0));
-                        PetscPrintf(PETSC_COMM_WORLD, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)], data.loadcases_list.at(lc).at(j).Checker_vec.at(2));
-                        PetscPrintf(PETSC_COMM_WORLD, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)], data.loadcases_list.at(lc).at(j).Checker_vec.at(4));
+                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], data.loadcases_list.at(lc).at(j).Checker_vec.at(0));
+                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)], data.loadcases_list.at(lc).at(j).Checker_vec.at(2));
+                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)], data.loadcases_list.at(lc).at(j).Checker_vec.at(4));
 
                         for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
                             if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
@@ -476,6 +478,11 @@ PetscErrorCode LinearElasticity::SolveState(Vec xPhys, PetscScalar Emin, PetscSc
     // catch bad solve
     if (KSPreason == -3) {
         PetscPrintf(PETSC_COMM_WORLD, "Not converged!! KSPConvergedReason = %i\n", KSPreason);
+        //PetscPrintf(PETSC_COMM_WORLD, "Write restart files\n");
+        //WriteRestartFiles();
+        //PetscPrintf(PETSC_COMM_WORLD, "Restart solver with final U\n");
+        // recursion 
+        //SolveState(xPhys, Emin, Emax, penal, loadcase);
     }
 
     t2 = MPI_Wtime();
@@ -1016,7 +1023,7 @@ PetscErrorCode LinearElasticity::SetUpSolver() {
     PetscScalar atol         = 1.0e-50;
     PetscScalar dtol         = 1.0e5;
     PetscInt    restart      = 100;
-    PetscInt    maxitsGlobal = 400;
+    PetscInt    maxitsGlobal = 1600;
     //PetscInt    maxitsGlobal = 200;
 
     // Coarsegrid solver
