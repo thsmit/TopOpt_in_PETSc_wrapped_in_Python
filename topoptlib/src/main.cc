@@ -47,7 +47,7 @@ int solve(DataObj data) {
     Filter* filter = new Filter(opt->da_nodes, opt->xPhys, opt->xPassive, opt->filter, opt->rmin);
 
     // Initialize local volume constraint
-    LocalVolume* local = new LocalVolume(opt->da_nodes, opt->x);
+    //LocalVolume* local = new LocalVolume(opt->da_nodes, opt->x);
 
     // STEP 4: VISUALIZATION USING VTK
     MPIIO* output = new MPIIO(opt->da_nodes, 3, "ux, uy, uz", 4, "x, xTilde, xPhys, dfdx");
@@ -134,8 +134,8 @@ int solve(DataObj data) {
         CHKERRQ(ierr);
 
         // Calculate g and dgdx for the local volume constraint
-        ierr = local->Constraint(opt->x, &(opt->gx[0]), opt->dgdx[0]);
-        CHKERRQ(ierr);
+        //ierr = local->Constraint(opt->x, &(opt->gx[0]), opt->dgdx[0]);
+        //CHKERRQ(ierr);
 
         if (opt->xPassiveStatus) {
             

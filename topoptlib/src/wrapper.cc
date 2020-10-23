@@ -519,7 +519,7 @@ static PyObject *stlread_rigid_py(DataObj *self, PyObject *args)
                 //}
 
                 int sum = node1 + node2 + node3 + node4 + node5 + node6 + node7 + node8;
-                if (sum >= 4 && (x < 15 || x > 305)) {
+                if (sum >= 4 && (x < 15 || x > 280)) {
                     self->xPassive_w.at(ecount) = 3.0;
                     acount++;
                     //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;

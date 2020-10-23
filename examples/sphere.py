@@ -22,7 +22,8 @@ data = topoptlib.Data()
 #data.structuredGrid((0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0625, 1.9375, 0.0), (65, 65, 65))
 #data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.2, 0.00625, 0.20625), (161, 193, 193))
 #data.structuredGrid((0.0, 2.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.1875, 1.9875, 0.0), (161, 97, 97))
-data.structuredGrid((0.0, 2.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.1875, 1.9875, 0.0), (321, 193, 193))
+#data.structuredGrid((0.0, 2.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.1875, 1.9875, 0.0), (321, 193, 193))
+data.structuredGrid((0.0, 2.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.1875, 1.9875, 0.0), (301, 151, 151))
 #data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.2, 0.025, 0.2125), (161, 193, 193))
 
 
@@ -47,7 +48,7 @@ Emin, Emax, nu, dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 3.0
 data.material(Emin, Emax, nu, dens, penal)
 
 #data.continuation()
-data.projection()
+data.projection(64.0, 1.0, 0.5) 
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1, 
