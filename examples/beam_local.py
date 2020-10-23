@@ -36,14 +36,14 @@ data.material(Emin, Emax, nu, Dens, penal)
 #data.continuation()
 
 # setup heavyside projection filter (betaFinal, betaInit, eta)
-data.projection(64.0, 1.0, 0.5) 
+#data.projection(64.0, 1.0, 0.5) 
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1, 
 data.filter(1, 0.08)
 
 # optimizer: (maxIter)
-data.mma(40)
+data.mma(400)
 
 # loadcases: (# of loadcases)
 data.loadcases(1)
