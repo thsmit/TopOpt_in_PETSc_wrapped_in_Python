@@ -17,5 +17,9 @@ __pycache__/
 *pytest.ini
 *makevtu.py
 *bin2vtu.py
-
-
+*genvtu.py
+*table.py
+*roof.py
+*beam_stl.py
+*local.py
+*sphere_full.py

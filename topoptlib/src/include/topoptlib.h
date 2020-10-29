@@ -4,6 +4,7 @@
 #include <Python.h>
 #include <vector>
 #include <string>
+#include <petsc.h>
 
 /*
 Author: Thijs Smit, May 2020
@@ -48,6 +49,7 @@ struct DataObj {
 
         int continuation_w = 0;
         int projection_w = 0;
+        int localVolume_w = 0;
         double betaInit_w = 1.0;
         double betaFinal_w = 64.0;
         double eta_w = 0.5;
@@ -90,6 +92,33 @@ struct DataObj {
         PyObject *obj_sens_func = NULL;
         PyObject *const_func = NULL;
         PyObject *const_sens_func = NULL;
+
+        // 
+        void updatecounts() {
+            
+            int acount = 0;
+            int scount = 0;
+            int rcount = 0;
+            // count the number of active, solid and rigid elements
+            // active is -1, passive is 1, solid is 2, rigid is 3
+            for (unsigned i = 0; i < xPassive_w.size(); i++) {
+                if (xPassive_w[i] == -1.0) {
+                    acount++;
+                }
+                if (xPassive_w[i] == 2.0) {
+                    scount++;
+                } 
+                if (xPassive_w[i] == 3.0) {
+                    rcount++;
+                } 
+            }
+            
+            // reset
+            nael = acount;
+            nsel = scount;
+            nrel = rcount;
+            
+        }
 
         double para_ev(double lcx, double lcy, double lcz) {
             

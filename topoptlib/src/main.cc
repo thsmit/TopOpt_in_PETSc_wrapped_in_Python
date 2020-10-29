@@ -46,8 +46,13 @@ int solve(DataObj data) {
     //Filter* filter = new Filter(opt->da_nodes, opt->xPhys, opt->filter, opt->rmin);
     Filter* filter = new Filter(opt->da_nodes, opt->xPhys, opt->xPassive, opt->filter, opt->rmin);
 
+    PetscPrintf(PETSC_COMM_WORLD,"%d\n", opt->localVolumeStatus);
+
     // Initialize local volume constraint
-    //LocalVolume* local = new LocalVolume(opt->da_nodes, opt->x);
+    //if (opt->localVolumeStatus) {
+        
+    LocalVolume* local = new LocalVolume(opt->da_nodes, opt->x);
+    //}
 
     // STEP 4: VISUALIZATION USING VTK
     MPIIO* output = new MPIIO(opt->da_nodes, 3, "ux, uy, uz", 4, "x, xTilde, xPhys, dfdx");
@@ -90,7 +95,7 @@ int solve(DataObj data) {
     // STEP 7: OPTIMIZATION LOOP
     PetscScalar ch = 1.0;
     double      t1, t2;
-    while (itr < opt->maxItr && ch > 0.001) {
+    while (itr < opt->maxItr && ch > 0.01) {
         // Update iteration counter
         itr++;
 
@@ -134,8 +139,10 @@ int solve(DataObj data) {
         CHKERRQ(ierr);
 
         // Calculate g and dgdx for the local volume constraint
-        //ierr = local->Constraint(opt->x, &(opt->gx[0]), opt->dgdx[0]);
-        //CHKERRQ(ierr);
+        //if (opt->localVolumeStatus) {
+        ierr = local->Constraint(opt->x, &(opt->gx[1]), opt->dgdx[1]);
+        CHKERRQ(ierr);
+        //}
 
         if (opt->xPassiveStatus) {
             
@@ -223,7 +230,7 @@ int solve(DataObj data) {
                     "It.: %i, True fx: %f, Scaled fx: %f, gx[0]: %f, ch.: %f, "
                     "mnd.: %f, time: %f\n",
                     itr, opt->fx / opt->fscale, opt->fx, opt->gx[0], ch, mnd, t2 - t1);
-
+        
         // Write field data: first 10 iterations and then every 20th
         if (itr < 11 || itr % 20 == 0 || changeBeta) {
             //output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr);
@@ -233,19 +240,24 @@ int solve(DataObj data) {
 
         // Dump data needed for restarting code at termination
         if (itr % 10 == 0) {
-            //opt->WriteRestartFiles(&itr, mma);
+            opt->WriteRestartFiles(&itr, mma);
             physics->WriteRestartFiles();
         }
     }
         
     // Write restart WriteRestartFiles
-    //opt->WriteRestartFiles(&itr, mma);
+    opt->WriteRestartFiles(&itr, mma);
     physics->WriteRestartFiles();
 
     // Dump final design
     //output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr + 1);
-    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, opt->dfdx, itr);
+    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, opt->dfdx, itr + 1);
 
+    //const char filename[8] = 'test.vts';
+    //PetscViewer viewer;
+    //PetscViewerVTKOpen(PETSC_COMM_WORLD,FILE_MODE_WRITE,&viewer);
+    //VecView(opt->xPhys,viewer);
+    //PetscViewerDestroy(&viewer);
 
     // STEP 7: CLEAN UP AFTER YOURSELF
     delete mma;

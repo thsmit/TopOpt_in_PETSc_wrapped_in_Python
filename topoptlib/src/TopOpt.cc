@@ -171,6 +171,11 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     maxItr  = data.maxIter_w;
     rmin    = data.rmin_w;
 
+    localVolumeStatus = PETSC_FALSE;
+    if (data.localVolume_w == 1) {
+        localVolumeStatus = PETSC_TRUE;
+    }
+
     // continuation of penalization
     // Status
     continuationStatus = PETSC_FALSE;
@@ -420,6 +425,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     PetscPrintf(PETSC_COMM_WORLD, "# -filter: %i  (0=sens., 1=dens, 2=PDE)\n", filter);
     PetscPrintf(PETSC_COMM_WORLD, "# -rmin: %f\n", rmin);
     PetscPrintf(PETSC_COMM_WORLD, "# -projectionFilter: %i  (0/1)\n", projectionFilter);
+    PetscPrintf(PETSC_COMM_WORLD, "# -localVolume: %i  (0/1)\n", data.continuation_w);
     PetscPrintf(PETSC_COMM_WORLD, "# -beta: %f\n", beta);
     PetscPrintf(PETSC_COMM_WORLD, "# -betaFinal: %f\n", betaFinal);
     PetscPrintf(PETSC_COMM_WORLD, "# -eta: %f\n", eta);
@@ -562,7 +568,6 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         
         // printing
         PetscPrintf(PETSC_COMM_WORLD, "acount sum: %i\n", acount);
-        //data.nael = acount;
         PetscPrintf(PETSC_COMM_WORLD, "scount sum: %i\n", scount);
         PetscPrintf(PETSC_COMM_WORLD, "rcount sum: %i\n", rcount);
 

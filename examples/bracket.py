@@ -27,13 +27,13 @@ data.structuredGrid((0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 0.0, 0.0, 0.0, 0.0)
 
 # readin STL file in binary format
 # stl read: ((box around stl: (min corner)(max corner))full path to file)
-data.stlread_domain((-23.0, -1.0, -103.0), (169.0, 63.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/jetEngineDesignDomainFine.stl')
+data.stlread_domain((-23.0, -1.0, -103.0), (169.0, 63.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/jetEngineDesignDomainFine.stl')
 
 # stl read: load the solid domain into the same coordinate system as the design domain
-data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/jetEngineSolidDomainFine.stl')
+data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/jetEngineSolidDomainFine.stl')
 
 # stl read: load the solid domain into the same coordinate system as the design domain
-data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/input/jetEngineRigidDomainFine.stl')
+data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/jetEngineRigidDomainFine.stl')
 
 # Optional printing:
 #print(data.nNodes)
@@ -53,7 +53,7 @@ data.material(Emin, Emax, nu, Dens, penal)
 data.filter(1, 5.0)
 
 # optimizer: (maxIter)
-data.mma(1600)
+data.mma(11)
 
 def parametrization(lcx, lcy, lcz):
     # radius of bolt face 14.17= r7.5 mm

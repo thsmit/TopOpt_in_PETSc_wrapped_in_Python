@@ -99,6 +99,7 @@ class TopOpt {
     Vec indicator;
 
     PetscBool xPassiveStatus;
+    PetscBool localVolumeStatus;
 
     Vec  x;          // Design variables
     Vec  xTilde;     // Filtered field

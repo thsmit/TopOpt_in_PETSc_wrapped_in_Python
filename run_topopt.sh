@@ -39,16 +39,17 @@ cd $id
 pwd
 
 cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib.so .
+cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/genvtu.py .
 cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/examples/$1 .
 
 # ADJUSTABLE PARAMETERS
-#EULER_MEMORY="5250"
-#NCPU=24
-#WALL_TIME="48:00"
+#EULER_MEMORY="4000"
+#NCPU=32
+#WALL_TIME="12:00"
 
-EULER_MEMORY="1000"
-NCPU=8
-WALL_TIME="1:00"
+EULER_MEMORY="2000"
+NCPU=16
+WALL_TIME="4:00"
 
 # FUNCTION CALL
 bsub -n ${NCPU} -W ${WALL_TIME} -R ib -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python $1

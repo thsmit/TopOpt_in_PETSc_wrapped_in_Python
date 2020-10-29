@@ -114,7 +114,7 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
     //printf("meshx: %i\n", self->nxyz_w[0]);
 
     // print dx
-    printf("dx: %f\n", dx);
+    //printf("dx: %f\n", dx);
     //printf("dy: %f\n", dy);
     //printf("dz: %f\n", dz);
 
@@ -142,11 +142,11 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
         if (flag[i] == 1) count++;
         //printf("flag: %i, %i\n", i, flag[i]);
     }
-    printf("flag count: %i\n", count);
+    //printf("flag count: %i\n", count);
     
     // resize the xPassive_wrapper vector and set defauld value 1 for void elements
     self->xPassive_w.resize(self->nElements, 1);
-    std::cout << "Size xPassive_w, domain: " << self->xPassive_w.size() << std::endl;
+    //std::cout << "Size xPassive_w, domain: " << self->xPassive_w.size() << std::endl;
 
     // Point data to cell data
     // set xPassive with active elements: -1
@@ -217,11 +217,11 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
                     //acount++;
                 
                 int sum = node1 + node2 + node3 + node4 + node5 + node6 + node7 + node8;
+            
                 if (sum >= 3) {
                     self->xPassive_w.at(ecount) = -1.0;
                     acount++;
                     //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
-                
                     //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
                 } else {
                     self->xPassive_w.at(ecount) = 1.0; // passive elements
@@ -234,9 +234,9 @@ static PyObject *stlread_domain_py(DataObj *self, PyObject *args)
         }
     }
 
-    std::cout << "total design var: " << ecount << std::endl;
-    std::cout << "active design var: " << acount << std::endl;
-    self->nael = acount;
+    //std::cout << "total design var: " << ecount << std::endl;
+    //std::cout << "active design var: " << acount << std::endl;
+    //self->nael = acount;
 
     // wirte vtk file of flag, use paraview to view the flag data
     //vox.write_vtk_image();
@@ -306,7 +306,7 @@ static PyObject *stlread_solid_py(DataObj *self, PyObject *args)
     
     // resize the xPassive_wrapper vector and set defauld value 1 for void elements
     //self->xPassive_w.resize(self->nElements, 1);
-    std::cout << "Size xPassive_w, solid: " << self->xPassive_w.size() << std::endl;
+    //std::cout << "Size xPassive_w, solid: " << self->xPassive_w.size() << std::endl;
 
     // Point data to cell data
     // set xPassive with active elements: -1
@@ -373,8 +373,8 @@ static PyObject *stlread_solid_py(DataObj *self, PyObject *args)
         }
     }
 
-    std::cout << "active solids : " << acount << std::endl;
-    self->nsel = acount;
+    //std::cout << "active solids : " << acount << std::endl;
+    //self->nsel = acount;
     //self->nael = self->nael - acount;
 
     // wirte vtk file of flag, use paraview to view the flag data
@@ -519,7 +519,7 @@ static PyObject *stlread_rigid_py(DataObj *self, PyObject *args)
                 //}
 
                 int sum = node1 + node2 + node3 + node4 + node5 + node6 + node7 + node8;
-                if (sum >= 4 && (x < 15 || x > 280)) {
+                if (sum >= 4 && (x < 15 || x > 257)) {
                     self->xPassive_w.at(ecount) = 3.0;
                     acount++;
                     //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
@@ -531,11 +531,16 @@ static PyObject *stlread_rigid_py(DataObj *self, PyObject *args)
         }
     }
 
-    std::cout << "active rigid : " << acount << std::endl;
-    self->nrel = acount;
+    //std::cout << "active rigid : " << acount << std::endl;
+    //self->nrel = acount;
 
     // wirte vtk file of flag, use paraview to view the flag data
     //vox.write_vtk_image();
+
+    self->updatecounts();
+    std::cout << "active domain: " << self->nael << std::endl;
+    std::cout << "active solid : " << self->nsel << std::endl;
+    std::cout << "active rigid : " << self->nrel << std::endl;
     
     Py_RETURN_NONE;
 }
@@ -773,6 +778,17 @@ static PyObject *constraints_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *localVolume_py(DataObj *self, PyObject *args)
+{        
+    //if(!PyArg_ParseTuple(args, "id", &filter, &rmin)) { 
+    //    return NULL;
+    //}
+
+    self->localVolume_w = 1;
+
+    Py_RETURN_NONE;
+}
+
 static PyObject *obj_py(DataObj *self, PyObject *args)
 {
     PyObject *pyobj_func;
@@ -922,6 +938,7 @@ static PyMethodDef methods[] =
       {"bcpara", (PyCFunction)bcpara_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"loadcases", (PyCFunction)loadcases_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"constraints", (PyCFunction)constraints_py, METH_VARARGS, "Implement boundery conditions\n"},
+      {"localVolume", (PyCFunction)localVolume_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"obj", (PyCFunction)obj_py, METH_VARARGS, "Callback for Objective function\n"},
       {"objsens", (PyCFunction)objsens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"initialcondition", (PyCFunction)initialcondition_py, METH_VARARGS, "Callback for Sensitivity function\n"},
