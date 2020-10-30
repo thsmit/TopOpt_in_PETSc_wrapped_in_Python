@@ -23,3 +23,14 @@ __pycache__/
 *beam_stl.py
 *local.py
 *sphere_full.py
+*box.stl
+*domaintorsionfull.stl
+*domaintorsionq.stl
+*hollowsphere.stl
+*rigidtorsionbig.stl
+*rigidtorsionbigfull.stl
+*rigidtorsionbigq.stl
+*rigidtorsionsmall.stl
+*solidtorsion.stl
+*tabledomain.stl
+*tablesolid.stl

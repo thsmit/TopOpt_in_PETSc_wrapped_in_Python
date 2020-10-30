@@ -578,20 +578,19 @@ static PyObject *filter_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-// s
 static PyObject *continuation_py(DataObj *self, PyObject *args)
 {        
-    //if(!PyArg_ParseTuple(args, "id", &filter, &rmin)) { 
-    //    return NULL;
-    //}
+    double Pinitial, Pfinal, stepsize; 
+    if(!PyArg_ParseTuple(args, "ddd", &Pinitial, &Pfinal, &stepsize)) { 
+        return NULL;
+    }
 
     self->continuation_w = 1;
-    self->penal_w = 1.0;
+    self->penal_w = Pinitial;
 
     Py_RETURN_NONE;
 }
 
-// s
 static PyObject *projection_py(DataObj *self, PyObject *args)
 {   
     double betaFinal, betaInit, eta;     
@@ -622,24 +621,6 @@ static PyObject *mma_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject *passive_py(DataObj *self, PyObject *args)
-{
-    PyObject *pypassive_func;
-    if (!PyArg_ParseTuple(args, "O", &pypassive_func))
-        return NULL;
-
-    // Make sure second argument is a function
-    if (!PyCallable_Check(pypassive_func)) 
-        return NULL;
-    
-    //self->passive = true;
-
-    self->passive_func = pypassive_func;
-    Py_INCREF(self->passive_func);
-
-    Py_RETURN_NONE;
-}
-
 static PyObject *bcpara_py(DataObj *self, PyObject *args)
 {
     PyObject *pypara_func;
@@ -650,8 +631,6 @@ static PyObject *bcpara_py(DataObj *self, PyObject *args)
     if (!PyCallable_Check(pypara_func)) 
         return NULL;
     
-    //self->passive = true;
-
     self->para_func = pypara_func;
     Py_INCREF(self->para_func);
 
@@ -727,18 +706,7 @@ static PyObject *bc_py(DataObj *self, PyObject *args)
     Py_DECREF(iteratorrr);
 
 
-    condition.Para = param_funci;
-    // Check param_func is a function
-    //if (param_funci) {
-        //self->para_func = param_func;
-        //Py_INCREF(self->para_func);
-    //    condition.Para = 1;
-    //}
-    //else {
-        //self->para_func = NULL;
-    //    condition.Para = 0;
-    //}
-        
+    condition.Para = param_funci;        
     self->loadcases_list.at(loadcase_ID).push_back(condition);
 
     Py_RETURN_NONE;
@@ -761,29 +729,17 @@ static PyObject *loadcases_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject *constraints_py(DataObj *self, PyObject *args)
-{
-    int n;
+static PyObject *localVolume_py(DataObj *self, PyObject *args)
+{   
+    double Rlocvol, alpha;
 
-    if (!PyArg_ParseTuple(args, "i", &n)) {
+    if (!PyArg_ParseTuple(args, "dd", &Rlocvol, &alpha)) {
         return NULL;
     }
-    
-    // Set number of loadcases variable
-    self->m = n;
 
-    // Resize the loadcases list according to user input
-    self->constraints_list.resize(n);
-
-    Py_RETURN_NONE;
-}
-
-static PyObject *localVolume_py(DataObj *self, PyObject *args)
-{        
-    //if(!PyArg_ParseTuple(args, "id", &filter, &rmin)) { 
-    //    return NULL;
-    //}
-
+    self->Rlocvol_w = Rlocvol;
+    self->alpha_w = alpha;
+    self->m = 2;     
     self->localVolume_w = 1;
 
     Py_RETURN_NONE;
@@ -866,61 +822,33 @@ static PyObject *conssens_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *check_py(DataObj *self, PyObject *args)
+{
+    PyObject *test_func;
+
+    if (!PyArg_ParseTuple(args, "O", &test_func))
+        return NULL;
+
+    // Make sure second argument is a function
+    if (!PyCallable_Check(test_func)) 
+        return NULL;
+    
+    self->test_func = test_func;
+    Py_INCREF(self->test_func);
+
+    Py_RETURN_NONE;
+}
+
 static PyObject *solve_py(DataObj *self)
 {
     // variable to store output variables
     int complete = 0;
-    double trueFX = 0.0;
 
     // initialte TopOpt loop
     complete = solve(*self);
 
-    // read in from .dat binary file
-    // safe data in Data.vtkPolyData objects, one object per iteration
-    //writeVTKPolyData();
-
     // return "complete" signal
     return PyLong_FromLong(complete);
-}
-
-static PyObject *fem_py(DataObj *self)
-{
-    // variable to store output variables
-    int complete = 0;
-    double trueFX = 0.0;
-
-    // initialte TopOpt loop
-    //complete = fem(*self);
-
-    // read in from .dat binary file
-    // safe data in Data.vtkPolyData objects, one object per iteration
-    //writeVTKPolyData();
-
-    // return "complete" signal
-    return PyLong_FromLong(complete);
-}
-
-static PyObject *vtu_py(DataObj *self, PyObject *args)
-{
-    //PyObject *bin2vtu = PyImport_ImportModule("bin2vtu");
-
-    //if (!bin2vtu) {
-    //    PyErr_Print();
-    //    return 0;
-    //}
-
-    printf("Generating vtu file\n");
-    //PyObject_CallMethod(bin2vtu, "mainn", ("i"), 1);
-
-    // write vtu files
-
-    Py_RETURN_NONE;
-}
-
-static PyObject *stl_py(DataObj *self, PyObject *args)
-{
-    printf("Generating stl file\n");
-    Py_RETURN_NONE;
 }
 
 static PyMethodDef methods[] =
@@ -933,21 +861,17 @@ static PyMethodDef methods[] =
       {"continuation", (PyCFunction)continuation_py, METH_VARARGS, "Implement filter\n"},
       {"projection", (PyCFunction)projection_py, METH_VARARGS, "Implement filter\n"},
       {"mma", (PyCFunction)mma_py, METH_VARARGS, "Implement mma\n"},
-      {"passive", (PyCFunction)passive_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"bc", (PyCFunction)bc_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"bcpara", (PyCFunction)bcpara_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"loadcases", (PyCFunction)loadcases_py, METH_VARARGS, "Implement boundery conditions\n"},
-      {"constraints", (PyCFunction)constraints_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"localVolume", (PyCFunction)localVolume_py, METH_VARARGS, "Implement boundery conditions\n"},
       {"obj", (PyCFunction)obj_py, METH_VARARGS, "Callback for Objective function\n"},
       {"objsens", (PyCFunction)objsens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"initialcondition", (PyCFunction)initialcondition_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"cons", (PyCFunction)cons_py, METH_VARARGS, "Callback for Objective function\n"},
       {"conssens", (PyCFunction)conssens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
+      {"check", (PyCFunction)check_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"solve", (PyCFunction)solve_py, METH_NOARGS, "Python bindings to solve() in topoptlib\n"},
-      {"fem", (PyCFunction)fem_py, METH_NOARGS, "Python bindings to solve() in topoptlib\n"},
-      {"vtu", (PyCFunction)vtu_py, METH_VARARGS, "Generate vtu\n"},
-      {"stl", (PyCFunction)stl_py, METH_VARARGS, "Generate vtu\n"},
       {NULL, NULL, 0, NULL}
     };
 

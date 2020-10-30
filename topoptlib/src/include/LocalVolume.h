@@ -7,6 +7,8 @@
 #include <iostream>
 #include <math.h>
 
+#include <topoptlib.h>
+
 /* -----------------------------------------------------------------------------
 Authors: Niels Aage, June 2019
 Copyright (C) 2013-2019,
@@ -34,7 +36,7 @@ class LocalVolume{
   
 public:
     // Constructor
-    LocalVolume(DM da_nodes, Vec x); 
+    LocalVolume(DM da_nodes, Vec x, DataObj data); 
     
     // Destructor
     ~LocalVolume(); 

@@ -36,6 +36,12 @@ int solve(DataObj data) {
     // Initialize PETSc / MPI and pass input arguments to PETSc
     PetscInitialize(&argc, &argv, PETSC_NULL, help);
 
+    // Capture runtime
+    double rt1, rt2;
+    
+    // start timer total runtime
+    rt1 = MPI_Wtime();
+
     // STEP 1: THE OPTIMIZATION PARAMETERS, DATA AND MESH (!!! THE DMDA !!!)
     TopOpt* opt = new TopOpt(data);
 
@@ -46,13 +52,11 @@ int solve(DataObj data) {
     //Filter* filter = new Filter(opt->da_nodes, opt->xPhys, opt->filter, opt->rmin);
     Filter* filter = new Filter(opt->da_nodes, opt->xPhys, opt->xPassive, opt->filter, opt->rmin);
 
-    PetscPrintf(PETSC_COMM_WORLD,"%d\n", opt->localVolumeStatus);
-
     // Initialize local volume constraint
-    //if (opt->localVolumeStatus) {
-        
-    LocalVolume* local = new LocalVolume(opt->da_nodes, opt->x);
-    //}
+    LocalVolume* local;
+    if (opt->localVolumeStatus) {
+        local = new LocalVolume(opt->da_nodes, opt->x, data);
+    }
 
     // STEP 4: VISUALIZATION USING VTK
     MPIIO* output = new MPIIO(opt->da_nodes, 3, "ux, uy, uz", 4, "x, xTilde, xPhys, dfdx");
@@ -139,10 +143,10 @@ int solve(DataObj data) {
         CHKERRQ(ierr);
 
         // Calculate g and dgdx for the local volume constraint
-        //if (opt->localVolumeStatus) {
-        ierr = local->Constraint(opt->x, &(opt->gx[1]), opt->dgdx[1]);
-        CHKERRQ(ierr);
-        //}
+        if (opt->localVolumeStatus) {
+            ierr = local->Constraint(opt->x, &(opt->gx[1]), opt->dgdx[1]);
+            CHKERRQ(ierr);
+        }
 
         if (opt->xPassiveStatus) {
             
@@ -258,6 +262,12 @@ int solve(DataObj data) {
     //PetscViewerVTKOpen(PETSC_COMM_WORLD,FILE_MODE_WRITE,&viewer);
     //VecView(opt->xPhys,viewer);
     //PetscViewerDestroy(&viewer);
+
+    // stop timer total runtime
+    rt2 = MPI_Wtime();
+
+    // Call test function to send data to wrapper
+    data.check_ev(opt->fx / opt->fscale, rt2 - rt1);
 
     // STEP 7: CLEAN UP AFTER YOURSELF
     delete mma;

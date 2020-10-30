@@ -24,15 +24,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 -------------------------------------------------------------------------- */
 
 
-LocalVolume::LocalVolume(DM da_nodes, Vec x){
+LocalVolume::LocalVolume(DM da_nodes, Vec x, DataObj data){
 	// Set all pointers to NULL
 	H=NULL;  
 	Hs=NULL;
         xVol=NULL;
 	da_elem=NULL;
-        R = 0.16;
+        R = data.Rlocvol_w;
         pnorm = 16.0;
-        alpha = 0.16;
+        alpha = data.alpha_w;
         
         // Create the xVol vector
         VecDuplicate(x,&xVol); 
@@ -71,8 +71,8 @@ PetscErrorCode LocalVolume::Constraint(Vec x, PetscScalar *gx, Vec dx){
             gxloc += PetscPowScalar(xv[i],pnorm);
         }
         // Collect from procs
-        MPI_Allreduce(&gxloc,&(gx[0]),1,MPIU_SCALAR,MPI_SUM,PETSC_COMM_WORLD);		
-        gx[0] = PetscPowScalar(gx[0] / ((PetscScalar)nelglob),1.0/pnorm) /  alpha - 1.0;
+        MPI_Allreduce(&gxloc,&(gx[1]),1,MPIU_SCALAR,MPI_SUM,PETSC_COMM_WORLD);		
+        gx[1] = PetscPowScalar(gx[1] / ((PetscScalar)nelglob),1.0/pnorm) /  alpha - 1.0;
         
         // Compute the Gradients
         //dgVoldx = 1/(alpha*nelx*nely)*(1/(nelx*nely)*sum(xVol.^penal_norm))^(1/penal_norm-1)*xVol.^(penal_norm-1);

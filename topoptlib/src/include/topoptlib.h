@@ -75,7 +75,7 @@ struct DataObj {
 
         // constraints
         int m = 1;
-        std::vector<void (*)()> constraints_list;
+        double Rlocvol_w, alpha_w;
 
         // Loadcases
         int nL = 1;
@@ -84,8 +84,8 @@ struct DataObj {
         // parametrization
         PyObject *para_func = NULL;    
 
-        // parametrization
-        PyObject *passive_func = NULL;
+        // test function
+        PyObject *test_func = NULL;
 
         // Callback function
         PyObject *obj_func = NULL;
@@ -120,6 +120,26 @@ struct DataObj {
             
         }
 
+        void check_ev(double trueFx, double runtime) {
+            
+            //printf("el: %i\n", el);
+            //printf("uKu: %f\n", uKu);
+
+            // Py_BuildValue
+            PyObject *arglist = Py_BuildValue("dd", trueFx, runtime);
+            
+            // PyEval_CallObject
+            PyEval_CallObject(test_func, arglist);
+
+            // Parse
+            //double result = PyFloat_AsDouble(results);
+
+            //Py_XDECREF(results);
+            Py_DECREF(arglist);
+
+            //return;
+        }
+
         double para_ev(double lcx, double lcy, double lcz) {
             
             //printf("el: %i\n", el);
@@ -131,26 +151,6 @@ struct DataObj {
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(para_func, arglist);
 
-            // Parse
-            double result = PyFloat_AsDouble(results);
-
-            Py_XDECREF(results);
-            Py_DECREF(arglist);
-
-            return result;
-        }
-
-        double passive_ev(double el) {
-            
-            //printf("el: %i\n", el);
-            //printf("uKu: %f\n", uKu);
-
-            // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("d", el);
-            
-            // PyEval_CallObject
-            PyObject *results = PyEval_CallObject(passive_func, arglist);
-            
             // Parse
             double result = PyFloat_AsDouble(results);
 

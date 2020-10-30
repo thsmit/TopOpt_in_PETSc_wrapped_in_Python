@@ -6,7 +6,6 @@
 
 ### SETUP ENVIRONMENT
 # by hand: env2lmod
-#module load gcc/4.8.5 cmake/3.16.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4 gmp/6.1.2 mpfr/3.1.5 boost/1.68.0 cgal/4.11 vtk/8.1.2
 module load gcc/4.8.5 cmake/3.16.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4
 
 # Print loaded modules
@@ -39,7 +38,6 @@ cd $id
 pwd
 
 cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib.so .
-cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/genvtu.py .
 cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/examples/$1 .
 
 # ADJUSTABLE PARAMETERS

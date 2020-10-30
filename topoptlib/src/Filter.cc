@@ -302,7 +302,7 @@ PetscBool Filter::IncreaseBeta(PetscReal* beta, PetscReal betaFinal, PetscScalar
     PetscBool changeBeta = PETSC_FALSE;
 
     // Increase beta when fitting, itr 10 or 50
-    if ((ch < 0.01 || itr % 50 == 0) && beta[0] < betaFinal && gx < 0.000001) {
+    if ((ch < 0.01 || itr % 20 == 0) && beta[0] < betaFinal && gx < 0.000001) {
         changeBeta = PETSC_TRUE;
         if (beta[0] < 7) {
             beta[0] = beta[0] + 1;
