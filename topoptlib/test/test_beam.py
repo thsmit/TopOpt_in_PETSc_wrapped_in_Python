@@ -47,4 +47,16 @@ data.conssens(constraintSensitivity)
 data.initialcondition(materialvolumefraction)
 complete = data.solve()
 
+# get a function to run for testing
+def Test(trueFX, runtime):
+    trueFX = int(trueFX*1000)/1000
+    runtime = int(runtime*1000)/1000
+    if trueFX == 2.164:
+        print(trueFX, runtime)
+        open("test_beam SUCCESFULL","w+")
+    else:
+        open("test_beam not succesfull!","w+")
+
+data.check(Test)
+
 print('True Compliance should be: ', 2.164643, 3.361824, 8.570609)

@@ -23,7 +23,7 @@ data = topoptlib.Data()
 # define input data
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
 data.structuredGrid((0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 0.0, 0.0, 0.0, 0.0), (193, 65, 105))
-#data.structuredGrid((0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 0.0, 0.0), (385, 129, 209))
+#data.structuredGrid((0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 0.0, 0.0, 0.0, 0.0), (385, 129, 209))
 
 # readin STL file in binary format
 # stl read: ((box around stl: (min corner)(max corner))full path to file)
@@ -53,7 +53,7 @@ data.material(Emin, Emax, nu, Dens, penal)
 data.filter(1, 5.0)
 
 # optimizer: (maxIter)
-data.mma(11)
+data.mma(1000)
 
 def parametrization(lcx, lcy, lcz):
     # radius of bolt face 14.17= r7.5 mm

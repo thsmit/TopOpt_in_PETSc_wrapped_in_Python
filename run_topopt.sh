@@ -45,8 +45,8 @@ cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/examples/$1 .
 #NCPU=32
 #WALL_TIME="12:00"
 
-EULER_MEMORY="2000"
-NCPU=16
+EULER_MEMORY="4000"
+NCPU=32
 WALL_TIME="4:00"
 
 # FUNCTION CALL

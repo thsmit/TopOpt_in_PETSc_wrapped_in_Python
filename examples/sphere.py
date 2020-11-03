@@ -52,7 +52,7 @@ data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/r
 Emin, Emax, nu, dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 3.0
 data.material(Emin, Emax, nu, dens, penal)
 
-data.continuation()
+#data.continuation()
 data.projection(64.0, 1.0, 0.5) 
 
 # filter: (type, radius)

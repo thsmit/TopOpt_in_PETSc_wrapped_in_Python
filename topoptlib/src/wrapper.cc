@@ -325,6 +325,7 @@ static PyObject *stlread_solid_py(DataObj *self, PyObject *args)
         for (int y = 0; y < nely; y++) {
             for (int x = 0; x < nelx; x++) {
                 
+                /*
                 bool node1 = flag[nox];
                 bool node2 = flag[nox + 1];
                 bool node3 = flag[noy + 1];
@@ -333,6 +334,16 @@ static PyObject *stlread_solid_py(DataObj *self, PyObject *args)
                 bool node6 = flag[nox + 1 + noz];
                 bool node7 = flag[noy + 1 + noz];
                 bool node8 = flag[noy + noz];
+                */
+
+                int node1 = flag[nox];
+                int node2 = flag[nox + 1];
+                int node3 = flag[noy + 1];
+                int node4 = flag[noy];
+                int node5 = flag[nox + noz];
+                int node6 = flag[nox + 1 + noz];
+                int node7 = flag[noy + 1 + noz];
+                int node8 = flag[noy + noz];
 
                 nox++;
                 noy++;
@@ -361,10 +372,18 @@ static PyObject *stlread_solid_py(DataObj *self, PyObject *args)
                 //    acount++;
                 //}
 
-                if (node1 && node2 && node3 && node4 && node5 && node6 && node7 && node8) {
+                //if (node1 && node2 && node3 && node4 && node5 && node6 && node7 && node8) {
+                //    self->xPassive_w.at(ecount) = 2.0;
+                 //   acount++;
+                //    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                //}
+
+                int sum = node1 + node2 + node3 + node4 + node5 + node6 + node7 + node8;
+                //if (sum >= 4 && (x < 15 || x > 257)) {
+                if (sum >= 4) {
                     self->xPassive_w.at(ecount) = 2.0;
                     acount++;
-                //    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
                 }
                 
                 ecount++;
@@ -519,7 +538,8 @@ static PyObject *stlread_rigid_py(DataObj *self, PyObject *args)
                 //}
 
                 int sum = node1 + node2 + node3 + node4 + node5 + node6 + node7 + node8;
-                if (sum >= 4 && (x < 15 || x > 257)) {
+                //if (sum >= 4 && (x < 15 || x > 257)) {
+                if (sum >= 4) {
                     self->xPassive_w.at(ecount) = 3.0;
                     acount++;
                     //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
