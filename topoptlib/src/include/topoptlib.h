@@ -34,19 +34,22 @@ struct DataObj {
     PyObject_HEAD
     
     public:
-        // data storage
-        double xc_w[11];
-        double b_w[6];
-        int nxyz_w[3];
-        double Emin_w;
-        double Emax_w;
-        double nu_w;
-        double penal_w;
-        int maxIter_w;
-        int filter_w;
-        double rmin_w;
-        double volumefrac_w;
+        // data storage standard var
+        double xc_w[11] = {0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        int nxyz_w[3] = {65, 33, 33};
+        double Emin_w  = 0.0;
+        double Emax_w = 1.0;
+        double nu_w = 0.3;
+        double penal_w = 3.0;
+        int maxIter_w = 40;
+        int filter_w = 1;
+        double rmin_w = 0.08;
+        double volumefrac_w = 0.12;
 
+        // not needed
+        double b_w[6];
+
+        // continuation, projections
         int continuation_w = 0;
         int projection_w = 0;
         int localVolume_w = 0;

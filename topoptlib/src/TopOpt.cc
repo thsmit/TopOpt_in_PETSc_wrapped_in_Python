@@ -164,7 +164,7 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     xc[9]   = data.xc_w[9];
     xc[10]   = data.xc_w[10];
     nu      = data.nu_w;
-    nlvls   = 4;
+    nlvls   = 1;
 
     // SET DEFAULTS for optimization problems
     volfrac = data.volumefrac_w;

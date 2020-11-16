@@ -9,14 +9,21 @@ module load gcc/4.8.5 cmake/3.16.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4
 # Print loaded modules
 module list
 
+# User input
+echo Press 1 for compiling...
+read var
+
 # compile
-rm -rf topoptlib.so
-rm -rf build
-mkdir build
-cd build
-cmake ..
-make
-cd ..
+if [ $var -eq 1 ]
+    then 
+        rm -rf topoptlib.so
+        rm -rf build
+        mkdir build
+        cd build
+        cmake ..
+        make
+        cd ..
+fi
 
 # RUN
 cd $SCRATCH/wrapped;

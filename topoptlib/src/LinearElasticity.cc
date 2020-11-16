@@ -27,12 +27,13 @@ LinearElasticity::LinearElasticity(DM da_nodes, DataObj data) {
     U   = NULL;
     RHS = NULL;
     N   = NULL;
+    S   = NULL;
     ksp = NULL;
     da_nodal;
 
     // Parameters - to be changed on read of variables
     nu    = 0.3;
-    nlvls = 4;
+    nlvls = 1;
     PetscBool flg;
     PetscOptionsGetInt(NULL, NULL, "-nlvls", &nlvls, &flg);
     PetscOptionsGetReal(NULL, NULL, "-nu", &nu, &flg);
@@ -49,6 +50,7 @@ LinearElasticity::~LinearElasticity() {
     //VecDestroy(&(U));
     //VecDestroy(&(RHS));
     //VecDestroy(&(N));
+    VecDestroyVecs(3, &(S));
     VecDestroyVecs(numLoadCases, &(U));
     VecDestroyVecs(numLoadCases, &(RHS));
     VecDestroyVecs(numLoadCases, &(N));
@@ -141,6 +143,7 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
     ierr = VecDuplicateVecs(TMP, numLoadCases, &(U));
     ierr = VecDuplicateVecs(TMP, numLoadCases, &(RHS));
     ierr = VecDuplicateVecs(TMP, numLoadCases, &(N));
+    ierr = VecDuplicateVecs(TMP, 3, &(S));
     
     // Set the local stiffness matrix
     PetscScalar X[8] = {0.0, dx, dx, 0.0, 0.0, dx, dx, 0.0};
@@ -153,6 +156,9 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
     // Set the RHS and Dirichlet vector
     VecSet(N[0], 1.0);
     VecSet(RHS[0], 0.0);
+    VecSet(S[0], 0.0);
+    VecSet(S[1], 0.0);
+    VecSet(S[2], 0.0);
 
     // Global coordinates and a pointer
     Vec          lcoor; // borrowed ref - do not destroy!
@@ -206,6 +212,33 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                         //ff = data.para_ev(lcoorp[ii], lcoorp[ii+1], lcoorp[ii+2]);
                         //PetscPrintf(PETSC_COMM_WORLD, "ff: %i \n", ff);
 
+                        
+                        /*
+                        PetscPrintf(PETSC_COMM_WORLD, "Apply Sphere BC\n");
+                        //VecSetValueLocal(RHS[lc], ii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), valx * data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                        //VecSetValueLocal(S[0], ii, 1.0, INSERT_VALUES);
+                        PetscPrintf(PETSC_COMM_WORLD, "YZ, (%i, %i, %i), coordinate (%f, %f, %f)\n", ii, ii+1, ii+2, lcoorp[ii], lcoorp[ii+1], lcoorp[ii+2]);
+                        //row
+                                    
+
+                        // Now look for the dof numbers of node (Y,Z) with coordinates (Z,Y)
+                        for (PetscInt iii = 0; iii < nn; iii++) {
+                            if (iii % 3 == 0) {
+                                if (PetscAbsScalar(lcoorp[iii] - lcoorp[ii]) < epsi &&
+                                PetscAbsScalar(lcoorp[iii+1] - lcoorp[ii+2]) < epsi && 
+                                PetscAbsScalar(lcoorp[iii+2] - lcoorp[ii+1]) < epsi ) {
+                                    VecSetValueLocal(S[0], ii + 1, ii + 1, INSERT_VALUES);
+                                    //VecSetValueLocal(S[0], ii + 2, ii + 2, INSERT_VALUES);
+                                    VecSetValueLocal(S[2], ii + 1, -1.0, INSERT_VALUES);
+                                    //VecSetValueLocal(S[2], ii + 2, 1.0, INSERT_VALUES);
+                                    PetscPrintf(PETSC_COMM_WORLD, "ZY, (%i, %i, %i), coordinate (%f, %f, %f)\n", iii, iii+1, iii+2, lcoorp[iii], lcoorp[iii+1], lcoorp[iii+2]);
+                                    VecSetValueLocal(S[1], ii + 1, iii + 2, INSERT_VALUES);
+                                    //VecSetValueLocal(S[1], ii + 2, iii + 1, INSERT_VALUES);
+                                }
+                            }
+                        }
+                        */
+
                         if (PetscAbsScalar(lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]) < epsi && 
                         PetscAbsScalar(ff) < 1) {
                             
@@ -248,6 +281,78 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                                     //VecSetValueLocal(RHS[lc], ii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), valx * data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
                                     VecSetValueLocal(RHS[lc], ii + 1, -valy, INSERT_VALUES);
                                     VecSetValueLocal(RHS[lc], ii + 2, valx, INSERT_VALUES);
+                                }
+
+                                if (data.loadcases_list.at(lc).at(j).BCtype == 6) {
+                                    //PetscScalar valx = (lcoorp[ii + 1] - 1) * 0.0000001;
+                                    //PetscScalar valy = (lcoorp[ii + 2] - 1) * 0.0000001;
+                                    
+                                    PetscPrintf(PETSC_COMM_WORLD, "Apply Sphere BC\n");
+                                    //VecSetValueLocal(RHS[lc], ii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), valx * data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                                    //VecSetValueLocal(S[0], ii, 1.0, INSERT_VALUES);
+                                    PetscPrintf(PETSC_COMM_WORLD, "YZ, (%i, %i), coordinate (%f, %f)\n", ii+1, ii+2, lcoorp[ii+1], lcoorp[ii+2]);
+                                    //row
+                                    
+
+                                    // Now look for the dof numbers of node (Y,Z) with coordinates (Z,Y)
+                                    for (PetscInt iii = 0; iii < nn; iii++) {
+                                        if (iii % 3 == 0) {
+                                            if (PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]) < epsi &&
+                                            PetscAbsScalar(lcoorp[iii+1] - lcoorp[ii+2]) < epsi && 
+                                            PetscAbsScalar(lcoorp[iii+2] - lcoorp[ii+1]) < epsi ) {
+                                                //VecSetValueLocal(S[0], ii, ii, INSERT_VALUES);
+                                                VecSetValueLocal(S[0], ii + 1, ii + 1, INSERT_VALUES);
+                                                //VecSetValueLocal(S[0], ii + 2, ii + 2, INSERT_VALUES);
+                                                //VecSetValueLocal(S[2], ii, 1.0, INSERT_VALUES);
+                                                VecSetValueLocal(S[2], ii + 1, 1.0, INSERT_VALUES);
+                                                //VecSetValueLocal(S[2], ii + 2, 1.0, INSERT_VALUES);
+                                                PetscPrintf(PETSC_COMM_WORLD, "ZY, (%i, %i), coordinate (%f, %f)\n", iii+1, iii+2, lcoorp[iii+1], lcoorp[iii+2]);
+                                                //VecSetValueLocal(S[1], ii, iii, INSERT_VALUES);
+                                                VecSetValueLocal(S[1], ii + 1, iii + 2, INSERT_VALUES);
+                                                //VecSetValueLocal(S[1], ii + 2, iii + 1, INSERT_VALUES);
+                                                
+                                                //VecSetValueLocal(RHS[lc], ii + 1, 0.0, INSERT_VALUES);
+                                                //VecSetValueLocal(RHS[lc], iii + 2, 0.0, INSERT_VALUES);
+
+                                                //VecSetValueLocal(N[lc], ii + 1, 0.0, INSERT_VALUES);
+                                                //VecSetValueLocal(N[lc], iii + 2, 0.0, INSERT_VALUES);
+                                            }
+                                        }
+                                    }
+                                    
+                                    
+                                    //PetscPrintf(PETSC_COMM_WORLD, "Apply Sphere BC\n");
+                                    //VecSetValueLocal(RHS[lc], ii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), valx * data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
+                                    //VecSetValueLocal(S[0], ii, 1.0, INSERT_VALUES);
+                                    //PetscPrintf(PETSC_COMM_WORLD, "YZ, (%i, %i), coordinate (%f, %f)\n", ii+1, ii+2, lcoorp[ii+1], lcoorp[ii+2]);
+                                    //row
+                                    
+
+                                    // Now look for the dof numbers of node (Y,Z) with coordinates (Z,Y)
+                                    for (PetscInt iii = 0; iii < nn; iii++) {
+                                        if (iii % 3 == 0) {
+                                            if (PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]) < epsi &&
+                                            PetscAbsScalar(lcoorp[iii+1] - lcoorp[ii+1]) < epsi && 
+                                            PetscAbsScalar(lcoorp[iii+2] - lcoorp[ii+2]) < epsi &&
+                                            PetscAbsScalar(lcoorp[iii+1] - lcoorp[ii+2]) < epsi && 
+                                            PetscAbsScalar(lcoorp[iii+2] - lcoorp[ii+1]) < epsi) {
+                                                //VecSetValueLocal(S[0], ii, ii, INSERT_VALUES);
+                                                //VecSetValueLocal(S[0], ii + 1, ii + 1, INSERT_VALUES);
+                                                //VecSetValueLocal(S[0], iii + 2, iii + 2, INSERT_VALUES);
+                                                //VecSetValueLocal(S[0], ii + 2, ii + 2, INSERT_VALUES);
+                                                //VecSetValueLocal(S[2], ii, 1.0, INSERT_VALUES);
+                                                //VecSetValueLocal(S[2], iii + 2, iii + 2, INSERT_VALUES);
+                                                //VecSetValueLocal(S[2], ii + 2, 1.0, INSERT_VALUES);
+                                                //PetscPrintf(PETSC_COMM_WORLD, "ZY, (%i, %i), coordinate (%f, %f)\n", iii+1, iii+2, lcoorp[iii+1], lcoorp[iii+2]);
+                                                PetscPrintf(PETSC_COMM_WORLD, "Diagonal, (%i, %i), coordinate (%f, %f)\n", iii+1, iii+2, lcoorp[iii+1], lcoorp[iii+2]);
+                                                //VecSetValueLocal(S[1], ii, iii, INSERT_VALUES);
+                                                //VecSetValueLocal(S[1], ii + 1, iii + 1, INSERT_VALUES);
+                                                //VecSetValueLocal(S[1], ii + 2, iii + 1, INSERT_VALUES);
+                                                VecSetValueLocal(N[lc], ii, 0.0, INSERT_VALUES);
+                                            }
+                                        }
+                                    }
+                                    
                                 }
                             }
                         }
@@ -380,6 +485,17 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
         }
     }
     */
+
+    //VecView(S[0], PETSC_VIEWER_STDOUT_WORLD);
+    //VecView(S[1], PETSC_VIEWER_STDOUT_WORLD);
+    //VecView(S[2], PETSC_VIEWER_STDOUT_WORLD);
+
+    VecAssemblyBegin(S[0]);
+    VecAssemblyBegin(S[1]);
+    VecAssemblyBegin(S[2]);
+    VecAssemblyEnd(S[0]);
+    VecAssemblyEnd(S[1]);
+    VecAssemblyEnd(S[2]);
 
     VecAssemblyBegin(N[0]);
     VecAssemblyBegin(RHS[0]);
@@ -920,8 +1036,104 @@ PetscErrorCode LinearElasticity::AssembleStiffnessMatrix(Vec xPhys, PetscScalar 
         ierr = MatSetValuesLocal(K, 24, edof, 24, edof, ke, ADD_VALUES);
         CHKERRQ(ierr);
     }
+
+    ////////////////////
+    //MatAssemblyBegin(K, MAT_FINAL_ASSEMBLY);
+    //MatAssemblyEnd(K, MAT_FINAL_ASSEMBLY);
+
+
+        
+
+    
+    ///////////////////////
+    PetscInt ls;
+    VecGetLocalSize(S[2], &ls);
+    //VecGetSize(S[2], &ls);
+    PetscPrintf(PETSC_COMM_WORLD, "ls: %i\n", ls);
+
+    PetscScalar *s0, *s1, *s2;
+    VecGetArray(S[0], &s0);
+    VecGetArray(S[1], &s1);
+    VecGetArray(S[2], &s2);
+
+    PetscInt low;
+    PetscInt high;
+    MatGetOwnershipRange(K, &low, &high);
+
+    MatSetOption(K, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE);
+
+    for (PetscInt i = low; i < high; i++) {
+        if (s2[i] == 1.0) {
+            PetscInt row = s0[i];
+            PetscInt col = s1[i];
+            PetscScalar val = 0.0;
+            PetscScalar val1 = 0.0;
+            PetscScalar val2 = 0.0;
+            PetscScalar val3 = 0.0;
+
+            ////////////////////
+            MatAssemblyBegin(K, MAT_FINAL_ASSEMBLY);
+            MatAssemblyEnd(K, MAT_FINAL_ASSEMBLY);
+
+            MatGetValues(K, 1, &row, 1, &row, &val);
+            MatGetValues(K, 1, &col, 1, &col, &val1);
+            MatGetValues(K, 1, &row, 1, &col, &val2);
+            MatGetValues(K, 1, &col, 1, &row, &val3);
+
+            
+            val = val;
+            val1 = val1;
+            val2 = val2;
+            val3 = val3;
+
+            //PetscPrintf(PETSC_COMM_WORLD, "dof nr: %i, row: %i, col: %i, val: %f\n", i, row, row, val);
+            //PetscPrintf(PETSC_COMM_WORLD, "dof nr: %i, row: %i, col: %i, val: %f\n", i, col, col, val);
+            
+
+            //PetscScalar val2 = 1.0*1000.0;
+            //PetscScalar val3 = 1.0*1000.0;    
+
+            //MatSetValue(K, row, col, 1.0 , INSERT_VALUES);
+            //MatSetValuesLocal(K, 1, &row-1, 1, &row-1, &val, ADD_VALUES);
+            //MatSetValuesLocal(K, 1, &row, 1, &row, &val2, ADD_VALUES);
+            //MatSetValuesLocal(K, 1, &col, 1, &col, &val2, ADD_VALUES);
+            //MatSetValuesLocal(K, 1, &row, 1, &col, &val2, ADD_VALUES);
+            //MatSetValuesLocal(K, 1, &row, 1, &val, &val2, ADD_VALUES);
+
+            PetscPrintf(PETSC_COMM_WORLD, "dof nr: %i, row: %i, col: %i, val: %f\n", i, row, row, val);
+            PetscPrintf(PETSC_COMM_WORLD, "dof nr: %i, row: %i, col: %i, val: %f\n", i, col, col, val1);
+            PetscPrintf(PETSC_COMM_WORLD, "dof nr: %i, row: %i, col: %i, val: %f\n", i, row, col, val2);
+            PetscPrintf(PETSC_COMM_WORLD, "dof nr: %i, row: %i, col: %i, val: %f\n", i, col, col, val3);
+
+            //PetscScalar val2 = 1.0;
+            //PetscScalar val3 = -1.0;
+
+            //MatSetValuesLocal(K, 1, &row, 1, &row, &val, ADD_VALUES);
+            //MatSetValuesLocal(K, 1, &col, 1, &col, &val, ADD_VALUES);
+            
+            MatSetValuesLocal(K, 1, &row, 1, &row, &val, ADD_VALUES);
+            MatSetValuesLocal(K, 1, &col, 1, &col, &val1, ADD_VALUES);
+            MatSetValuesLocal(K, 1, &row, 1, &col, &val2, ADD_VALUES);
+            MatSetValuesLocal(K, 1, &col, 1, &row, &val3, ADD_VALUES);
+            //MatSetValue(K, row, col, val, INSERT_VALUES);
+            //MatSetValue(K, row, col, val1, INSERT_VALUES);
+        }
+    }
+
+    VecRestoreArray(S[0], &s0);
+    VecRestoreArray(S[1], &s1);
+    VecRestoreArray(S[2], &s2);
+    
+
+    ////////////////////
     MatAssemblyBegin(K, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(K, MAT_FINAL_ASSEMBLY);
+
+    
+    //MatDiagonalScale(V, S[0], S[0]);
+
+    //VecView(S[0], PETSC_VIEWER_STDOUT_WORLD);
+
 
     // Impose the dirichlet conditions, i.e. K = N'*K*N - (N-I)
     // 1.: K = N'*K*N
@@ -940,6 +1152,9 @@ PetscErrorCode LinearElasticity::AssembleStiffnessMatrix(Vec xPhys, PetscScalar 
     // with Dirichlet conditions
     //VecPointwiseMult(RHS, RHS, N);
     VecPointwiseMult(RHS[0], RHS[0], N[0]);
+
+    MatView(K, PETSC_VIEWER_STDOUT_WORLD);
+    //MatView(V, PETSC_VIEWER_STDOUT_WORLD);
 
     VecDestroy(&NI);
     VecRestoreArray(xPhys, &xp);
