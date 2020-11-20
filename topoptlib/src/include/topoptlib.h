@@ -56,6 +56,8 @@ struct DataObj {
         double betaInit_w = 1.0;
         double betaFinal_w = 64.0;
         double eta_w = 0.5;
+        double penalfinal_w;
+        double stepsize_w;
 
         // needed as members to be used in python script
         int nNodes;
@@ -69,6 +71,7 @@ struct DataObj {
         int cpuTime;
         double trueFx;
         double scaledFx;
+        int test_w = 0;
 
         // xPassive
         std::vector<double> xPassive_w;
@@ -123,13 +126,13 @@ struct DataObj {
             
         }
 
-        void check_ev(double trueFx, double runtime) {
+        void check_ev(double trueFx, double runtime, double memory) {
             
             //printf("el: %i\n", el);
             //printf("uKu: %f\n", uKu);
 
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("dd", trueFx, runtime);
+            PyObject *arglist = Py_BuildValue("ddd", trueFx, runtime, memory);
             
             // PyEval_CallObject
             PyEval_CallObject(test_func, arglist);
@@ -163,9 +166,9 @@ struct DataObj {
             return result;
         }
 
-        double obj_ev(double comp, double sumXP, double xp, double uKu) {
+        double obj_ev(double comp, double sumXP) {
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("dddd", comp, sumXP, xp, uKu);
+            PyObject *arglist = Py_BuildValue("dd", comp, sumXP);
             
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(obj_func, arglist);
@@ -179,13 +182,13 @@ struct DataObj {
             return result;
         }
 
-        double obj_sens_ev(double sumXP, double xp, double uKu) {
+        double obj_sens_ev(double xp, double uKu) {
             
             //printf("xp: %f\n", xp);
             //printf("uKu: %f\n", uKu);
 
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("ddd", sumXP, xp, uKu);
+            PyObject *arglist = Py_BuildValue("dd", xp, uKu);
             
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(obj_sens_func, arglist);
@@ -204,9 +207,9 @@ struct DataObj {
             return result;
         }
 
-        double const_ev(double comp, double sumXP, double xp, double uKu) {
+        double const_ev(double comp, double sumXP) {
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("dddd", comp, sumXP, xp, uKu);
+            PyObject *arglist = Py_BuildValue("dd", comp, sumXP);
             
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(const_func, arglist);
@@ -220,13 +223,13 @@ struct DataObj {
             return result;
         }
 
-        double const_sens_ev(double sumXP, double xp, double uKu) {
+        double const_sens_ev(double xp, double uKu) {
             
             //printf("xp: %f\n", xp);
             //printf("uKu: %f\n", uKu);
 
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("ddd", sumXP, xp, uKu);
+            PyObject *arglist = Py_BuildValue("dd", xp, uKu);
             
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(const_sens_func, arglist);

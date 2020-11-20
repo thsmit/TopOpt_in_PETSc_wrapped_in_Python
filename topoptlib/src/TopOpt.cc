@@ -164,7 +164,7 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     xc[9]   = data.xc_w[9];
     xc[10]   = data.xc_w[10];
     nu      = data.nu_w;
-    nlvls   = 1;
+    nlvls   = 4;
 
     // SET DEFAULTS for optimization problems
     volfrac = data.volumefrac_w;
@@ -176,16 +176,21 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
         localVolumeStatus = PETSC_TRUE;
     }
 
+    testStatus = PETSC_FALSE;
+    if (data.test_w == 1) {
+        testStatus = PETSC_TRUE;
+    }
+
     // continuation of penalization
     // Status
     continuationStatus = PETSC_FALSE;
     if (data.continuation_w == 1) {
         continuationStatus = PETSC_TRUE;
     }
-    penalIni = 1.0; 
+    penalIni = data.penal_w;
     penal = data.penal_w;
-    penalFin = 3.0;
-    penalStep = 0.125;
+    penalFin = data.penalfinal_w;
+    penalStep = data.stepsize_w;
     //IterProj = maxItr / ((penalFin - penalIni) / penalStep);
     IterProj = 10;
     //PetscPrintf(PETSC_COMM_WORLD, "IterProj %i\n", IterProj);

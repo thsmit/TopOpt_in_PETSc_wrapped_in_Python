@@ -39,6 +39,9 @@ int solve(DataObj data) {
     // Capture runtime
     double rt1, rt2;
     
+    // Monitor memory usage
+    PetscMemorySetGetMaximumUsage();
+
     // start timer total runtime
     rt1 = MPI_Wtime();
 
@@ -106,7 +109,7 @@ int solve(DataObj data) {
         // UPDATING THE CONTINUATION PARAMETERS
         // reference, Maximum Size...
 		if (opt->continuationStatus && itr % opt->IterProj == 0){
-			opt->penal   = PetscMin(opt->penal+0.125,3); // penal = penal : 0.25 : 3.0
+			opt->penal   = PetscMin(opt->penal+opt->penalStep,opt->penalFin); // penal = penal : 0.25 : 3.0
 			// move limits: initial 0.6, final 0.05
 			//opt->movlim  = (opt->movlimEnd-opt->movlimIni)/(3.0-1.0)*(opt->penal-1.0)+opt->movlimIni; 
 			//opt->Beta    = PetscMin((1.50*opt->Beta),38.0); // beta = beta*1.5 
@@ -266,8 +269,19 @@ int solve(DataObj data) {
     // stop timer total runtime
     rt2 = MPI_Wtime();
 
+    // Extract memory use
+    PetscLogDouble mem;
+    //PetscScalar mem;
+    PetscMemoryGetMaximumUsage(&mem);
+    //PetscPrintf(PETSC_COMM_WORLD, "Mem.: %f\n", mem);
+    //PetscScalar tmpm = mem;
+    //mem = 0.0;
+    //MPI_Allreduce(&tmpm, &(mem), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
+
     // Call test function to send data to wrapper
-    data.check_ev(opt->fx / opt->fscale, rt2 - rt1);
+    if (opt->testStatus) {
+        data.check_ev(opt->fx / opt->fscale, rt2 - rt1, mem);
+    }
 
     // STEP 7: CLEAN UP AFTER YOURSELF
     delete mma;

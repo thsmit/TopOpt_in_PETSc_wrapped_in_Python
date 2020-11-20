@@ -32,8 +32,8 @@ LinearElasticity::LinearElasticity(DM da_nodes, DataObj data) {
     da_nodal;
 
     // Parameters - to be changed on read of variables
-    nu    = 0.3;
-    nlvls = 1;
+    nu    = data.nu_w;
+    nlvls = 4;
     PetscBool flg;
     PetscOptionsGetInt(NULL, NULL, "-nlvls", &nlvls, &flg);
     PetscOptionsGetReal(NULL, NULL, "-nu", &nu, &flg);
@@ -417,9 +417,9 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                     PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(3)]) < epsi && 
                     PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(5)]) < epsi) {
                         
-                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], data.loadcases_list.at(lc).at(j).Checker_vec.at(0));
-                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)], data.loadcases_list.at(lc).at(j).Checker_vec.at(2));
-                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)], data.loadcases_list.at(lc).at(j).Checker_vec.at(4));
+                        ///PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], data.loadcases_list.at(lc).at(j).Checker_vec.at(0));
+                        ///PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)], data.loadcases_list.at(lc).at(j).Checker_vec.at(2));
+                        ///PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)], data.loadcases_list.at(lc).at(j).Checker_vec.at(4));
 
                         for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
                             if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
@@ -442,9 +442,9 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                     PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)] - (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(3)) < epsi && 
                     PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)] - (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(5)) < epsi) {
                         
-                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(0));
-                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)], (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(2));
-                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)], (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(4));
+                        ///PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(0));
+                        ///PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)], (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(2));
+                        ///PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)], (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(4));
 
                         for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
                             if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
@@ -864,19 +864,8 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
         // Use SIMP for stiffness interpolation
         //PetscScalar uKu = 0.0;
         for (PetscInt k = 0; k < 24; k++) {
-            
-            // printing for debuging
-            //if (i < 1) {
-            //    PetscPrintf(PETSC_COMM_WORLD, "u: %f\n", up[edof[k]]);
-            //}
-            
             for (PetscInt h = 0; h < 24; h++) {
                 uKu[i] += up[edof[k]] * KE[k * 24 + h] * up[edof[h]];
-            
-                // printing for debuging
-                //if (i < 1) {
-                //    PetscPrintf(PETSC_COMM_WORLD, "i: %i, j: %i, ke: %f\n", k, h, KE[k * 24 + h]);
-                //}
             }
         }
 
@@ -889,8 +878,8 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
     comp           = 0.0;
     MPI_Allreduce(&tmp, &(comp), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
 
-    fx[0] = data.obj_ev(comp, sumXP, 1.0, 1.0); // let op, = or +=
-    gx[0] = data.const_ev(comp, sumXP, 1.0, 1.0); // let op, = or +=
+    fx[0] = data.obj_ev(comp, sumXP);
+    gx[0] = data.const_ev(comp, sumXP);
 
     // Loop over elements
     for (PetscInt i = 0; i < nel; i++) {    
@@ -899,24 +888,10 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
         //PetscPrintf(PETSC_COMM_WORLD, "f: %f\n", data.obj_ev(xp[i], uKu));
         // E_real_material * ???
         
-        df[i] = data.obj_sens_ev(sumXP, xp[i], uKu[i]);
-
-        // printing for debuging
-        //if (i < 1) {
-          //  PetscPrintf(PETSC_COMM_WORLD, "uku: %f\n", uKu);
-            //PetscPrintf(PETSC_COMM_WORLD, "xp: %f\n", xp[i]);
-            //PetscPrintf(PETSC_COMM_WORLD, "df: %f\n", df[i]);
-        //}
-        
-        // Origional code
-        //fx[0] += (Emin + PetscPowScalar(xp[i], penal) * (Emax - Emin)) * uKu;
-        // Set the Senstivity
-        // * E_real_material *???
-        //df[i] = -1.0 * penal * PetscPowScalar(xp[i], penal - 1) * (Emax - Emin) * uKu;
+        df[i] = data.obj_sens_ev(xp[i], uKu[i]);
 
         // Wrapper callback for sensitivity
-        
-        dg[i] = data.const_sens_ev(sumXP, xp[i], uKu[i]);
+        dg[i] = data.const_sens_ev(xp[i], uKu[i]);
 
         //PetscPrintf(PETSC_COMM_WORLD, "gx: %f\n", gx[0]);
     }        
@@ -1044,7 +1019,7 @@ PetscErrorCode LinearElasticity::AssembleStiffnessMatrix(Vec xPhys, PetscScalar 
 
         
 
-    
+    /*
     ///////////////////////
     PetscInt ls;
     VecGetLocalSize(S[2], &ls);
@@ -1124,7 +1099,7 @@ PetscErrorCode LinearElasticity::AssembleStiffnessMatrix(Vec xPhys, PetscScalar 
     VecRestoreArray(S[1], &s1);
     VecRestoreArray(S[2], &s2);
     
-
+    */
     ////////////////////
     MatAssemblyBegin(K, MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(K, MAT_FINAL_ASSEMBLY);
@@ -1153,7 +1128,7 @@ PetscErrorCode LinearElasticity::AssembleStiffnessMatrix(Vec xPhys, PetscScalar 
     //VecPointwiseMult(RHS, RHS, N);
     VecPointwiseMult(RHS[0], RHS[0], N[0]);
 
-    MatView(K, PETSC_VIEWER_STDOUT_WORLD);
+    //MatView(K, PETSC_VIEWER_STDOUT_WORLD);
     //MatView(V, PETSC_VIEWER_STDOUT_WORLD);
 
     VecDestroy(&NI);

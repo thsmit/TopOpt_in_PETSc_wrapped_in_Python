@@ -36,6 +36,139 @@ static PyMemberDef members[] =
 };
 
 // set mesh variables
+static PyObject *beam_py(DataObj *self, PyObject *args)
+{
+    
+    //double xc0, xc1, xc2, xc3, xc4, xc5, xc6, xc7, xc8, xc9, xc10;
+    int nxyz0, nxyz1, nxyz2;
+
+    if(!PyArg_ParseTuple(args, "iii", &nxyz0, &nxyz1, &nxyz2)) { 
+        return NULL;
+    }
+    
+    // mesh
+    self->xc_w[0] = 0.0;
+    self->xc_w[1] = 2.0;
+    self->xc_w[2] = 0.0;
+    self->xc_w[3] = 1.0;
+    self->xc_w[4] = 0.0;
+    self->xc_w[5] = 1.0;
+    self->xc_w[6] = 0.0;
+    self->xc_w[7] = 0.0;
+    self->xc_w[8] = 0.0;
+    self->xc_w[9] = 0.0;
+    self->xc_w[10] = 0.0;
+
+    self->nxyz_w[0] = nxyz0;
+    self->nxyz_w[1] = nxyz1;
+    self->nxyz_w[2] = nxyz2;
+
+    self->nNodes = nxyz0 * nxyz1 * nxyz2;
+    self->nElements = (nxyz0 - 1) * (nxyz1 - 1) * (nxyz2 - 1);
+    self->nDOF = self->nNodes * 3;
+
+    self->volumefrac_w = 0.12;
+
+    // material
+    self->Emin_w = 1.0e-6;
+    self->Emax_w = 1.0;
+    self->nu_w = 0.3;
+    self->penal_w = 3.0;
+
+    // filter
+    self->filter_w = 2;
+    self->rmin_w = 0.08;
+
+    // mma
+    self->maxIter_w = 370;
+
+    // loadcases
+    self->nL = 1;
+    self->loadcases_list.resize(1);
+
+    // BC
+    BC condition1;
+    condition1.BCtype = 1;
+    condition1.Checker_vec.push_back(0);
+    condition1.Checker_vec.push_back(0);
+    condition1.Setter_dof_vec.push_back(0);
+    condition1.Setter_dof_vec.push_back(1);
+    condition1.Setter_dof_vec.push_back(2);
+    condition1.Setter_val_vec.push_back(0.0);
+    condition1.Setter_val_vec.push_back(0.0);
+    condition1.Setter_val_vec.push_back(0.0);
+    condition1.Para = 0;        
+    self->loadcases_list.at(0).push_back(condition1);
+
+    BC condition2;
+    condition2.BCtype = 2;
+    condition2.Checker_vec.push_back(0);
+    condition2.Checker_vec.push_back(1);
+    condition2.Checker_vec.push_back(2);
+    condition2.Checker_vec.push_back(4);
+    condition2.Setter_dof_vec.push_back(2);
+    condition2.Setter_val_vec.push_back(-0.001);
+    condition2.Para = 0;        
+    self->loadcases_list.at(0).push_back(condition2);
+
+    BC condition3;
+    condition3.BCtype = 2;
+    condition3.Checker_vec.push_back(0);
+    condition3.Checker_vec.push_back(1);
+    condition3.Checker_vec.push_back(1);
+    condition3.Checker_vec.push_back(2);
+    condition3.Checker_vec.push_back(2);
+    condition3.Checker_vec.push_back(4);
+    condition3.Setter_dof_vec.push_back(2);
+    condition3.Setter_val_vec.push_back(-0.0005);
+    condition3.Para = 0;        
+    self->loadcases_list.at(0).push_back(condition3);
+
+    BC condition4;
+    condition4.BCtype = 2;
+    condition4.Checker_vec.push_back(0);
+    condition4.Checker_vec.push_back(1);
+    condition4.Checker_vec.push_back(1);
+    condition4.Checker_vec.push_back(3);
+    condition4.Checker_vec.push_back(2);
+    condition4.Checker_vec.push_back(4);
+    condition4.Setter_dof_vec.push_back(2);
+    condition4.Setter_val_vec.push_back(-0.0005);
+    condition4.Para = 0;        
+    self->loadcases_list.at(0).push_back(condition4);
+
+    /*
+    Py_Initialize();
+
+	def objective(comp, sumXp, xp, uKu):
+        return comp
+
+    def sensitivity(sumXp, xp, uKu):
+        return -1.0 * 3.0 * np.power(xp, (3.0 - 1)) * (1.0 - 1.0e-6) * uKu
+
+    def constraint(comp, sumXp, xp, uKu):
+        return sumXp / self->nElements - 0.12
+
+    def constraintSensitivity(sumXp, xp, uKu):
+        return 1.0 / self->nElements
+	
+	Py_Finalize();
+
+    // OBJ, SEN
+    self->obj_func = objective;
+    Py_INCREF(self->obj_func);
+    self->obj_sens_func = sensitivity;
+    Py_INCREF(self->obj_sens_func);
+    self->const_func = constraint;
+    Py_INCREF(self->const_func);
+    self->const_sens_func = constraintSensitivity;
+    Py_INCREF(self->const_sens_func);
+    */
+
+    Py_RETURN_NONE;
+}
+
+// set mesh variables
 static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
 {
     double xc0, xc1, xc2, xc3, xc4, xc5, xc6, xc7, xc8, xc9, xc10;
@@ -607,6 +740,8 @@ static PyObject *continuation_py(DataObj *self, PyObject *args)
 
     self->continuation_w = 1;
     self->penal_w = Pinitial;
+    self->penalfinal_w = Pfinal;
+    self->stepsize_w = stepsize;
 
     Py_RETURN_NONE;
 }
@@ -856,6 +991,8 @@ static PyObject *check_py(DataObj *self, PyObject *args)
     self->test_func = test_func;
     Py_INCREF(self->test_func);
 
+    self->test_w = 1;
+
     Py_RETURN_NONE;
 }
 
@@ -872,7 +1009,8 @@ static PyObject *solve_py(DataObj *self)
 }
 
 static PyMethodDef methods[] =
-    { {"structuredGrid", (PyCFunction)structuredGrid_py, METH_VARARGS, "Implement structuredGrid\n"},
+    { {"beam", (PyCFunction)beam_py, METH_VARARGS, "Implement structuredGrid\n"},
+      {"structuredGrid", (PyCFunction)structuredGrid_py, METH_VARARGS, "Implement structuredGrid\n"},
       {"stlread_domain", (PyCFunction)stlread_domain_py, METH_VARARGS, "STL read\n"},
       {"stlread_solid", (PyCFunction)stlread_solid_py, METH_VARARGS, "STL read\n"},
       {"stlread_rigid", (PyCFunction)stlread_rigid_py, METH_VARARGS, "STL read\n"},

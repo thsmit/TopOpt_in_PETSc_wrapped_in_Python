@@ -21,6 +21,7 @@ __pycache__/
 *table.py
 *roof.py
 *beam_stl.py
+*beam_local.py
 *local.py
 *sphere_full.py
 *box.stl

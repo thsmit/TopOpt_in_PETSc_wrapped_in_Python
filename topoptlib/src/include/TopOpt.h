@@ -80,6 +80,7 @@ class TopOpt {
     PetscScalar volfrac;    // Volume fraction
     PetscScalar penal;      // Penalization parameter
     PetscBool continuationStatus;
+    PetscBool testStatus;
     PetscScalar penalIni; 
     PetscScalar penalFin;
     PetscScalar penalStep;
