@@ -21,7 +21,7 @@ __pycache__/
 *table.py
 *roof.py
 *beam_stl.py
-beam_local.py
+*beam_local.py
 *local.py
 *sphere_full.py
 *box.stl
@@ -37,4 +37,6 @@ beam_local.py
 *tablesolid.stl
 *scaffold.py
 *topoptlib.so
-performance.py
+*performance.py
+*beam.stl
+*sphere.stl
