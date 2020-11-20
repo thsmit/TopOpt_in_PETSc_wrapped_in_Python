@@ -11,19 +11,22 @@ __pycache__/
 *.egg-info/
 *.vtu
 *.vtk
-#*.sh
-#*setup.py
 *~
 *pytest.ini
-*makevtu.py
-*bin2vtu.py
+*topoptlib.so
 *genvtu.py
+
+# problems
 *table.py
 *roof.py
 *beam_stl.py
 *beam_local.py
 *local.py
 *sphere_full.py
+*scaffold.py
+*performance.py
+
+# stl
 *box.stl
 *domaintorsionfull.stl
 *domaintorsionq.stl
@@ -35,8 +38,5 @@ __pycache__/
 *solidtorsion.stl
 *tabledomain.stl
 *tablesolid.stl
-*scaffold.py
-*topoptlib.so
-*performance.py
 *beam.stl
 *sphere.stl
