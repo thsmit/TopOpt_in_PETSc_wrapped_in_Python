@@ -4,7 +4,6 @@
 #include <Python.h>
 #include <vector>
 #include <string>
-#include <petsc.h>
 
 /*
 Author: Thijs Smit, May 2020
@@ -16,6 +15,7 @@ Disclaimer:
  caused by the use of the program.
 */
 
+// Class to implement boundary conditions
 class BC {
     public:
 
@@ -27,26 +27,23 @@ class BC {
         std::vector<double> Setter_val_vec;
 };
 
-// Creating class with C variables with default values
-// check if class works
+// Class to store data
 struct DataObj {
-    // check PyObject_class?
     PyObject_HEAD
     
     public:
         // data storage standard var
-        double xc_w[11] = {0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-        int nxyz_w[3] = {65, 33, 33};
-        double Emin_w  = 0.0;
-        double Emax_w = 1.0;
-        double nu_w = 0.3;
-        double penal_w = 3.0;
-        int maxIter_w = 40;
-        int filter_w = 1;
-        double rmin_w = 0.08;
-        double volumefrac_w = 0.12;
-
-        // not needed
+        double xc_w[11];
+        int nxyz_w[3];
+        double Emin_w;
+        double Emax_w;
+        double nu_w;
+        double penal_w;
+        int maxIter_w;
+        double tol_w;
+        int filter_w;
+        double rmin_w;
+        double volumefrac_w;
         double b_w[6];
 
         // continuation, projections
@@ -57,7 +54,9 @@ struct DataObj {
         double betaFinal_w = 64.0;
         double eta_w = 0.5;
         double penalfinal_w;
+        double penalinitial_w;
         double stepsize_w;
+        int iterProg_w;
 
         // needed as members to be used in python script
         int nNodes;
@@ -78,6 +77,7 @@ struct DataObj {
         int nael; // number of active design variables
         int nrel; // number of rigid elements
         int nsel; // number of solid elements
+        int nvel; // number of void elements
 
         // constraints
         int m = 1;
@@ -105,17 +105,21 @@ struct DataObj {
             int acount = 0;
             int scount = 0;
             int rcount = 0;
+            int vcount = 0;
             // count the number of active, solid and rigid elements
             // active is -1, passive is 1, solid is 2, rigid is 3
             for (unsigned i = 0; i < xPassive_w.size(); i++) {
                 if (xPassive_w[i] == -1.0) {
                     acount++;
                 }
-                if (xPassive_w[i] == 2.0) {
+                if (xPassive_w[i] == 2.0 || xPassive_w[i] == 4.0) {
                     scount++;
                 } 
                 if (xPassive_w[i] == 3.0) {
                     rcount++;
+                } 
+                if (xPassive_w[i] == 4.0) {
+                    vcount++;
                 } 
             }
             
@@ -123,6 +127,7 @@ struct DataObj {
             nael = acount;
             nsel = scount;
             nrel = rcount;
+            nvel = vcount;
             
         }
 

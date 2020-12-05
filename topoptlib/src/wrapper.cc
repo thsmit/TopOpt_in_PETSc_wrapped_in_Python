@@ -26,147 +26,12 @@ static PyMemberDef members[] =
     { {"nNodes", T_INT, offsetof(DataObj, nNodes), 0, "nNodes docstring"},
       {"nElements", T_INT, offsetof(DataObj, nElements), 0, "nNodes docstring"},
       {"nDOF", T_INT, offsetof(DataObj, nDOF), 0, "nNodes docstring"},
-      {"it", T_INT, offsetof(DataObj, it), 0, "nNodes docstring"},
-      {"trueFx", T_DOUBLE, offsetof(DataObj, trueFx), 0, "nNodes docstring"},
-      {"scaledFx", T_DOUBLE, offsetof(DataObj, scaledFx), 0, "nNodes docstring"},
       {"nael", T_INT, offsetof(DataObj, nael), 0, "nael docstring"},
       {"nrel", T_INT, offsetof(DataObj, nrel), 0, "nael docstring"},
       {"nsel", T_INT, offsetof(DataObj, nsel), 0, "nael docstring"},
+      {"nvel", T_INT, offsetof(DataObj, nvel), 0, "nvel docstring"},
       {NULL}  /* Sentinel */
 };
-
-// set mesh variables
-static PyObject *beam_py(DataObj *self, PyObject *args)
-{
-    
-    //double xc0, xc1, xc2, xc3, xc4, xc5, xc6, xc7, xc8, xc9, xc10;
-    int nxyz0, nxyz1, nxyz2;
-
-    if(!PyArg_ParseTuple(args, "iii", &nxyz0, &nxyz1, &nxyz2)) { 
-        return NULL;
-    }
-    
-    // mesh
-    self->xc_w[0] = 0.0;
-    self->xc_w[1] = 2.0;
-    self->xc_w[2] = 0.0;
-    self->xc_w[3] = 1.0;
-    self->xc_w[4] = 0.0;
-    self->xc_w[5] = 1.0;
-    self->xc_w[6] = 0.0;
-    self->xc_w[7] = 0.0;
-    self->xc_w[8] = 0.0;
-    self->xc_w[9] = 0.0;
-    self->xc_w[10] = 0.0;
-
-    self->nxyz_w[0] = nxyz0;
-    self->nxyz_w[1] = nxyz1;
-    self->nxyz_w[2] = nxyz2;
-
-    self->nNodes = nxyz0 * nxyz1 * nxyz2;
-    self->nElements = (nxyz0 - 1) * (nxyz1 - 1) * (nxyz2 - 1);
-    self->nDOF = self->nNodes * 3;
-
-    self->volumefrac_w = 0.12;
-
-    // material
-    self->Emin_w = 1.0e-6;
-    self->Emax_w = 1.0;
-    self->nu_w = 0.3;
-    self->penal_w = 3.0;
-
-    // filter
-    self->filter_w = 2;
-    self->rmin_w = 0.08;
-
-    // mma
-    self->maxIter_w = 370;
-
-    // loadcases
-    self->nL = 1;
-    self->loadcases_list.resize(1);
-
-    // BC
-    BC condition1;
-    condition1.BCtype = 1;
-    condition1.Checker_vec.push_back(0);
-    condition1.Checker_vec.push_back(0);
-    condition1.Setter_dof_vec.push_back(0);
-    condition1.Setter_dof_vec.push_back(1);
-    condition1.Setter_dof_vec.push_back(2);
-    condition1.Setter_val_vec.push_back(0.0);
-    condition1.Setter_val_vec.push_back(0.0);
-    condition1.Setter_val_vec.push_back(0.0);
-    condition1.Para = 0;        
-    self->loadcases_list.at(0).push_back(condition1);
-
-    BC condition2;
-    condition2.BCtype = 2;
-    condition2.Checker_vec.push_back(0);
-    condition2.Checker_vec.push_back(1);
-    condition2.Checker_vec.push_back(2);
-    condition2.Checker_vec.push_back(4);
-    condition2.Setter_dof_vec.push_back(2);
-    condition2.Setter_val_vec.push_back(-0.001);
-    condition2.Para = 0;        
-    self->loadcases_list.at(0).push_back(condition2);
-
-    BC condition3;
-    condition3.BCtype = 2;
-    condition3.Checker_vec.push_back(0);
-    condition3.Checker_vec.push_back(1);
-    condition3.Checker_vec.push_back(1);
-    condition3.Checker_vec.push_back(2);
-    condition3.Checker_vec.push_back(2);
-    condition3.Checker_vec.push_back(4);
-    condition3.Setter_dof_vec.push_back(2);
-    condition3.Setter_val_vec.push_back(-0.0005);
-    condition3.Para = 0;        
-    self->loadcases_list.at(0).push_back(condition3);
-
-    BC condition4;
-    condition4.BCtype = 2;
-    condition4.Checker_vec.push_back(0);
-    condition4.Checker_vec.push_back(1);
-    condition4.Checker_vec.push_back(1);
-    condition4.Checker_vec.push_back(3);
-    condition4.Checker_vec.push_back(2);
-    condition4.Checker_vec.push_back(4);
-    condition4.Setter_dof_vec.push_back(2);
-    condition4.Setter_val_vec.push_back(-0.0005);
-    condition4.Para = 0;        
-    self->loadcases_list.at(0).push_back(condition4);
-
-    /*
-    Py_Initialize();
-
-	def objective(comp, sumXp, xp, uKu):
-        return comp
-
-    def sensitivity(sumXp, xp, uKu):
-        return -1.0 * 3.0 * np.power(xp, (3.0 - 1)) * (1.0 - 1.0e-6) * uKu
-
-    def constraint(comp, sumXp, xp, uKu):
-        return sumXp / self->nElements - 0.12
-
-    def constraintSensitivity(sumXp, xp, uKu):
-        return 1.0 / self->nElements
-	
-	Py_Finalize();
-
-    // OBJ, SEN
-    self->obj_func = objective;
-    Py_INCREF(self->obj_func);
-    self->obj_sens_func = sensitivity;
-    Py_INCREF(self->obj_sens_func);
-    self->const_func = constraint;
-    Py_INCREF(self->const_func);
-    self->const_sens_func = constraintSensitivity;
-    Py_INCREF(self->const_sens_func);
-    */
-
-    Py_RETURN_NONE;
-}
 
 // set mesh variables
 static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
@@ -197,6 +62,197 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
     self->nNodes = nxyz0 * nxyz1 * nxyz2;
     self->nElements = (nxyz0 - 1) * (nxyz1 - 1) * (nxyz2 - 1);
     self->nDOF = self->nNodes * 3;
+
+    Py_RETURN_NONE;
+}
+
+// stl read design domain
+static PyObject *stlread_py(DataObj *self, PyObject *args)
+{
+    double encoding, backround;
+    int treshold;
+    double b0, b1, b2, b3, b4, b5;
+    char *path = NULL; 
+    
+    if (!PyArg_ParseTuple(args, "ddi(ddd)(ddd)s", &encoding, &backround, &treshold, &b0, &b1, &b2, &b3, &b4, &b5, &path)) { 
+        return NULL;
+    }
+
+    // check if STL is in binary format
+    if (!checkBinarySTL(path)) {
+        printf("Stl file is not in binary format\n");        
+        return NULL;
+    }
+
+    self->b_w[0] = b0;
+    self->b_w[1] = b1;
+    self->b_w[2] = b2;
+    self->b_w[3] = b3;
+    self->b_w[4] = b4;
+    self->b_w[5] = b5;
+
+    // print file path
+    //printf("================================================\n");
+    //printf("Stl file: %s, encoded with: %f\n", path, encoding);
+
+    // Create geometry and read stl
+    Geometry geo(path);
+
+    // Box around the stl domain
+    V3 gridMinCorner(b0, b1, b2);
+    V3 gridMaxCorner(b3, b4, b5);
+    V3 gridExtend = gridMaxCorner - gridMinCorner;
+
+    //double dx = gridExtend.x / self->nxyz_w[0];
+    //double dy = gridExtend.y / self->nxyz_w[1];
+    //double dz = gridExtend.z / self->nxyz_w[2];
+
+    double dx = self->xc_w[1] / (self->nxyz_w[0] - 1);
+    double dy = self->xc_w[3] / (self->nxyz_w[1] - 1);
+    double dz = self->xc_w[5] / (self->nxyz_w[2] - 1);
+
+    //printf("gridextend: %f\n", gridExtend.x);
+    //printf("meshx: %i\n", self->nxyz_w[0]);
+
+    // print dx
+    //printf("dx: %f\n", dx);
+    //printf("dy: %f\n", dy);
+    //printf("dz: %f\n", dz);
+
+    // set grid bounding corner
+    // gridNum = number of voxels
+    int3 gridNum = int3(gridExtend.x / dx, gridExtend.y / dy, gridExtend.z / dz);
+
+    // make the grid equal to the PETSc grid
+    GridBox grid(gridMinCorner, dx, gridNum);
+    //GridBox grid(gridMinCorner, gridMaxCorner, dx);
+
+    // voxelize geo in grid
+    Voxelizer vox(geo, grid);
+
+    // get flag
+    const char* flag = vox.get_flag();
+    //gridNum = grid.get_gridNum();
+    //printf("gridNum nx: %i\n", gridNum.nx);
+
+    /*
+    // count solid flag
+    int count = 0;
+    for (int i = 0; i < gridNum.nx * gridNum.ny * gridNum.nz; i++)
+    {
+        //if (*(flag+i) == 0) count++;
+        if (flag[i] == 1) count++;
+        //printf("flag: %i, %i\n", i, flag[i]);
+    }
+    //printf("flag count: %i\n", count);
+    */
+
+    // resize the xPassive_wrapper vector and set defauld value 1 for void elements
+    if (self->xPassive_w.size() <= 1) {
+        self->xPassive_w.resize(self->nElements, 1);
+        //std::cout << "Set length xPassive_w: " << std::endl;
+    }
+    //std::cout << "Size xPassive_w: " << self->xPassive_w.size() << std::endl;
+
+    // Point data to cell data
+    // set xPassive with active elements: -1
+    int nelx = (self->nxyz_w[0] - 1);
+    int nely = (self->nxyz_w[1] - 1);
+    int nelz = (self->nxyz_w[2] - 1);
+
+    int nox = 0;
+    int noy = nelx + 1;
+    int noz = (nelx + 1) * (nely + 1);
+
+    int ecount = 0;
+    //int acount = 0;
+
+    for (int z = 0; z < nelz; z++) {
+        for (int y = 0; y < nely; y++) {
+            for (int x = 0; x < nelx; x++) {
+                
+                /*
+                bool node1 = flag[nox];
+                bool node2 = flag[nox + 1];
+                bool node3 = flag[noy + 1];
+                bool node4 = flag[noy];
+                bool node5 = flag[nox + noz];
+                bool node6 = flag[nox + 1 + noz];
+                bool node7 = flag[noy + 1 + noz];
+                bool node8 = flag[noy + noz];
+                */
+
+                int node1 = flag[nox];
+                int node2 = flag[nox + 1];
+                int node3 = flag[noy + 1];
+                int node4 = flag[noy];
+                int node5 = flag[nox + noz];
+                int node6 = flag[nox + 1 + noz];
+                int node7 = flag[noy + 1 + noz];
+                int node8 = flag[noy + noz];
+
+                nox++;
+                noy++;
+
+                if ((x + 1) % nelx == 0) {
+                    nox++;
+                    noy++;
+                }
+
+                if ((x + 1) % nelx == 0 && (y + 1) % nely == 0) {
+                    nox = (z + 1) * (nelx + 1) * (nely + 1);
+                    noy = (z + 1) * ((nelx + 1) * (nely + 1)) + nelx + 1;
+                }
+
+                // standard
+                //if (node1 && node2 && node3 && node4 && node5 && node6 && node7 && node8) {
+                    
+                    // small MBB Example
+                    //if (z != 11) {
+                    //    self->xPassive_w.at(ecount) = -1.0; // active elements
+                    //    acount++;
+                    //}
+
+                    // big MBB Example
+                    //if (z != 47 && x != 97) {
+                    //    self->xPassive_w.at(ecount) = -1.0; // active elements
+                    //    acount++;
+                    //}
+
+                    //self->xPassive_w.at(ecount) = -1.0; // active elements
+                    //acount++;
+                
+                int sum = node1 + node2 + node3 + node4 + node5 + node6 + node7 + node8;
+            
+                if (sum >= treshold) {
+                    self->xPassive_w.at(ecount) = encoding;
+                    //acount++;
+                    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                } else if (backround != 0.0) {
+                    self->xPassive_w.at(ecount) = backround;
+                    //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                }
+                
+                //std::cout << "element number : " << ecount << " encoding : " << self->xPassive_w.at(ecount) << std::endl;
+                ecount++;
+            
+            }
+        }
+    }
+
+    //std::cout << "total design var: " << ecount << std::endl;
+    //std::cout << "active design var: " << acount << std::endl;
+    //self->nael = acount;
+
+    // wirte vtk file of flag, use paraview to view the flag data
+    //vox.write_vtk_image();
+
+    self->updatecounts();
+    //std::cout << "active domain: " << self->nael << std::endl;
+    //std::cout << "active solid : " << self->nsel << std::endl;
+    //std::cout << "active rigid : " << self->nrel << std::endl;
 
     Py_RETURN_NONE;
 }
@@ -733,15 +789,18 @@ static PyObject *filter_py(DataObj *self, PyObject *args)
 
 static PyObject *continuation_py(DataObj *self, PyObject *args)
 {        
-    double Pinitial, Pfinal, stepsize; 
-    if(!PyArg_ParseTuple(args, "ddd", &Pinitial, &Pfinal, &stepsize)) { 
+    double Pinitial, Pfinal, stepsize;
+    int IterProg;
+
+    if(!PyArg_ParseTuple(args, "dddi", &Pinitial, &Pfinal, &stepsize, &IterProg)) { 
         return NULL;
     }
 
     self->continuation_w = 1;
-    self->penal_w = Pinitial;
+    self->penalinitial_w = Pinitial;
     self->penalfinal_w = Pfinal;
     self->stepsize_w = stepsize;
+    self->iterProg_w = IterProg;
 
     Py_RETURN_NONE;
 }
@@ -765,13 +824,15 @@ static PyObject *projection_py(DataObj *self, PyObject *args)
 // set optimizer variables
 static PyObject *mma_py(DataObj *self, PyObject *args)
 {
-    int maxIter; 
+    int maxIter;
+    double tol; 
     
-    if(!PyArg_ParseTuple(args, "i", &maxIter)) { 
+    if(!PyArg_ParseTuple(args, "id", &maxIter, &tol)) { 
         return NULL;
     }
 
     self->maxIter_w = maxIter;
+    self->tol_w = tol;
 
     Py_RETURN_NONE;
 }
@@ -1009,8 +1070,8 @@ static PyObject *solve_py(DataObj *self)
 }
 
 static PyMethodDef methods[] =
-    { {"beam", (PyCFunction)beam_py, METH_VARARGS, "Implement structuredGrid\n"},
-      {"structuredGrid", (PyCFunction)structuredGrid_py, METH_VARARGS, "Implement structuredGrid\n"},
+    { {"structuredGrid", (PyCFunction)structuredGrid_py, METH_VARARGS, "Implement structuredGrid\n"},
+      {"stlread", (PyCFunction)stlread_py, METH_VARARGS, "STL read\n"},
       {"stlread_domain", (PyCFunction)stlread_domain_py, METH_VARARGS, "STL read\n"},
       {"stlread_solid", (PyCFunction)stlread_solid_py, METH_VARARGS, "STL read\n"},
       {"stlread_rigid", (PyCFunction)stlread_rigid_py, METH_VARARGS, "STL read\n"},

@@ -409,7 +409,7 @@ GridBox::GridBox(V3& minCorner_, V3& maxCorner_, double dx_)
 	double zRes = extend.z - nzI * dx;
 	if (xRes > 1e-6 * dx || yRes > 1e-6 * dx || zRes > 1e-6 * dx)
 	{
-		std::cerr << "Grid box size is not dx*Nxyz" << std::endl;
+		//std::cerr << "Grid box size is not dx*Nxyz" << std::endl;
 		std::exit(EXIT_FAILURE);
 	}
 	gridNum = int3(nxI, nyI, nzI);
@@ -514,7 +514,7 @@ Voxelizer::Voxelizer(Geometry& geo_, GridBox& grid_) : geo(geo_), grid(grid_) {
 	// scale (in the z direction) and shift the geometry to fit the grid
 	//std::cout << "Generating voxilzer ..." << std::endl;
 	Bbox bound = geo.get_bound();
-	std::cout << "GEO bound = " << bound << std::endl;
+	//std::cout << "GEO bound = " << bound << std::endl;
 
 	//double dx = grid.get_dx();
 	//std::cout << "dx vox= " << dx << std::endl;
@@ -535,7 +535,7 @@ Voxelizer::Voxelizer(Geometry& geo_, GridBox& grid_) : geo(geo_), grid(grid_) {
 	int nx = gridNum.nx + 1;
 	int ny = gridNum.ny + 1;
 	int nz = gridNum.nz + 1;
-	std::cout << "nx = " << nx << ", ny = " << ny << ", nz = " << nz << std::endl;
+	//std::cout << "nx = " << nx << ", ny = " << ny << ", nz = " << nz << std::endl;
 	long numTotal = nx * ny * nz;
 	
 	// flag is point data!

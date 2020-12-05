@@ -92,24 +92,27 @@ int solve(DataObj data) {
         if (xpPassive[el] == 2.0) {
             xpPhys[el] = 1.0;
         }
+        if (xpPassive[el] == 4.0) {
+            xpPhys[el] = 0.0;
+        }
     }
     VecRestoreArray(opt->xPassive, &xpPassive);
     VecRestoreArray(opt->xPhys, &xpPhys);
 
     // print initial condition to vtk
-    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, opt->dfdx, itr);
+    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr);
 
     // STEP 7: OPTIMIZATION LOOP
     PetscScalar ch = 1.0;
     double      t1, t2;
-    while (itr < opt->maxItr && ch > 0.01) {
+    while (itr < opt->maxItr && ch > opt->tol) {
         // Update iteration counter
         itr++;
 
         // UPDATING THE CONTINUATION PARAMETERS
         // reference, Maximum Size...
 		if (opt->continuationStatus && itr % opt->IterProj == 0){
-			opt->penal   = PetscMin(opt->penal+opt->penalStep,opt->penalFin); // penal = penal : 0.25 : 3.0
+			opt->penal = PetscMin(opt->penal + opt->penalStep, opt->penalFin); // penal = penal : 0.25 : 3.0
 			// move limits: initial 0.6, final 0.05
 			//opt->movlim  = (opt->movlimEnd-opt->movlimIni)/(3.0-1.0)*(opt->penal-1.0)+opt->movlimIni; 
 			//opt->Beta    = PetscMin((1.50*opt->Beta),38.0); // beta = beta*1.5 
@@ -222,6 +225,9 @@ int solve(DataObj data) {
             if (xpPassive[el] == 2.0) {
                 xpPhys[el] = 1.0;
             }
+            if (xpPassive[el] == 4.0) {
+                xpPhys[el] = 0.0;
+            }
         }
         VecRestoreArray(opt->xPassive, &xpPassive);
         VecRestoreArray(opt->xPhys, &xpPhys);
@@ -240,25 +246,22 @@ int solve(DataObj data) {
         
         // Write field data: first 10 iterations and then every 20th
         if (itr < 11 || itr % 20 == 0 || changeBeta) {
-            //output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr);
-            output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, opt->dfdx, itr);
-
+            output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr);
         }
 
         // Dump data needed for restarting code at termination
-        if (itr % 10 == 0) {
-            opt->WriteRestartFiles(&itr, mma);
-            physics->WriteRestartFiles();
-        }
+        //if (itr % 10 == 0) {
+            //opt->WriteRestartFiles(&itr, mma);
+            //physics->WriteRestartFiles();
+        //}
     }
         
     // Write restart WriteRestartFiles
-    opt->WriteRestartFiles(&itr, mma);
-    physics->WriteRestartFiles();
+    //opt->WriteRestartFiles(&itr, mma);
+    //physics->WriteRestartFiles();
 
     // Dump final design
-    //output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr + 1);
-    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, opt->dfdx, itr + 1);
+    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr + 1);
 
     //const char filename[8] = 'test.vts';
     //PetscViewer viewer;

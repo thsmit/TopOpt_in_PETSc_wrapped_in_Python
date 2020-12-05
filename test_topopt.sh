@@ -34,7 +34,7 @@ cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test
 cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_multiload.py .
 cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_continuation.py .
 cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_projection.py .
-#cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_bracket.py .
+cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_bracket.py .
 #cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_sphere.py .
 
 
@@ -48,7 +48,7 @@ bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCP
 bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python test_multiload.py
 bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python test_continuation.py
 bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python test_projection.py
-#bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python test_bracket.py
+bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python test_bracket.py
 #bsub -n ${NCPU} -W ${WALL_TIME} -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python test_sphere.py
 
 # VIEW JOBS

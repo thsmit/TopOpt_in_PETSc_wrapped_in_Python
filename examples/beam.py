@@ -40,13 +40,14 @@ def main():
 
     # filter: (type, radius)
     # filter types: sensitivity = 0, density = 1, 
-    data.filter(1, 0.08)
+    # using 0.08, 0.04 or 0.02
+    data.filter(1, 0.04)
 
     # optimizer: (maxIter)
     data.mma(400)
 
     # loadcases: (# of loadcases)
-    data.loadcases(2)
+    data.loadcases(1)
 
     # bc: (loadcase, type, [checker: lcoorp[i+?], xc[?]], [setter: dof index], [setter: values])
     data.bc(0, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
@@ -54,34 +55,34 @@ def main():
     data.bc(0, 2, [0, 1, 1, 2, 2, 4], [2], [-0.0005], 0)
     data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], 0)
 
-    data.bc(1, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
-    data.bc(1, 2, [0, 1, 1, 3], [1], [0.001], 0)
-    data.bc(1, 2, [0, 1, 1, 3, 2, 4], [1], [0.0005], 0)
-    data.bc(1, 2, [0, 1, 1, 3, 2, 5], [1], [0.0005], 0)
+    #data.bc(1, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+    #data.bc(1, 2, [0, 1, 1, 3], [1], [0.001], 0)
+    #data.bc(1, 2, [0, 1, 1, 3, 2, 4], [1], [0.0005], 0)
+    #data.bc(1, 2, [0, 1, 1, 3, 2, 5], [1], [0.0005], 0)
 
-    materialvolumefraction = 0.24
+    materialvolumefraction = 0.12
     #complicancetarget = 1.5
     nEl = data.nElements
 
     # Calculate the objective function, senitivity, constraint and constraint sensitivity
     def objective(comp, sumXp):
-        return comp
-        #return sumXp
+        return comp # for minimizing compliance
+        #return sumXp # for minimizing volume
 
     def sensitivity(xp, uKu):
-        return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
-        #return 1.0
+        return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu # for minimizing compliance
+        #return 1.0 # for minimizing volume
 
     def constraint(comp, sumXp):
         #print('sumXp: ', sumXp)
         #return 0.0
-        return sumXp / nEl - materialvolumefraction
-        #return comp / complicancetarget - 1.0
+        return sumXp / nEl - materialvolumefraction # for minimizing compliance
+        #return comp / complicancetarget - 1.0 # for minimizing volume
 
     def constraintSensitivity(xp, uKu):
         #return 0.0
-        return 1.0 / nEl
-        #return (-1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu) / complicancetarget
+        return 1.0 / nEl # for minimizing compliance
+        #return (-1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu) / complicancetarget # for minimizing volume
 
     # Callback implementatio
     data.obj(objective)
@@ -93,7 +94,7 @@ def main():
 
     # Use local volume constraint additionally
     # Local volume constraint input: (Rlocvol, alpha)
-    data.localVolume(0.16, 0.12)
+    #data.localVolume(0.16, 0.12)
 
     # Volume constraint is standard, input (volume fraction)
     data.initialcondition(materialvolumefraction)

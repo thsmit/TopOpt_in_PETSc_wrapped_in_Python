@@ -88,6 +88,7 @@ class TopOpt {
     PetscScalar Emin, Emax; // Modified SIMP, max and min E
 
     PetscInt maxItr; // Max iterations
+    PetscScalar tol;
 
     PetscScalar rmin;             // filter radius
     PetscInt    filter;           // Filter type

@@ -169,6 +169,7 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     // SET DEFAULTS for optimization problems
     volfrac = data.volumefrac_w;
     maxItr  = data.maxIter_w;
+    tol  = data.tol_w;
     rmin    = data.rmin_w;
 
     localVolumeStatus = PETSC_FALSE;
@@ -183,17 +184,19 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
 
     // continuation of penalization
     // Status
+    penalIni = 1.0;
+    penalFin = 3.0;
+    penal = data.penal_w;
+    penalStep = 0.25;
+    IterProj = 10;
     continuationStatus = PETSC_FALSE;
     if (data.continuation_w == 1) {
         continuationStatus = PETSC_TRUE;
+        penalIni = data.penalinitial_w;
+        penalFin = data.penalfinal_w;
+        penalStep = data.stepsize_w;
+        IterProj = data.iterProg_w;
     }
-    penalIni = data.penal_w;
-    penal = data.penal_w;
-    penalFin = data.penalfinal_w;
-    penalStep = data.stepsize_w;
-    //IterProj = maxItr / ((penalFin - penalIni) / penalStep);
-    IterProj = 10;
-    //PetscPrintf(PETSC_COMM_WORLD, "IterProj %i\n", IterProj);
 
     Emin    = data.Emin_w;
     Emax    = data.Emax_w;
@@ -201,7 +204,8 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     Xmin    = 0.0;
     Xmax    = 1.0;
     movlim  = 0.2;
-    restart = PETSC_TRUE;
+    //restart = PETSC_TRUE;
+    restart = PETSC_FALSE;
     
     // xPassive Status
     xPassiveStatus = PETSC_FALSE;
@@ -430,7 +434,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     PetscPrintf(PETSC_COMM_WORLD, "# -filter: %i  (0=sens., 1=dens, 2=PDE)\n", filter);
     PetscPrintf(PETSC_COMM_WORLD, "# -rmin: %f\n", rmin);
     PetscPrintf(PETSC_COMM_WORLD, "# -projectionFilter: %i  (0/1)\n", projectionFilter);
-    PetscPrintf(PETSC_COMM_WORLD, "# -localVolume: %i  (0/1)\n", data.continuation_w);
+    PetscPrintf(PETSC_COMM_WORLD, "# -localVolume: %i  (0/1)\n", data.localVolume_w);
     PetscPrintf(PETSC_COMM_WORLD, "# -beta: %f\n", beta);
     PetscPrintf(PETSC_COMM_WORLD, "# -betaFinal: %f\n", betaFinal);
     PetscPrintf(PETSC_COMM_WORLD, "# -eta: %f\n", eta);
@@ -495,6 +499,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         PetscInt acount = 0; // number of active elements
         PetscInt scount = 0; // number of solid elements
         PetscInt rcount = 0; // number of rigid element
+        PetscInt vcount = 0; // number of void element
 
         // create a temporary vector with natural ordering to get domain data to xPassive
         Vec TMPnatural;
@@ -538,6 +543,9 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
             } 
             if (xpPassive[el] == 3.0) {
                 rcount++;
+            }
+            if (xpPassive[el] == 4.0) {
+                vcount++;
             } 
         }
 
@@ -546,9 +554,9 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
 
         // printing
         //PetscPrintf(PETSC_COMM_SELF, "tcount: %i\n", tcount);
-        PetscPrintf(PETSC_COMM_SELF, "acount: %i\n", acount);
-        PetscPrintf(PETSC_COMM_SELF, "scount: %i\n", scount);
-        PetscPrintf(PETSC_COMM_SELF, "rcount: %i\n", rcount);
+        //PetscPrintf(PETSC_COMM_SELF, "acount: %i\n", acount);
+        //PetscPrintf(PETSC_COMM_SELF, "scount: %i\n", scount);
+        //PetscPrintf(PETSC_COMM_SELF, "rcount: %i\n", rcount);
 
         // Allreduce, number of active elements
         // tmp number of var on proces
@@ -571,10 +579,18 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         rcount = 0;
         MPI_Allreduce(&tmpr, &rcount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
         
+        PetscInt tmpv = vcount;
+        vcount = 0;
+        MPI_Allreduce(&tmpv, &vcount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
+        
         // printing
+        PetscPrintf(PETSC_COMM_WORLD, "################### STL readin ###############################\n");
         PetscPrintf(PETSC_COMM_WORLD, "acount sum: %i\n", acount);
         PetscPrintf(PETSC_COMM_WORLD, "scount sum: %i\n", scount);
         PetscPrintf(PETSC_COMM_WORLD, "rcount sum: %i\n", rcount);
+        PetscPrintf(PETSC_COMM_WORLD, "vcount sum: %i\n", vcount);
+        PetscPrintf(PETSC_COMM_WORLD, "##############################################################\n");
+        
 
         //// create MMA vectors
         VecCreateMPI(PETSC_COMM_WORLD, tmp, acount, &xMMA);
@@ -592,7 +608,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         // }
 
         //VecRestoreArray(xMMA, &xpMMA);
-        PetscPrintf(PETSC_COMM_SELF, "volfrac %f\n", volfrac);
+        //PetscPrintf(PETSC_COMM_SELF, "volfrac %f\n", volfrac);
 
         // fill the indicator vector as mapping for x -> xMMA
         PetscInt count = 0;

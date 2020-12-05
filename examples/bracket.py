@@ -22,30 +22,43 @@ data = topoptlib.Data()
 # step 2:
 # define input data
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
-data.structuredGrid((0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 0.0, 0.0, 0.0, 0.0), (193, 65, 105))
-#data.structuredGrid((0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 0.0, 0.0, 0.0, 0.0), (385, 129, 209))
+data.structuredGrid((0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 7.0, 0.0, 0.0, 0.0), (193, 65, 105))
+
+# readin STL file in binary format
+# stl read: (encoding, backround, treshold, box around stl: (min corner)(max corner), full path to file)
+# Passive elements: 1.0
+# Active elements: -1.0
+# Solid elements: 2.0
+# Rigid elements: 3.0
+# Do not overwrite: 0.0
+data.stlread(-1.0, 1.0, 8, (-23.0, -1.0, -103.0), (169.0, 63.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/jetEngineDesignDomainFine.stl')
+data.stlread(2.0, 0.0, 4, (-23.0, -1.0, -103.0), (169.0, 63.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/jetEngineSolidDomainFine.stl')
+data.stlread(3.0, 0.0, 8, (-23.0, -1.0, -103.0), (169.0, 63.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/jetEngineRigidDomainFine.stl')
 
 # readin STL file in binary format
 # stl read: ((box around stl: (min corner)(max corner))full path to file)
-data.stlread_domain((-23.0, -1.0, -103.0), (169.0, 63.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/jetEngineDesignDomainFine.stl')
+#data.stlread_domain((-23.0, -1.0, -103.0), (169.0, 63.0, 1.0), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/jetEngineDesignDomainFine.stl')
 
 # stl read: load the solid domain into the same coordinate system as the design domain
-data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/jetEngineSolidDomainFine.stl')
+#data.stlread_solid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/jetEngineSolidDomainFine.stl')
 
 # stl read: load the solid domain into the same coordinate system as the design domain
-data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/jetEngineRigidDomainFine.stl')
+#data.stlread_rigid('/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/jetEngineRigidDomainFine.stl')
 
 # Optional printing:
 #print(data.nNodes)
 #print(data.nElements)
 #print(data.nDOF)
+#print(data.nael)
+#print(data.nsel)
+#print(data.nrel)
 
 # material: (Emin, Emax, nu, penal)
 Emin, Emax, nu, Dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 3.0
 data.material(Emin, Emax, nu, Dens, penal)
 
-# Iterpro = 20, stepsize = 0.125, penalinit = 1.0, penalfinal = 3.0
-#data.continuation()
+# setup continuation of penalization: (Pinitial, Pfinal, stepsize) update of penal every 10 iterations
+#data.continuation(1.0, 3.0, 0.25)
 #data.projection()
 
 # filter: (type, radius)
@@ -53,10 +66,10 @@ data.material(Emin, Emax, nu, Dens, penal)
 data.filter(1, 5.0)
 
 # optimizer: (maxIter)
-data.mma(1000)
+data.mma(400)
 
 def parametrization(lcx, lcy, lcz):
-    # radius of bolt face 14.17= r7.5 mm
+    # radius of bolt face d14.17= r7.5 mm
     # centers are 
     # x 172.5, z 87.5
     # x 17.5, z 49.5
@@ -90,45 +103,49 @@ data.bcpara(parametrization)
 # bc: (loadcase, type, [checker: lcoorp[i+?], xc[?]], [setter: dof index], [setter: values], parametrization)
 # up
 data.bc(0, 1, [1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(0, 2, [0, 89.0, 1, 45.0, 2, 21.0], [1], [0.008], 2)
+data.bc(0, 1, [1, 7], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(0, 2, [0, 89, 1, 45, 2, 21], [1], [0.008], 2)
 
 # out
-data.bc(1, 1, [1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(1, 2, [0, 89.0, 1, 45.0, 2, 21.0], [2], [-0.0085], 2)
+data.bc(1, 1, [1, 0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(1, 1, [1, 7], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(1, 2, [0, 89, 1, 45, 2, 21], [2], [-0.0085], 2)
 
 #42deg
-data.bc(2, 1, [1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(2, 2, [0, 89.0, 1, 45.0, 2, 21.0], [2], [-0.0095*np.sin(np.deg2rad(42))], 2)
-data.bc(2, 2, [0, 89.0, 1, 45.0, 2, 21.0], [1], [0.0095*np.cos(np.deg2rad(42))], 2)
+data.bc(2, 1, [1, 0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(2, 1, [1, 7], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(2, 2, [0, 89, 1, 45, 2, 21], [2], [-0.0095*np.sin(np.deg2rad(42))], 2)
+data.bc(2, 2, [0, 89, 1, 45, 2, 21], [1], [0.0095*np.cos(np.deg2rad(42))], 2)
 
 # torsion
-data.bc(3, 1, [1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(3, 2, [0, 68.0, 1, 45.0, 2, 23.0], [2], [0.005], 2)
-data.bc(3, 2, [0, 111.0, 1, 45.0, 2, 19.0], [2], [-0.005], 2)
+data.bc(3, 1, [1, 0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(3, 1, [1, 7], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(3, 2, [0, 68, 1, 45, 2, 23], [2], [0.005], 2)
+data.bc(3, 2, [0, 111, 1, 45, 2, 19], [2], [-0.005], 2)
 
-materialvolumefraction = 0.3
+materialvolumefraction = 0.2
 #nEl = data.nElements
-nEl = data.nael - data.nrel - data.nsel
-#nEl = data.nael
+#nEl = data.nael - data.nrel - data.nsel
+nEl = data.nael
 rigidVol = data.nrel * 10.0
 solidVol = data.nsel * 1.0
 
 # Calculate the objective function
 # objective input: (design variable value, SED)
-def objective(comp, sumXp, xp, uKu):
+def objective(comp, sumXp):
     return comp
 
-def sensitivity(sumXp, xp, uKu):
+def sensitivity(xp, uKu):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
 
-def constraint(comp, sumXp, xp, uKu):
+def constraint(comp, sumXp):
     #print('sumXp',sumXp)
     #print('rigidVol',rigidVol)
     #print('solidVol',solidVol)
     #print('nEl',nEl)
     return (sumXp - rigidVol - solidVol) / nEl - materialvolumefraction
 
-def constraintSensitivity(sumXp, xp, uKu):
+def constraintSensitivity(xp, uKu):
     return 1.0 / nEl
 
 # Callback implementation
@@ -138,6 +155,10 @@ data.objsens(sensitivity)
 # Define constraint
 data.cons(constraint)
 data.conssens(constraintSensitivity)
+
+# Use local volume constraint additionally
+# Local volume constraint input: (Rlocvol, alpha)
+#data.localVolume(15.0, 0.5)
 
 # Homogeniuos initial condition
 data.initialcondition(materialvolumefraction)
