@@ -9,7 +9,7 @@
 #include <petsc.h>
 
 /*
-Modified: Thijs Smit, May 2020
+Modified: Thijs Smit, Dec 2020
 
 Authors: Niels Aage, Erik Andreassen, Boyan Lazarov, August 2013
 

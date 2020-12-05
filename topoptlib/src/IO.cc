@@ -2,6 +2,15 @@
 #include "IO.h"
 #include <cstdlib> // To get the exit function
 
+/*
+Author: Thijs Smit, Dec 2020
+Copyright (C) 2020 ETH Zurich
+
+Disclaimer:
+ The authors reserves all rights but does not guaranty that the code is
+ free from errors. Furthermore, we shall not be liable in any event
+ caused by the use of the program.
+*/
 
 // STL reader
 // reference: https://github.com/zhulianhua/Voxelizer
@@ -13,28 +22,6 @@
 #include <cstring>
 #include <string>
 
-// CGAL
-//#include <CGAL/Simple_cartesian.h>
-
-// VTK
-//#include <vtkActor.h>
-//#include <vtkCamera.h>
-//#include <vtkCellArray.h>
-//#include <vtkCellData.h>
-//#include <vtkDataArray.h>
-//#include <vtkDataSetMapper.h>
-//#include <vtkIdList.h>
-//#include <vtkNamedColors.h>
-//#include <vtkPointData.h>
-//#include <vtkPoints.h>
-//#include <vtkPolyhedron.h>
-//#include <vtkProperty.h>
-//#include <vtkRenderer.h>
-//#include <vtkRenderWindow.h>
-//#include <vtkRenderWindowInteractor.h>
-//#include <vtkSmartPointer.h>
-//#include <vtkUnstructuredGrid.h>
-//#include <vtkXMLUnstructuredGridWriter.h>
 
 using namespace std;
 

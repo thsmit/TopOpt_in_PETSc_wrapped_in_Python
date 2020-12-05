@@ -11,7 +11,7 @@
 #include "Python.h"
 
 /*
- Modified by: Thijs Smit, May 2020
+ Modified by: Thijs Smit, Dec 2020
 
  Authors: Niels Aage, Erik Andreassen, Boyan Lazarov, August 2013
  Updated: June 2019, Niels Aage

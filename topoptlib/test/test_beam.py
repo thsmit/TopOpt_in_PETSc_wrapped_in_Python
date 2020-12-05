@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Author: Thijs Smit, June 2020
+# Author: Thijs Smit, Dec 2020
 # Copyright (C) 2020 ETH Zurich
 
 # Disclaimer:

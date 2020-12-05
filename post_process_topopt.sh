@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Author: Thijs Smit, Dec 2020
+# Copyright (C) 2020 ETH Zurich
+
+# Disclaimer:
+# The authors reserves all rights but does not guaranty that the code is
+# free from errors. Furthermore, we shall not be liable in any event
+# caused by the use of the program.
+
 # Import module
 module purge
 module load python/2.7.6
