@@ -9,15 +9,16 @@ The Python interface simplifies the problem definition, is expanding the potenti
 
 .. summary-end
 
-.. image:: bracket.gif
+.. image:: img/bracket.gif
     :align: center
-    
+
 .. not-in-documentation-start
 
 Implemented functionality
 --------
 
 Large scale, high-resolution topology optimization including:
+
   - STL (file format for storing surface geometry) input files to define the design domain, solid-, void- and rigid regions and voxelization
   - Exclusion of passive elements from the simulation
   - Application of loads and constraints using parametrization functions
@@ -28,13 +29,22 @@ Large scale, high-resolution topology optimization including:
   - Test scripts for code verification
 
 
-Examples
+Running examples
 --------
+
+To run the cantilever beam example on one CPU (adjust the problem's mesh according to the number of available CPU's):
+
+.. code:: bash
+
+    cd TopOpt_in_PETSc_wrapped_in_Python
+    cp examples/beam.py .
+    python3 beam.py
 
 - Cantilever beam in ``beam.py``
 - Multi-loads in ``multiloads.py``   
 - Torsion ball in ``sphere.py``
-- The Jet bracket in ``bracket.py``
+- The Jet engine bracket in ``bracket.py``
+
 
 Installation
 ------------
@@ -73,17 +83,6 @@ To compile the framework (paths will differ):
     cmake .. -D PETSC_EXECUTABLE_RUNS=ON
     make
 
-Running
---------
-
-To run the cantilever beam example on one CPU (adjust the problem's mesh according to the number of available CPU's):
-
-.. code:: bash
-    cd TopOpt_in_PETSc_wrapped_in_Python
-    cp examples/beam.py .
-    python3 beam.py
-
-
 Running on ETH Euler
 --------
 
@@ -120,7 +119,7 @@ Implemented tests in ``/tests``:
 - Testing heavyside projection filtering ``test_projection.py``
 - Testing stl readin of design domain, rigid domain ``test_sphere.py``
 
-Or use `test_topopt.sh` for automated building and running the tests
+Or use ``test_topopt.sh`` for automated building and running the tests
 
 Post-processing
 --------
