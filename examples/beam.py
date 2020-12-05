@@ -32,19 +32,13 @@ def main():
     Emin, Emax, nu, Dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 3.0
     data.material(Emin, Emax, nu, Dens, penal)
 
-    # setup continuation of penalization: (Pinitial, Pfinal, stepsize)
-    #data.continuation()
-
-    # setup heavyside projection filter (betaFinal, stepsize, eta)
-    #data.projection() 
-
     # filter: (type, radius)
-    # filter types: sensitivity = 0, density = 1, 
+    # filter types: sensitivity = 0, density = 1
     # using 0.08, 0.04 or 0.02
     data.filter(1, 0.04)
 
-    # optimizer: (maxIter)
-    data.mma(400)
+    # optimizer: (maxIter, tol)
+    data.mma(400, 0.01)
 
     # loadcases: (# of loadcases)
     data.loadcases(1)

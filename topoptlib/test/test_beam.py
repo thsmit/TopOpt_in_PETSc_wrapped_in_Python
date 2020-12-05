@@ -16,7 +16,7 @@ data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (12
 Emin, Emax, nu, dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 3.0
 data.material(Emin, Emax, nu, dens, penal)
 data.filter(2, 0.08)
-data.mma(40)
+data.mma(40, 0.01)
 data.loadcases(1)
 data.bc(0, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
 data.bc(0, 2, [0, 1, 2, 4], [2], [-0.001], 0)

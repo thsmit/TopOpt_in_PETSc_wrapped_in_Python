@@ -22,118 +22,7 @@ Disclaimer:
 #include <cstring>
 #include <string>
 
-
 using namespace std;
-
-void writeVTKPolyData() {
-	
-	// reading binary file
-	//printf("Reading .dat\n");
-	std::ifstream FIN("output_00000.dat", std::ios::in | std::ios::binary);
-    
-	if (FIN)
-	{
-		// print mesh
-		std::string header;
-		std::getline(FIN, header);
-		std::cout << header << std::endl;
-
-		// load info
-		// # Dom, # points, # cells, #pFields, #cFields, #nodes per element
-		//int nDom, nPointsT, nCellsT, nPFields, nCFields, nodesPerElement;
-		
-		//FIN.read(nDom, sizeof(nDom));
-
-		//float a, b, c, d, e, f;
-
-    	//FIN >> nDom;
-
-    	//printf("nDom: %i\t", nDom);
-
-		//cout << "Integer: " << nDom << endl;
-
-		// point field names
-		//std::string pointFieldNames;
-		//std::getline(FIN, pointFieldNames);
-		//std::cout << pointFieldNames << std::endl;
-
-		// cell field names
-		//std::string cellFieldNames;
-		//std::getline(FIN, cellFieldNames);
-		//std::cout << cellFieldNames << std::endl;
-
-		
-
-		//while (FIN) {
-		//	std::string strInput;
-		//	std::getline(FIN, strInput);
-		//	std::cout << strInput << std::endl;
-		//}
-		//FIN.read(headInfo, 26);
-		//std::cout << "INFO: " << headInfo << std::endl;
-		//char nTriRaw[4];
-		//stlFile.read(nTriRaw, 4);
-		//unsigned numTri = *((unsigned*)nTriRaw);
-		//triangles.resize(numTri);
-		//for (auto&& tri : triangles)
-		//{
-		//	char triRaw[50];
-		//	stlFile.read(triRaw, 50);
-		//	V3 norm(triRaw);
-		//	V3 p1(triRaw+12);
-		//	V3 p2(triRaw+24);
-		//	V3 p3(triRaw+36);
-		//	tri = Triangle(norm, p1, p2, p3);
-		//}
-	}
-	else
-	{
-		std::cerr << ".data file openning error!" << std::endl;
-	}
-
-	// writing VTKdata
-	
-	// create polyhedron (cube)
-	//vtkIdType pointIds[8] = {0, 1, 2, 3, 4, 5, 6, 7};
-
-	//vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-	//points->InsertNextPoint(-1.0,-1.0,-1.0);
-	//points->InsertNextPoint( 1.0,-1.0,-1.0);
-	//points->InsertNextPoint( 1.0, 1.0,-1.0);
-	//points->InsertNextPoint(-1.0, 1.0,-1.0);
-	//points->InsertNextPoint(-1.0,-1.0, 1.0);
-	//points->InsertNextPoint( 1.0,-1.0, 1.0);
-	//points->InsertNextPoint( 1.0, 1.0, 1.0);
-	//points->InsertNextPoint(-1.0, 1.0, 1.0);
-
-	//vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
-	//vtkIdType face0[4] = {0, 3, 2, 1};
-	//vtkIdType face1[4] = {0, 4, 7, 3};
-	//vtkIdType face2[4] = {4, 5, 6, 7};
-	//vtkIdType face3[4] = {5, 1, 2, 6};
-	//vtkIdType face4[4] = {0, 1, 5, 4};
-	//vtkIdType face5[4] = {2, 3, 7, 6};
-
-	//faces->InsertNextCell(4, face0);
-	//faces->InsertNextCell(4, face1);
-	//faces->InsertNextCell(4, face2);
-	//faces->InsertNextCell(4, face3);
-	//faces->InsertNextCell(4, face4);
-	//faces->InsertNextCell(4, face5);
-
-	//vtkSmartPointer<vtkUnstructuredGrid> ugrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-	//ugrid->SetPoints(points);
-	//ugrid->InsertNextCell(VTK_POLYHEDRON, 8, pointIds, 6, faces->GetPointer());
-
-	// Here we write out the cube.
-	//vtkSmartPointer<vtkXMLUnstructuredGridWriter> writer = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
-	//writer->SetInputData(ugrid);
-	//writer->SetFileName("polyhedron.vtu");
-	//writer->SetDataModeToAscii();
-	//writer->Update();
-	
-	//printf("Close .dat, but keep the file as backup\n");
-}
 
 // reference: www.jgxsoft.com
 bool checkBinarySTL(char * buffer) {
@@ -502,20 +391,6 @@ Voxelizer::Voxelizer(Geometry& geo_, GridBox& grid_) : geo(geo_), grid(grid_) {
 	//std::cout << "Generating voxilzer ..." << std::endl;
 	Bbox bound = geo.get_bound();
 	//std::cout << "GEO bound = " << bound << std::endl;
-
-	//double dx = grid.get_dx();
-	//std::cout << "dx vox= " << dx << std::endl;
-	//double scale = (grid.get_extend().z - 2.0 * dx )/ bound.get_extend().z;
-	// double scale = 1.126; // small MBB Example
-	//double scale = 1.05; // big MBB Example
-	//std::cout << "scale vox= " << scale << std::endl;
-	//geo.scale_shift(scale, V3::zero);
-
-
-	//V3 shift = grid.get_minCorner() - geo.get_bound().get_minCorner();
-	//shift += V3(1.0, 0.5, 0.5); // MBB Example
-	//std::cout << "shift vox= " << shift << std::endl;
-	//geo.scale_shift(1.0, shift);
 
 	int3 gridNum = grid.get_gridNum();
 	// + 1 added

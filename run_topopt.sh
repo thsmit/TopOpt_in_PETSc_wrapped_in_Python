@@ -8,10 +8,6 @@
 # free from errors. Furthermore, we shall not be liable in any event
 # caused by the use of the program.
 
-# run with problem name as input var
-# for example run:
-# ./run_topopt.sh sphere_full.py
-
 ### SETUP ENVIRONMENT
 # by hand: env2lmod
 #module load gcc/4.8.5 cmake/3.16.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4
@@ -43,11 +39,9 @@ fi
 cd $SCRATCH/wrapped;
 
 id=`date '+%Y%m%d_%H:%M:%S'`;
-#echo $id
 
 mkdir $id
 cd $id
-#pwd
 
 cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib.so .
 cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/examples/$1 .
@@ -56,10 +50,6 @@ cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/examples/$1 .
 EULER_MEMORY="4000"
 NCPU=32
 WALL_TIME="12:00"
-
-#EULER_MEMORY="1000"
-#NCPU=4
-#WALL_TIME="01:00"
 
 # FUNCTION CALL
 bsub -n ${NCPU} -W ${WALL_TIME} -R ib -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python $1

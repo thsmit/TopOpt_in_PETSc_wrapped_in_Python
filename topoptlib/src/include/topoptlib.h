@@ -112,7 +112,7 @@ struct DataObj {
                 if (xPassive_w[i] == -1.0) {
                     acount++;
                 }
-                if (xPassive_w[i] == 2.0 || xPassive_w[i] == 4.0) {
+                if (xPassive_w[i] == 2.0) {
                     scount++;
                 } 
                 if (xPassive_w[i] == 3.0) {

@@ -26,11 +26,14 @@ data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.1875, 0.987
 
 
 # readin STL file in binary format
-# TO DO: allow for ASCII format
-# stl read: ((box around stl: (min corner)(max corner)), full path to file)
-# 1/8
+# stl read: (encoding, backround, treshold, box around stl: (min corner)(max corner), full path to file)
+# Passive elements: 1.0
+# Active elements: -1.0
+# Solid elements: 2.0
+# Rigid elements: 3.0
+# Do not overwrite: 0.0
 data.stlread(3.0, -1.0, 4, (0.0, 0.0, 0.0), (1.0, 1.2, 1.2), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/rigidtorsion.stl')
-data.stlread(4.0, 0.0, 4, (0.0, 0.0, 0.0), (1.0, 1.2, 1.2), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/torsionsolid.stl')
+data.stlread(4.0, 0.0, 4, (0.0, 0.0, 0.0), (1.0, 1.2, 1.2), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/torsionvoid.stl')
 
 # 1/4
 #data.stlread(3.0, -1.0, 4, (0.0, 0.0, 0.0), (2.0, 1.2, 1.2), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/torsionrigid14.stl')
@@ -107,19 +110,3 @@ data.initialcondition(materialvolumefraction)
 # step 3:
 # solve topopt problem with input data and wait for "complete" signal
 complete = data.solve()
-
-# step 4:
-# generate .vtu file to be viewed in paraview
-# generate .x3d file for import and modification in Blender
-#if complete:
-#    data.vtu()
-#    data.x3d()
-
-# step 5:
-# post processing by smoothning and output binary .stl
-# if complete:
-#    smooth = data.smoothening()
-# if smooth:
-#    data.stl(smooth)
-#    data.stp(smooth)
-

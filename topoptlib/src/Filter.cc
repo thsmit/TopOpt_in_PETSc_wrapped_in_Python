@@ -197,11 +197,6 @@ PetscErrorCode Filter::Gradients(Vec x, Vec xTilde, Vec dfdx, PetscInt m, Vec* d
         ierr = VecDuplicate(xTilde, &xtmp);
         CHKERRQ(ierr);
 
-        // Debuging
-        //VecView(xTilde,PETSC_VIEWER_STDOUT_WORLD);
-        //VecView(Hs,PETSC_VIEWER_STDOUT_WORLD);
-        //MatView(H,PETSC_VIEWER_STDOUT_WORLD);
-
         VecPointwiseMult(xtmp, dfdx, x);
         MatMult(H, xtmp, dfdx);
         VecPointwiseDivide(xtmp, dfdx, Hs);
@@ -468,8 +463,6 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
                                     // Longer distances should have less weight
                                     dist = R - dist;
                                     MatSetValuesLocal(H, 1, &row, 1, &col, &dist, INSERT_VALUES);
-
-                                    
                                     //PetscPrintf(PETSC_COMM_WORLD, "row: %i, col: %i, H: %f \n", row, col, dist);
                                     
                                 }
@@ -482,30 +475,6 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
         // Assemble H:
         MatAssemblyBegin(H, MAT_FINAL_ASSEMBLY);
         MatAssemblyEnd(H, MAT_FINAL_ASSEMBLY);
-
-        ///////////////////////////////////
-
-        //PetscScalar *xxpPassive;
-        //ierr = VecGetArray(xPassive, &xxpPassive);
-        //CHKERRQ(ierr);
-
-        //VecSet(xPassive, -1.0); // Set ALL elements to active
-
-        // Loop over elements
-        //for (PetscInt el = 0; el < nel; el++) {
-            //if (el > 6348) { // Is passive element
-         //   if ( (PetscPowScalar((lcoorp[3 * el] - 24.0) / 12.0, 2.0) + PetscPowScalar((lcoorp[3 * el + 1] - 20.0) / 10.0, 2.0)) < 1) {
-                //xxpPassive[el] = 1.0;
-          //      xxpPassive[el] = -1.0;
-            //} else {
-              //  xxpPassive[el] = -1.0;
-            //}
-            //PetscPrintf(PETSC_COMM_WORLD, "el: %i, val: %f\n", el, xxpPassive[el]);
-        //}
-    
-        // Restore
-        //ierr = VecRestoreArray(xPassive, &xxpPassive);
-        //CHKERRQ(ierr);
         
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         

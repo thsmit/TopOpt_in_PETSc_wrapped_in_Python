@@ -68,9 +68,6 @@ int solve(DataObj data) {
     MMA* mma;
     PetscInt itr = 0;
     opt->AllocateMMAwithRestart(&itr, &mma); // allow for restart !
-    /////////1e-5, 1e-2 firstnumber
-    //mma->SetAsymptotes(1e-2, 0.65, 1.05);
-    //mma->SetAsymptotes(0.2, 0.65, 1.05);
 
     // STEP 6: FILTER THE INITIAL DESIGN/RESTARTED DESIGN
     ierr = filter->FilterProject(opt->x, opt->xTilde, opt->xPhys, opt->projectionFilter, opt->beta, opt->eta);
@@ -106,33 +103,22 @@ int solve(DataObj data) {
     PetscScalar ch = 1.0;
     double      t1, t2;
     while (itr < opt->maxItr && ch > opt->tol) {
+        
         // Update iteration counter
         itr++;
 
-        // UPDATING THE CONTINUATION PARAMETERS
-        // reference, Maximum Size...
 		if (opt->continuationStatus && itr % opt->IterProj == 0){
 			opt->penal = PetscMin(opt->penal + opt->penalStep, opt->penalFin); // penal = penal : 0.25 : 3.0
-			// move limits: initial 0.6, final 0.05
-			//opt->movlim  = (opt->movlimEnd-opt->movlimIni)/(3.0-1.0)*(opt->penal-1.0)+opt->movlimIni; 
-			//opt->Beta    = PetscMin((1.50*opt->Beta),38.0); // beta = beta*1.5 
-			//PetscPrintf(PETSC_COMM_WORLD,"===================================================\n");
 			PetscPrintf(PETSC_COMM_WORLD,"It.: %i, Penal: %2.2f   movlim: %f\n", itr, opt->penal, opt->movlim);
-			//PetscPrintf(PETSC_COMM_WORLD,"===================================================\n");
 		}
 
         // start timer
         t1 = MPI_Wtime();
 
-
-        // Compute (a) obj+const, (b) sens, (c) obj+const+sens
-        // input -> xPhys + SIMP settings + material properties
-        // output -> objective + sensitivities + constraint value + cons sensitivies
-        // output -> fx, dfdx, gx, dgdx
+        // Compute obj+const+sens
         ierr = physics->ComputeObjectiveConstraintsSensitivities(&(opt->fx), &(opt->gx[0]), opt->dfdx, opt->dgdx[0],
                                                                  opt->xPhys, opt->Emin, opt->Emax, opt->penal,
                                                                  opt->volfrac, data);
-
         CHKERRQ(ierr);
 
         // Compute objective scale
@@ -155,9 +141,6 @@ int solve(DataObj data) {
         }
 
         if (opt->xPassiveStatus) {
-            
-            //PetscPrintf(PETSC_COMM_WORLD, "just checking\n");
-            
             // map vectors
             opt->UpdateVariables(1, opt->x, opt->xMMA);
             opt->UpdateVariables(1, opt->dfdx, opt->dfdxMMA);
@@ -263,23 +246,12 @@ int solve(DataObj data) {
     // Dump final design
     output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr + 1);
 
-    //const char filename[8] = 'test.vts';
-    //PetscViewer viewer;
-    //PetscViewerVTKOpen(PETSC_COMM_WORLD,FILE_MODE_WRITE,&viewer);
-    //VecView(opt->xPhys,viewer);
-    //PetscViewerDestroy(&viewer);
-
     // stop timer total runtime
     rt2 = MPI_Wtime();
 
     // Extract memory use
     PetscLogDouble mem;
-    //PetscScalar mem;
     PetscMemoryGetMaximumUsage(&mem);
-    //PetscPrintf(PETSC_COMM_WORLD, "Mem.: %f\n", mem);
-    //PetscScalar tmpm = mem;
-    //mem = 0.0;
-    //MPI_Allreduce(&tmpm, &(mem), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
 
     // Call test function to send data to wrapper
     if (opt->testStatus) {
@@ -295,5 +267,6 @@ int solve(DataObj data) {
 
     // Finalize PETSc / MPI
     PetscFinalize();
+    
     return 1;
 }

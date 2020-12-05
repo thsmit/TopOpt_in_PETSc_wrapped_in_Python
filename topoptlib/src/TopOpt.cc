@@ -20,18 +20,6 @@
  caused by the use of the program.
 */
 
-//TopOpt::TopOpt(PetscInt nconstraints) {
-
-  //  m = nconstraints;
-    //Init();
-//}
-
-//TopOpt::TopOpt() {
-
-  //  m = 1;
-    //Init();
-//}
-
 TopOpt::TopOpt(DataObj data) {
     
     m = 1;
@@ -572,13 +560,16 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         scount = 0;
         MPI_Allreduce(&tmps, &scount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
 
-        // Allreduce, number of active elements
+        // Allreduce, number of rigid elements
         // tmp number of var on proces
         // acount total number of var sumed
         PetscInt tmpr = rcount;
         rcount = 0;
         MPI_Allreduce(&tmpr, &rcount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
         
+        // Allreduce, number of void elements
+        // tmp number of var on proces
+        // acount total number of var sumed
         PetscInt tmpv = vcount;
         vcount = 0;
         MPI_Allreduce(&tmpv, &vcount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
@@ -603,13 +594,6 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         VecGetArray(x, &xpx);
         VecGetArray(xold, &xpold);
 
-        //for (PetscInt ii = 0; ii < nLocalVar; ii++) {
-        //    xpMMA[ii] = volfrac;
-        // }
-
-        //VecRestoreArray(xMMA, &xpMMA);
-        //PetscPrintf(PETSC_COMM_SELF, "volfrac %f\n", volfrac);
-
         // fill the indicator vector as mapping for x -> xMMA
         PetscInt count = 0;
         for (PetscInt el = 0; el < nel; el++) {       
@@ -619,7 +603,6 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
                 xptilde[el] = volfrac;
                 xpx[el] = volfrac;
                 xpold[el] = volfrac;
-                //PetscPrintf(PETSC_COMM_SELF, "aacount: %i, el: %i, low + el: %i\n", aacount, el, low + el);
                 count++;
             }
         }
@@ -867,13 +850,10 @@ PetscErrorCode TopOpt::UpdateVariables(PetscInt updateDirection, Vec elementVect
     for (PetscInt i = 0; i < nLocalVar; i++) {
         if (updateDirection > 0) {
             PetscInt index = indicesMap[i];
-            //PetscPrintf(PETSC_COMM_SELF, "i: %i, xp[%i] = %f\n", i, index, xp[index]);
             xpMMA[i] = xp[index];
-            //xpMMA[i] = xp[indicesMap[i]];
         } else if (updateDirection < 0) {
             PetscInt index = indicesMap[i];
             xp[index] = xpMMA[i];
-            //PetscPrintf(PETSC_COMM_WORLD, "i: %i, xp[%i] = %f\n", i, indicesMap[i], xp[indicesMap[i]]);
         }
     }
 
