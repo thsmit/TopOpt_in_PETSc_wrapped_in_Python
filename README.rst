@@ -9,8 +9,9 @@ The Python interface simplifies the problem definition, is expanding the potenti
 
 .. summary-end
 
-![](bracket.gif)
-
+.. image:: bracket.gif
+    :align: center
+    
 .. not-in-documentation-start
 
 Implemented functionality
