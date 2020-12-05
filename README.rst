@@ -3,13 +3,13 @@
 TopOpt_in_PETSc_wrapped_in_Python
 ===============
 
-``TopOpt_in_PETSc_wrapped_in_Python`` provides a Python wrapper called ``topoptlib`` and extends the functionality of the TopOpt_in_PETSc framework [1]_. The Python interface simplifies the problem definition, is expanding the potential user-base and facilitates the use of a large-scale topology optimization framework for educational purposes. Furthermore, the functionality of the topology optimization framework is extended which contributes to its usability to real-world design applications. The functionality is demonstrated via the cantilever beam, bracket- and torsion ball examples. Several tests are provided which can be used to verify the proper working and compare the performance of the user’s system setup.
+``TopOpt_in_PETSc_wrapped_in_Python`` provides a Python wrapper called ``topoptlib`` and extends the functionality of the TopOpt_in_PETSc framework [1]_ [2]_ [3]_. 
+
+The Python interface simplifies the problem definition, is expanding the potential user-base and facilitates the use of a large-scale topology optimization framework for educational purposes. Furthermore, the functionality of the topology optimization framework is extended which contributes to its usability to real-world design applications. The functionality is demonstrated via the cantilever beam, bracket- and torsion ball examples. Several tests are provided which can be used to verify the proper working and compare the performance of the user’s system setup.
 
 .. summary-end
 
-.. raw:: html
-
-    <img src="https://github.com/thsmit/TopOpt_in_PETSc_wrapped_in_Python/bracket.gif" width='20%'> </img> 
+![](bracket.gif)
 
 .. not-in-documentation-start
 
