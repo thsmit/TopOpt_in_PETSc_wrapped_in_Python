@@ -10,7 +10,6 @@ The Python interface simplifies the problem definition, is expanding the potenti
 .. summary-end
 
 .. image:: img/bracket.gif
-    :align: center
 
 .. not-in-documentation-start
 
@@ -19,14 +18,14 @@ Implemented functionality
 
 Large scale, high-resolution topology optimization including:
 
-  - STL (file format for storing surface geometry) input files to define the design domain, solid-, void- and rigid regions and voxelization
-  - Exclusion of passive elements from the simulation
-  - Application of loads and constraints using parametrization functions
-  - Multi-load cases and multi-constraints
-  - User defined objective- and constraint functions
-  - Local-volume constraint for 3D printing infill and bone like structures
-  - Continuation strategy for the penalization value
-  - Test scripts for code verification
+- STL (file format for storing surface geometry) input files to define the design domain, solid-, void- and rigid regions and voxelization
+- Exclusion of passive elements from the simulation
+- Application of loads and constraints using parametrization functions
+- Multi-load cases and multi-constraints
+- User defined objective- and constraint functions
+- Local-volume constraint for 3D printing infill and bone like structures
+- Continuation strategy for the penalization value
+- Test scripts for code verification
 
 
 Running examples
@@ -40,6 +39,8 @@ To run the cantilever beam example on one CPU (adjust the problem's mesh accordi
     cp examples/beam.py .
     python3 beam.py
 
+Available examples:
+
 - Cantilever beam in ``beam.py``
 - Multi-loads in ``multiloads.py``   
 - Torsion ball in ``sphere.py``
@@ -50,10 +51,10 @@ Installation
 ------------
 
 The framework should be compiled ones, on a cluster or a desktop computer. A problem file can use the functionality of the framework without compiling thereafter. A Linux system is recommended, however not tested, a Windows machine should also work.
-The framework uses [CMake](https://cmake.org) to compile. The following third party libraries are required and located using CMake's ```find_package```.
+The framework uses [CMake](https://cmake.org) to compile. The following third party libraries are required and located using CMake's ``find_package``.
 
 - [PETSc](https://www.mcs.anl.gov/petsc/): version 3.13
-- [Python] (https://www.python.org/): version 2 (for post-processing) and 3
+- [Python] (https://www.python.org/): version 3
 
 It install PETSc:
 
