@@ -8,8 +8,9 @@
 # free from errors. Furthermore, we shall not be liable in any event
 # caused by the use of the program.
 
-import topoptlib
 import numpy as np
+
+import topoptlib
 
 # step 1:
 # Create data class to store input data
@@ -18,14 +19,16 @@ data = topoptlib.Data()
 # step 2:
 # define input data
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
-#data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (65, 33, 33))
-data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (129, 65, 65))
-#data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (257, 129, 129))
-    
+# data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (65, 33, 33))
+data.structuredGrid(
+    (0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (129, 65, 65)
+)
+# data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (257, 129, 129))
+
 # Optional printing:
-#print(data.nNodes)
-#print(data.nElements)
-#print(data.nDOF)
+# print(data.nNodes)
+# print(data.nElements)
+# print(data.nDOF)
 
 # material: (Emin, Emax, nu, penal)
 Emin, Emax, nu, Dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 3.0
@@ -60,14 +63,18 @@ nEl = data.nElements
 def objective(comp, sumXp):
     return comp
 
+
 def sensitivity(xp, uKu):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
+
 
 def constraint(comp, sumXp):
     return sumXp / nEl - materialvolumefraction
 
+
 def constraintSensitivity(xp, uKu):
     return 1.0 / nEl
+
 
 # Callback implementatio
 data.obj(objective)
