@@ -49,7 +49,7 @@ Emin, Emax, nu, dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 1.0
 data.material(Emin, Emax, nu, dens, penal)
 
 # setup continuation of penalization: (Pinitial, Pfinal, stepsize, IterProg)
-#data.continuation(1.0, 3.0, 1.0, 100)
+data.continuation(1.0, 3.0, 2.0, 500)
 
 # setup heavyside projection filter (betaFinal, stepsize, eta) update of beta every 20 iterations
 data.projection(64.0, 1.0, 0.5) 
@@ -59,7 +59,7 @@ data.projection(64.0, 1.0, 0.5)
 data.filter(1, 0.025)
 
 # optimizer: (maxIter, tol)
-data.mma(1500, 0.001)
+data.mma(2000, 0.01)
 
 # loadcases: (# of loadcases)
 data.loadcases(1)

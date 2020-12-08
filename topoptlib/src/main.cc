@@ -109,7 +109,7 @@ int solve(DataObj data) {
 
 		if (opt->continuationStatus && itr % opt->IterProj == 0){
 			opt->penal = PetscMin(opt->penal + opt->penalStep, opt->penalFin); // penal = penal : 0.25 : 3.0
-			PetscPrintf(PETSC_COMM_WORLD,"It.: %i, Penal: %2.2f   movlim: %f\n", itr, opt->penal, opt->movlim);
+			PetscPrintf(PETSC_COMM_WORLD,"It.: %i, Penal: %2.2f\n", itr, opt->penal);
 		}
 
         // start timer
