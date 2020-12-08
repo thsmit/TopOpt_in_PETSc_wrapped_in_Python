@@ -3,7 +3,7 @@
 TopOpt_in_PETSc_wrapped_in_Python
 ===============
 
-``TopOpt_in_PETSc_wrapped_in_Python`` provides a Python wrapper called ``topoptlib`` and extends the functionality of the TopOpt_in_PETSc framework [1]_ [2]_ [3]_. 
+``TopOpt_in_PETSc_wrapped_in_Python`` provides a Python wrapper called ``topoptlib`` and extends the functionality of the TopOpt_in_PETSc framework [1]_ [2]_ [3]_.
 
 The Python interface simplifies the problem definition, is expanding the potential user-base and facilitates the use of a large-scale topology optimization framework for educational purposes. Furthermore, the functionality of the topology optimization framework is extended which contributes to its usability to real-world design applications. The functionality is demonstrated via the cantilever beam, bracket- and torsion ball examples. Several tests are provided which can be used to verify the proper working and compare the performance of the user’s system setup.
 
@@ -42,7 +42,7 @@ To run the cantilever beam example on one CPU (adjust the problem's mesh accordi
 Available examples:
 
 - Cantilever beam in ``beam.py``
-- Multi-loads in ``multiloads.py``   
+- Multi-loads in ``multiloads.py``
 - Torsion ball in ``sphere.py``
 - The Jet engine bracket in ``bracket.py``
 
@@ -63,7 +63,7 @@ It install PETSc:
     git clone -b release https://gitlab.com/petsc/petsc.git petsc
     cd petsc
     ./configure --with-cc=mpicc --with-cxx=mpicxx --with-fc=0 --download-f2cblaslapack=1 --with-debugging=0
-    make PETSC_DIR=/home/ts/Documents/petsc PETSC_ARCH=arch-linux-c-opt all 
+    make PETSC_DIR=/home/ts/Documents/petsc PETSC_ARCH=arch-linux-c-opt all
     make PETSC_DIR=/home/ts/Documents/petsc PETSC_ARCH=arch-linux-c-opt check
 
 To download this framework:
@@ -124,8 +124,8 @@ Or use ``test_topopt.sh`` for automated building and running the tests
 
 Post-processing
 --------
-    
-After solving the problem the output is written to a ``output.dat`` file. The designs can be viewed in Paraview (https://www.paraview.org/). 
+
+After solving the problem the output is written to a ``output.dat`` file. The designs can be viewed in Paraview (https://www.paraview.org/).
 To generate .vtu files from the output file use ``post_process_topopt.sh`` with Python 2 (with * the file path and name where the output file is stored):
 
 .. code:: bash
@@ -133,7 +133,7 @@ To generate .vtu files from the output file use ``post_process_topopt.sh`` with 
     cd TopOpt_in_PETSc_wrapped_in_Python
     ./post_process_topopt.sh *
 
-Citing 
+Citing
 --------
 
 For citing this work use:
@@ -157,13 +157,13 @@ Origional code
 
 .. [1]
 
-    Aage, N., Andreassen, E., & Lazarov, B. S. (2015). Topology optimization using PETSc: An easy-to-use, fully parallel, open source topology optimization framework. 
+    Aage, N., Andreassen, E., & Lazarov, B. S. (2015). Topology optimization using PETSc: An easy-to-use, fully parallel, open source topology optimization framework.
     Structural and Multidisciplinary Optimization, 51(3), 565–572. https://doi.org/10.1007/s00158-014-1157-0
 
 .. [2]
 
     http://topopt.dtu.dk/PETSc
-    
+
 .. [3]
 
     https://github.com/topopt/TopOpt_in_PETSc
