@@ -25,7 +25,7 @@ read var
 
 # compile
 if [ $var -eq 1 ]
-    then 
+    then
         rm -rf topoptlib.so
         rm -rf build
         mkdir build
