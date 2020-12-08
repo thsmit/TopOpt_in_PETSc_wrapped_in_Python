@@ -152,7 +152,7 @@ For citing this work use:
     }
 
 
-Origional code
+Original code
 --------
 
 .. [1]
