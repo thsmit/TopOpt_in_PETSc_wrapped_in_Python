@@ -49,7 +49,7 @@ cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/examples/$1 .
 # ADJUSTABLE PARAMETERS
 EULER_MEMORY="4000"
 NCPU=32
-WALL_TIME="12:00"
+WALL_TIME="02:00"
 
 # FUNCTION CALL
 bsub -n ${NCPU} -W ${WALL_TIME} -R ib -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python $1

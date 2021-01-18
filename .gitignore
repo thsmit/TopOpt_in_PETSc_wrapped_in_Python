@@ -20,13 +20,15 @@ __pycache__/
 *table.py
 *roof.py
 *beam_stl.py
-*beam_local.py
+*beam_restart.py
 *local.py
 *sphere_full.py
 *scaffold.py
 *performance.py
-
+*hip.py
+*implant.py
 # stl
+implant/
 *box.stl
 *domaintorsionfull.stl
 *domaintorsionq.stl
@@ -42,3 +44,4 @@ __pycache__/
 *sphere.stl
 *torsionvoidsmall14.stl
 *domaintorsion.stl
+*H1402_LF_mesh.stl

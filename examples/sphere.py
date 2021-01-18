@@ -34,6 +34,7 @@ data.structuredGrid(
 # Active elements: -1.0
 # Solid elements: 2.0
 # Rigid elements: 3.0
+# Void elements: 4.0
 # Do not overwrite: 0.0
 data.stlread(
     3.0,
@@ -66,17 +67,17 @@ Emin, Emax, nu, dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 1.0
 data.material(Emin, Emax, nu, dens, penal)
 
 # setup continuation of penalization: (Pinitial, Pfinal, stepsize, IterProg)
-data.continuation(1.0, 3.0, 2.0, 500)
+data.continuation(1.0, 2.5, 0.25, 10)
 
-# setup heavyside projection filter (betaFinal, stepsize, eta) update of beta every 20 iterations
-data.projection(64.0, 1.0, 0.5)
+# setup heavyside projection filter (betaFinal, betaInit, eta) update of beta every 10 iterations
+data.projection(64.0, 1.0, 0.05)
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1,
 data.filter(1, 0.025)
 
 # optimizer: (maxIter, tol)
-data.mma(2000, 0.01)
+data.mma(1500, 0.01)
 
 # loadcases: (# of loadcases)
 data.loadcases(1)
@@ -99,13 +100,14 @@ materialvolumefraction = 0.02
 nEl = data.nael
 rigidVol = data.nrel * 10.0
 
+
 # Calculate the objective function
 # objective input: (design variable value, SED)
 def objective(comp, sumXp):
     return comp
 
 
-def sensitivity(xp, uKu):
+def sensitivity(xp, uKu, penal):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
 
 
@@ -113,7 +115,7 @@ def constraint(comp, sumXp):
     return (sumXp - rigidVol) / nEl - materialvolumefraction
 
 
-def constraintSensitivity(xp, uKu):
+def constraintSensitivity(xp, uKu, penal):
     return 1.0 / nEl
 
 

@@ -30,7 +30,7 @@ class BC {
 // Class to store data
 struct DataObj {
     PyObject_HEAD
-    
+
     public:
         // data storage standard var
         double xc_w[11];
@@ -86,9 +86,9 @@ struct DataObj {
         // Loadcases
         int nL = 1;
         std::vector<std::vector<BC>> loadcases_list;
-        
+
         // parametrization
-        PyObject *para_func = NULL;    
+        PyObject *para_func = NULL;
 
         // test function
         PyObject *test_func = NULL;
@@ -99,9 +99,9 @@ struct DataObj {
         PyObject *const_func = NULL;
         PyObject *const_sens_func = NULL;
 
-        // 
+        //
         void updatecounts() {
-            
+
             int acount = 0;
             int scount = 0;
             int rcount = 0;
@@ -114,31 +114,31 @@ struct DataObj {
                 }
                 if (xPassive_w[i] == 2.0) {
                     scount++;
-                } 
+                }
                 if (xPassive_w[i] == 3.0) {
                     rcount++;
-                } 
+                }
                 if (xPassive_w[i] == 4.0) {
                     vcount++;
-                } 
+                }
             }
-            
+
             // reset
             nael = acount;
             nsel = scount;
             nrel = rcount;
             nvel = vcount;
-            
+
         }
 
         void check_ev(double trueFx, double runtime, double memory) {
-            
+
             //printf("el: %i\n", el);
             //printf("uKu: %f\n", uKu);
 
             // Py_BuildValue
             PyObject *arglist = Py_BuildValue("ddd", trueFx, runtime, memory);
-            
+
             // PyEval_CallObject
             PyEval_CallObject(test_func, arglist);
 
@@ -152,13 +152,13 @@ struct DataObj {
         }
 
         double para_ev(double lcx, double lcy, double lcz) {
-            
+
             //printf("el: %i\n", el);
             //printf("uKu: %f\n", uKu);
 
             // Py_BuildValue
             PyObject *arglist = Py_BuildValue("ddd", lcx, lcy, lcz);
-            
+
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(para_func, arglist);
 
@@ -174,10 +174,10 @@ struct DataObj {
         double obj_ev(double comp, double sumXP) {
             // Py_BuildValue
             PyObject *arglist = Py_BuildValue("dd", comp, sumXP);
-            
+
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(obj_func, arglist);
-            
+
             // Parse
             double result = PyFloat_AsDouble(results);
 
@@ -187,22 +187,22 @@ struct DataObj {
             return result;
         }
 
-        double obj_sens_ev(double xp, double uKu) {
-            
+        double obj_sens_ev(double xp, double uKu, double penal) {
+
             //printf("xp: %f\n", xp);
             //printf("uKu: %f\n", uKu);
 
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("dd", xp, uKu);
-            
+            PyObject *arglist = Py_BuildValue("ddd", xp, uKu, penal);
+
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(obj_sens_func, arglist);
-            
+
             // Parse
             //double result;
 
             //result = PyFloat_AsDouble(results);
-            
+
             double result = PyFloat_AsDouble(results);
 
             //printf("result: %f\n", result);
@@ -215,10 +215,10 @@ struct DataObj {
         double const_ev(double comp, double sumXP) {
             // Py_BuildValue
             PyObject *arglist = Py_BuildValue("dd", comp, sumXP);
-            
+
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(const_func, arglist);
-            
+
             // Parse
             double result = PyFloat_AsDouble(results);
 
@@ -228,22 +228,22 @@ struct DataObj {
             return result;
         }
 
-        double const_sens_ev(double xp, double uKu) {
-            
+        double const_sens_ev(double xp, double uKu, double penal) {
+
             //printf("xp: %f\n", xp);
             //printf("uKu: %f\n", uKu);
 
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("dd", xp, uKu);
-            
+            PyObject *arglist = Py_BuildValue("ddd", xp, uKu, penal);
+
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(const_sens_func, arglist);
-            
+
             // Parse
             //double result;
 
             //result = PyFloat_AsDouble(results);
-            
+
             double result = PyFloat_AsDouble(results);
 
             //printf("result: %f\n", result);

@@ -81,7 +81,7 @@ class TopOpt {
     PetscScalar penal;      // Penalization parameter
     PetscBool continuationStatus;
     PetscBool testStatus;
-    PetscScalar penalIni; 
+    PetscScalar penalIni;
     PetscScalar penalFin;
     PetscScalar penalStep;
     PetscInt IterProj;
@@ -111,6 +111,17 @@ class TopOpt {
     Vec  xold;       // x from previous iteration
     Vec* dgdx;       // Sensitivities of constraints (vector array)
 
+    Vec xPhysEro;
+    Vec xPhysDil;
+    Vec dErodFilt;
+    Vec dDildFilt;
+
+    PetscScalar etaEro; // erosion threshold
+	  //PetscScalar eta; // Intermediate threshold
+	  PetscScalar etaDil; // dilation threshold
+	  PetscScalar tero; // offset distance
+	  PetscScalar tdil; // offset distance;
+
     // new vectors for passive element implementations
     Vec xMMA;
     Vec dfdxMMA;
@@ -118,7 +129,7 @@ class TopOpt {
     Vec xminMMA;
     Vec xmaxMMA;
     Vec xoldMMA;
-    
+
     // Restart data for MMA:
     PetscBool   restart, flip;
     std::string restdens_1, restdens_2;

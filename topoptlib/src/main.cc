@@ -38,7 +38,7 @@ int solve(DataObj data) {
 
     // Capture runtime
     double rt1, rt2;
-    
+
     // Monitor memory usage
     PetscMemorySetGetMaximumUsage();
 
@@ -58,12 +58,12 @@ int solve(DataObj data) {
     // Initialize local volume constraint
     LocalVolume* local;
     if (opt->localVolumeStatus) {
-        local = new LocalVolume(opt->da_nodes, opt->x, data);
+        local = new LocalVolume(opt->da_nodes, opt->x, opt->xPassive, data);
     }
 
     // STEP 4: VISUALIZATION USING VTK
     MPIIO* output = new MPIIO(opt->da_nodes, 3, "ux, uy, uz", 4, "x, xTilde, xPhys, dfdx");
-    
+
     // STEP 5: THE OPTIMIZER MMA
     MMA* mma;
     PetscInt itr = 0;
@@ -78,11 +78,11 @@ int solve(DataObj data) {
     PetscScalar *xpPhys;
     VecGetArray(opt->xPassive, &xpPassive);
     VecGetArray(opt->xPhys, &xpPhys);
-        
+
     PetscInt nel;
     VecGetLocalSize(opt->xPhys, &nel);
-        
-    for (PetscInt el = 0; el < nel; el++) {  
+
+    for (PetscInt el = 0; el < nel; el++) {
         if (xpPassive[el] == 3.0) {
             xpPhys[el] = 10.0;
         }
@@ -102,15 +102,35 @@ int solve(DataObj data) {
     // STEP 7: OPTIMIZATION LOOP
     PetscScalar ch = 1.0;
     double      t1, t2;
-    while (itr < opt->maxItr && ch > opt->tol) {
-        
+    //while (ch > opt->tol || opt->penal < opt->penalFin) {
+    //while ((itr < opt->maxItr && ch > opt->tol) || opt->penal < opt->penalFin) {
+    while (itr < opt->maxItr && ch > opt->tol){
         // Update iteration counter
         itr++;
 
-		if (opt->continuationStatus && itr % opt->IterProj == 0){
+		//if (opt->continuationStatus && itr % opt->IterProj == 0)
+        if (opt->continuationStatus && ((opt->penal != 1.0 && itr % opt->IterProj == 0) || (opt->penal == 1.0 && ch < opt->tol)))
+        //if (opt->continuationStatus && ch < opt->tol)
+        {
 			opt->penal = PetscMin(opt->penal + opt->penalStep, opt->penalFin); // penal = penal : 0.25 : 3.0
-			PetscPrintf(PETSC_COMM_WORLD,"It.: %i, Penal: %2.2f\n", itr, opt->penal);
+			//PetscPrintf(PETSC_COMM_WORLD,"It.: %i, Penal: %2.2f\n", itr, opt->penal);
+            //opt->penal   = PetscMin(opt->penal+0.25,3); // penal = penal : 0.25 : 3.0
+            //opt->penal = 3.0;
+			// move limits: initial 0.2, final 0.05
+			//opt->movlim  = (0.05-0.2)/(3.0-1.0)*(opt->penal-1.0)+0.2;
+			//opt->beta    = PetscMin((1.50*opt->beta),64.0); // beta = beta*1.5
+			PetscPrintf(PETSC_COMM_WORLD,"===================================================\n");
+			PetscPrintf(PETSC_COMM_WORLD,"It.: %i, Beta: %3.2f, Penal: %2.2f   movlim: %f\n", itr,opt->beta,opt->penal,opt->movlim);
+			PetscPrintf(PETSC_COMM_WORLD,"===================================================\n");
 		}
+
+        // Scaling the upper bound volume constraint of the Dilated Design
+		//if (itr==2 || itr%10 == 2){
+		//	opt->volfrac = opt->VolDil_VolInt*opt->volfracREF;
+		//	PetscPrintf(PETSC_COMM_WORLD,"=====================\n");
+		//	PetscPrintf(PETSC_COMM_WORLD,"volfrac: %3.2f\n",opt->volfrac);
+		//	PetscPrintf(PETSC_COMM_WORLD,"=====================\n");
+		//}
 
         // start timer
         t1 = MPI_Wtime();
@@ -144,7 +164,9 @@ int solve(DataObj data) {
             // map vectors
             opt->UpdateVariables(1, opt->x, opt->xMMA);
             opt->UpdateVariables(1, opt->dfdx, opt->dfdxMMA);
-            opt->UpdateVariables(1, opt->dgdx[0], opt->dgdxMMA[0]);
+            for (PetscInt i = 0; i < opt->m; i++) {
+                opt->UpdateVariables(1, opt->dgdx[i], opt->dgdxMMA[i]);
+            }
             opt->UpdateVariables(1, opt->xmin, opt->xminMMA);
             opt->UpdateVariables(1, opt->xmax, opt->xmaxMMA);
             opt->UpdateVariables(1, opt->xold, opt->xoldMMA);
@@ -162,13 +184,15 @@ int solve(DataObj data) {
 
             opt->UpdateVariables(-1, opt->x, opt->xMMA);
             opt->UpdateVariables(-1, opt->dfdx, opt->dfdxMMA);
-            opt->UpdateVariables(-1, opt->dgdx[0], opt->dgdxMMA[0]);
+            for (PetscInt i = 0; i < opt->m; i++) {
+                opt->UpdateVariables(-1, opt->dgdx[i], opt->dgdxMMA[i]);
+            }
             opt->UpdateVariables(-1, opt->xmin, opt->xminMMA);
             opt->UpdateVariables(-1, opt->xmax, opt->xmaxMMA);
             opt->UpdateVariables(-1, opt->xold, opt->xoldMMA);
-            
+
         } else {
-            
+
             // Sets outer movelimits on design variables
             ierr = mma->SetOuterMovelimit(opt->Xmin, opt->Xmax, opt->movlim, opt->x, opt->xmin, opt->xmax);
             CHKERRQ(ierr);
@@ -184,7 +208,8 @@ int solve(DataObj data) {
 
         // Increase beta if needed
         PetscBool changeBeta = PETSC_FALSE;
-        if (opt->projectionFilter) {
+        //if (opt->projectionFilter) {
+        if (opt->projectionFilter && opt->penal == 2.5) {
             changeBeta = filter->IncreaseBeta(&(opt->beta), opt->betaFinal, opt->gx[0], itr, ch);
         }
 
@@ -197,11 +222,11 @@ int solve(DataObj data) {
         PetscScalar *xpPhys;
         VecGetArray(opt->xPassive, &xpPassive);
         VecGetArray(opt->xPhys, &xpPhys);
-            
+
         PetscInt nel;
         VecGetLocalSize(opt->xPhys, &nel);
-            
-        for (PetscInt el = 0; el < nel; el++) {  
+
+        for (PetscInt el = 0; el < nel; el++) {
             if (xpPassive[el] == 3.0) {
                 xpPhys[el] = 10.0;
             }
@@ -226,7 +251,7 @@ int solve(DataObj data) {
                     "It.: %i, True fx: %f, Scaled fx: %f, gx[0]: %f, ch.: %f, "
                     "mnd.: %f, time: %f\n",
                     itr, opt->fx / opt->fscale, opt->fx, opt->gx[0], ch, mnd, t2 - t1);
-        
+
         // Write field data: first 10 iterations and then every 20th
         if (itr < 11 || itr % 20 == 0 || changeBeta) {
             output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr);
@@ -238,7 +263,7 @@ int solve(DataObj data) {
             //physics->WriteRestartFiles();
         //}
     }
-        
+
     // Write restart WriteRestartFiles
     //opt->WriteRestartFiles(&itr, mma);
     //physics->WriteRestartFiles();
@@ -267,6 +292,6 @@ int solve(DataObj data) {
 
     // Finalize PETSc / MPI
     PetscFinalize();
-    
+
     return 1;
 }

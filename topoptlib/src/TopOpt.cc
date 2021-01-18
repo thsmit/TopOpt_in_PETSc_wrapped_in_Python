@@ -4,12 +4,12 @@
 //#include <Python.h>
 #include <stdio.h>
 //#include <petscvec.h>
-#include "petscis.h" 
+#include "petscis.h"
 #include <petscviewer.h>
 
 /*
  Modified by: Thijs Smit, Dec 2020
- 
+
  Authors: Niels Aage, Erik Andreassen, Boyan Lazarov, August 2013
  Updated: June 2019, Niels Aage
  Copyright (C) 2013-2019,
@@ -21,7 +21,7 @@
 */
 
 TopOpt::TopOpt(DataObj data) {
-    
+
     m = 1;
     if (data.m > 1) {
         m = data.m;
@@ -49,6 +49,13 @@ TopOpt::TopOpt(DataObj data) {
     xo2 = NULL;
     U   = NULL;
     L   = NULL;
+
+    // ==== Robust Formulation
+    xPhysEro   = NULL;
+    xPhysDil   = NULL;
+    dErodFilt  = NULL;
+    dDildFilt  = NULL;
+    // =======================
 
     SetUp(data);
 }
@@ -129,6 +136,14 @@ TopOpt::~TopOpt() {
     if (U != NULL) {
         VecDestroy(&U);
     }
+
+    // ========================== ROBUST FORMULATION
+	if (xPhysEro!=NULL){ VecDestroy(&xPhysEro); }
+	if (xPhysDil!=NULL){ VecDestroy(&xPhysDil); }
+	if (dErodFilt!=NULL){ VecDestroy(&dErodFilt); }
+	if (dDildFilt!=NULL){ VecDestroy(&dDildFilt); }
+	// ================================================
+
 }
 
 // NO METHODS !
@@ -194,7 +209,7 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     movlim  = 0.2;
     //restart = PETSC_TRUE;
     restart = PETSC_FALSE;
-    
+
     // xPassive Status
     xPassiveStatus = PETSC_FALSE;
     if (data.xPassive_w.size() > 1) {
@@ -212,7 +227,14 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
         betaFinal        = data.betaFinal_w;
         eta              = data.eta_w;
     }
-    
+
+    // Robust formulation =======================
+	etaEro  = 0.75 ; // erosion threshold
+	eta     = 0.50 ; // Intermediate threshold
+	etaDil  = 0.25 ; // dilation threshold
+	tero    = rmin/2.0*0.58 ; // offset distance
+	tdil    = rmin/2.0*0.58 ; // offset distance
+	// ==========================================
 
     ierr = SetUpMESH();
     CHKERRQ(ierr);
@@ -395,6 +417,11 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     ierr = DMCreateGlobalVector(da_elem, &xPhys);
     CHKERRQ(ierr);
 
+    // FOR ROBUST FORMULATION ===========
+	DMCreateGlobalVector(da_elem,&xPhysEro);
+    DMCreateGlobalVector(da_elem,&xPhysDil);
+	// ==================================
+
     // Total number of design variables
     VecGetSize(xPhys, &n);
 
@@ -439,7 +466,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     if (filter == 0) {
         Xmin = 0.001; // Prevent division by zero in filter
     }
- 
+
     // Allocate the optimization vectors
     ierr = VecDuplicate(xPhys, &x);
     CHKERRQ(ierr);
@@ -449,7 +476,15 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     VecSet(x, volfrac);      // Initialize to volfrac !
     VecSet(xTilde, volfrac); // Initialize to volfrac !
     VecSet(xPhys, volfrac);  // Initialize to volfrac !
-        
+
+    // ROBUST FORMULATION =====================
+	VecSet(xPhysEro,volfrac);
+	VecSet(xPhysDil,volfrac);
+	//VecDuplicate(x,&dPhysdFilt);
+	VecDuplicate(x,&dErodFilt);
+	VecDuplicate(x,&dDildFilt);
+	// ========================================
+
     // Sensitivity vectors
     ierr = VecDuplicate(x, &dfdx);
     CHKERRQ(ierr);
@@ -461,13 +496,13 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     VecDuplicate(x, &xmax);
     VecDuplicate(x, &xold);
     VecSet(xold, volfrac);
-    
+
     // create xPassive vector
     ierr = VecDuplicate(xPhys, &xPassive);
     CHKERRQ(ierr);
 
     // Onlz if a custom domain is given
-    if (xPassiveStatus) { 
+    if (xPassiveStatus) {
 
         // total number of elements on core
         PetscInt nel;
@@ -475,7 +510,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
 
         VecSet(x, 0.0);
         VecSet(xTilde, 0.0);
-        VecSet(xPhys, 0.0); 
+        VecSet(xPhys, 0.0);
         VecSet(xold, 0.0);
 
         // create mapping vector
@@ -492,7 +527,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         // create a temporary vector with natural ordering to get domain data to xPassive
         Vec TMPnatural;
         DMDACreateNaturalVector(da_elem, &TMPnatural);
-        
+
         PetscInt low;
         PetscInt high;
         VecGetOwnershipRange(TMPnatural, &low, &high);
@@ -511,7 +546,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         DMDANaturalToGlobalBegin(da_elem, TMPnatural, INSERT_VALUES, xPassive);
         DMDANaturalToGlobalEnd(da_elem, TMPnatural, INSERT_VALUES, xPassive);
         VecDestroy(&TMPnatural);
-        
+
         // index set for xPassive and indicator
         PetscScalar *xpPassive;
         PetscScalar *xpIndicator;
@@ -519,7 +554,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         CHKERRQ(ierr);
         ierr = VecGetArray(indicator, &xpIndicator);
         CHKERRQ(ierr);
-        
+
         // count the number of active, solid and rigid elements
         // active is -1, passive is 1, solid is 2, rigid is 3
         for (PetscInt el = 0; el < nel; el++) {
@@ -528,13 +563,13 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
             }
             if (xpPassive[el] == 2.0) {
                 scount++;
-            } 
+            }
             if (xpPassive[el] == 3.0) {
                 rcount++;
             }
             if (xpPassive[el] == 4.0) {
                 vcount++;
-            } 
+            }
         }
 
         // Forcing PETSc ordering in stead of natural ordering otherwise the output is changed into natural ordering
@@ -566,14 +601,14 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         PetscInt tmpr = rcount;
         rcount = 0;
         MPI_Allreduce(&tmpr, &rcount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
-        
+
         // Allreduce, number of void elements
         // tmp number of var on proces
         // acount total number of var sumed
         PetscInt tmpv = vcount;
         vcount = 0;
         MPI_Allreduce(&tmpv, &vcount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
-        
+
         // printing
         PetscPrintf(PETSC_COMM_WORLD, "################### STL readin ###############################\n");
         PetscPrintf(PETSC_COMM_WORLD, "acount sum: %i\n", acount);
@@ -581,7 +616,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         PetscPrintf(PETSC_COMM_WORLD, "rcount sum: %i\n", rcount);
         PetscPrintf(PETSC_COMM_WORLD, "vcount sum: %i\n", vcount);
         PetscPrintf(PETSC_COMM_WORLD, "##############################################################\n");
-        
+
 
         //// create MMA vectors
         VecCreateMPI(PETSC_COMM_WORLD, tmp, acount, &xMMA);
@@ -596,7 +631,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
 
         // fill the indicator vector as mapping for x -> xMMA
         PetscInt count = 0;
-        for (PetscInt el = 0; el < nel; el++) {       
+        for (PetscInt el = 0; el < nel; el++) {
             if (xpPassive[el] == -1.0) {
                 xpIndicator[count] = el;
                 xpPhys[el] = volfrac;
@@ -730,7 +765,7 @@ PetscErrorCode TopOpt::AllocateMMAwithRestart(PetscInt* itr, MMA** mma) {
     PetscInt nGlobalDesignVar;
     VecGetSize(x, &nGlobalDesignVar); // ASSUMES THAT SIZE IS ALWAYS MATCHED TO CURRENT MESH
     if (restart && vecFile && itrFile) {
-        
+
         PetscViewer view;
         // Open the data files
         ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD, restartFileVec.c_str(), FILE_MODE_READ, &view);
