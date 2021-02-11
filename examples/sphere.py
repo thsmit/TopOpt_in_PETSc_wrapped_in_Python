@@ -21,7 +21,7 @@ data = topoptlib.Data()
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
 # 1/8
 data.structuredGrid(
-    (0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.1875, 0.9875, 0.0), (161, 193, 193)
+    (0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.0, 0.0, 0.0), (161, 193, 193)
 )
 
 # 1/4
@@ -67,17 +67,17 @@ Emin, Emax, nu, dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 1.0
 data.material(Emin, Emax, nu, dens, penal)
 
 # setup continuation of penalization: (Pinitial, Pfinal, stepsize, IterProg)
-data.continuation(1.0, 2.5, 0.25, 10)
+# data.continuation(1.0, 3.0, 0.25, 20)
 
 # setup heavyside projection filter (betaFinal, betaInit, eta) update of beta every 10 iterations
-data.projection(64.0, 1.0, 0.05)
+data.projection(64.0, 1.0, 0.5, 50)  # robust formulation
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1,
-data.filter(1, 0.025)
+data.filter(2, 0.065)
 
 # optimizer: (maxIter, tol)
-data.mma(1500, 0.01)
+data.mma(2000, 0.01)
 
 # loadcases: (# of loadcases)
 data.loadcases(1)
@@ -88,8 +88,10 @@ data.bc(0, 1, [1, 0], [0, 2], [0.0, 0.0], 0)
 
 # 1/8
 data.bc(0, 1, [0, 1], [1, 2], [0.0, 0.0], 0)
-data.bc(0, 2, [0, 0, 1, 0, 2, 6], [1], [0.01], 0)
-data.bc(0, 2, [0, 0, 1, 6, 2, 0], [2], [-0.01], 0)
+data.bc(0, 2, [0, 7, 1, 0, 2, 6], [1], [0.01], 0)
+data.bc(0, 2, [0, 7, 1, 6, 2, 0], [2], [-0.01], 0)
+# data.bc(0, 2, [0, 7, 1, 6, 2, 6], [1], [0.01], 0)
+# data.bc(0, 2, [0, 7, 1, 6, 2, 6], [2], [-0.01], 0)
 
 # back # 1/4
 # data.bc(0, 1, [0, 1, 1, 0, 2, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
@@ -111,8 +113,10 @@ def sensitivity(xp, uKu, penal):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
 
 
-def constraint(comp, sumXp):
-    return (sumXp - rigidVol) / nEl - materialvolumefraction
+def constraint(comp, sumXp, volfrac):
+    # print('volfrac: ', volfrac)
+    return (sumXp - rigidVol) / nEl - volfrac
+    # return sumXp / nEl - volfrac
 
 
 def constraintSensitivity(xp, uKu, penal):

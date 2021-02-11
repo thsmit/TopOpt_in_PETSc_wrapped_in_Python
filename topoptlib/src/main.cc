@@ -62,7 +62,7 @@ int solve(DataObj data) {
     }
 
     // STEP 4: VISUALIZATION USING VTK
-    MPIIO* output = new MPIIO(opt->da_nodes, 3, "ux, uy, uz", 4, "x, xTilde, xPhys, dfdx");
+    MPIIO* output = new MPIIO(opt->da_nodes, 3, "ux, uy, uz", 5, "x, xTilde, xPhysEro, xPhys, xPhysDil");
 
     // STEP 5: THE OPTIMIZER MMA
     MMA* mma;
@@ -70,46 +70,30 @@ int solve(DataObj data) {
     opt->AllocateMMAwithRestart(&itr, &mma); // allow for restart !
 
     // STEP 6: FILTER THE INITIAL DESIGN/RESTARTED DESIGN
-    ierr = filter->FilterProject(opt->x, opt->xTilde, opt->xPhys, opt->projectionFilter, opt->beta, opt->eta);
+    ierr = filter->FilterProject(opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, opt->projectionFilter, opt->beta, opt->eta);
     CHKERRQ(ierr);
 
-    // Add rigid and solid elements
-    PetscScalar *xpPassive;
-    PetscScalar *xpPhys;
-    VecGetArray(opt->xPassive, &xpPassive);
-    VecGetArray(opt->xPhys, &xpPhys);
+    // Set variables in xPhys, xPhysEro, xPhysDil
+    opt->SetVariables(opt->xPhys, opt->xPassive);
+    opt->SetVariables(opt->xPhysEro, opt->xPassive);
+    opt->SetVariables(opt->xPhysDil, opt->xPassive);
 
-    PetscInt nel;
-    VecGetLocalSize(opt->xPhys, &nel);
-
-    for (PetscInt el = 0; el < nel; el++) {
-        if (xpPassive[el] == 3.0) {
-            xpPhys[el] = 10.0;
-        }
-        if (xpPassive[el] == 2.0) {
-            xpPhys[el] = 1.0;
-        }
-        if (xpPassive[el] == 4.0) {
-            xpPhys[el] = 0.0;
-        }
-    }
-    VecRestoreArray(opt->xPassive, &xpPassive);
-    VecRestoreArray(opt->xPhys, &xpPhys);
 
     // print initial condition to vtk
-    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr);
+    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, itr);
 
     // STEP 7: OPTIMIZATION LOOP
     PetscScalar ch = 1.0;
     double      t1, t2;
     //while (ch > opt->tol || opt->penal < opt->penalFin) {
     //while ((itr < opt->maxItr && ch > opt->tol) || opt->penal < opt->penalFin) {
-    while (itr < opt->maxItr && ch > opt->tol){
+    //while (itr < opt->maxItr && ch > opt->tol){
+    while (itr < opt->maxItr && ch > opt->tol || opt->beta < opt->betaFinal) {
         // Update iteration counter
         itr++;
 
-		//if (opt->continuationStatus && itr % opt->IterProj == 0)
-        if (opt->continuationStatus && ((opt->penal != 1.0 && itr % opt->IterProj == 0) || (opt->penal == 1.0 && ch < opt->tol)))
+		if (opt->continuationStatus && itr % opt->IterProj == 0)
+        //if (opt->continuationStatus && ((opt->penal != 1.0 && itr % opt->IterProj == 0) || (opt->penal == 1.0 && itr > 150)))
         //if (opt->continuationStatus && ch < opt->tol)
         {
 			opt->penal = PetscMin(opt->penal + opt->penalStep, opt->penalFin); // penal = penal : 0.25 : 3.0
@@ -124,22 +108,36 @@ int solve(DataObj data) {
 			PetscPrintf(PETSC_COMM_WORLD,"===================================================\n");
 		}
 
-        // Scaling the upper bound volume constraint of the Dilated Design
-		//if (itr==2 || itr%10 == 2){
-		//	opt->volfrac = opt->VolDil_VolInt*opt->volfracREF;
-		//	PetscPrintf(PETSC_COMM_WORLD,"=====================\n");
-		//	PetscPrintf(PETSC_COMM_WORLD,"volfrac: %3.2f\n",opt->volfrac);
-		//	PetscPrintf(PETSC_COMM_WORLD,"=====================\n");
-		//}
-
         // start timer
         t1 = MPI_Wtime();
 
-        // Compute obj+const+sens
-        ierr = physics->ComputeObjectiveConstraintsSensitivities(&(opt->fx), &(opt->gx[0]), opt->dfdx, opt->dgdx[0],
-                                                                 opt->xPhys, opt->Emin, opt->Emax, opt->penal,
+        if (opt->projectionFilter) {
+            // Scaling the upper bound volume constraint of the Dilated Design
+            if (itr % 20 == 0){
+                //opt->volfrac = opt->VolDil_VolInt*opt->volfracREF;
+                PetscScalar VolDil = 0.0;
+                PetscScalar VolBlue = 0.0;
+                VecSum(opt->xPhysDil, &VolDil);
+                VecSum(opt->xPhys, &VolBlue);
+                opt->volfrac = ((VolDil - data.nrel * 10.0)  / (VolBlue - data.nrel * 10.0) ) * opt->volfracREF;
+                PetscPrintf(PETSC_COMM_WORLD,"=====================\n");
+                //PetscPrintf(PETSC_COMM_WORLD,"volfrac: %3.2f\n",opt->volfrac);
+                PetscPrintf(PETSC_COMM_WORLD,"volfrac: %f\n",opt->volfrac);
+                PetscPrintf(PETSC_COMM_WORLD,"=====================\n");
+            }
+            // Compute obj+const+sens
+            ierr = physics->ComputeObjectiveConstraintsSensitivities(&(opt->fx), &(opt->gx[0]), opt->dfdx, opt->dgdx[0],
+                                                                    opt->xPhysEro, opt->xPhysDil, opt->Emin, opt->Emax, opt->penal,
+                                                                    opt->volfrac, data);
+            CHKERRQ(ierr);
+        } else {
+
+            // Compute obj+const+sens
+            ierr = physics->ComputeObjectiveConstraintsSensitivities(&(opt->fx), &(opt->gx[0]), opt->dfdx, opt->dgdx[0],
+                                                                 opt->xPhys, opt->xPhys, opt->Emin, opt->Emax, opt->penal,
                                                                  opt->volfrac, data);
-        CHKERRQ(ierr);
+            CHKERRQ(ierr);
+        }
 
         // Compute objective scale
         if (itr == 1 || (itr % opt->IterProj == 0 && opt->continuationStatus)) {
@@ -209,36 +207,19 @@ int solve(DataObj data) {
         // Increase beta if needed
         PetscBool changeBeta = PETSC_FALSE;
         //if (opt->projectionFilter) {
-        if (opt->projectionFilter && opt->penal == 2.5) {
+        //if (opt->projectionFilter && opt->penal == opt->penalFin) {
+        if (opt->projectionFilter && itr > 150) {
             changeBeta = filter->IncreaseBeta(&(opt->beta), opt->betaFinal, opt->gx[0], itr, ch);
         }
 
         // Filter design field
-        ierr = filter->FilterProject(opt->x, opt->xTilde, opt->xPhys, opt->projectionFilter, opt->beta, opt->eta);
+        ierr = filter->FilterProject(opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, opt->projectionFilter, opt->beta, opt->eta);
         CHKERRQ(ierr);
 
-        // Reset rigid and solid elements
-        PetscScalar *xpPassive;
-        PetscScalar *xpPhys;
-        VecGetArray(opt->xPassive, &xpPassive);
-        VecGetArray(opt->xPhys, &xpPhys);
-
-        PetscInt nel;
-        VecGetLocalSize(opt->xPhys, &nel);
-
-        for (PetscInt el = 0; el < nel; el++) {
-            if (xpPassive[el] == 3.0) {
-                xpPhys[el] = 10.0;
-            }
-            if (xpPassive[el] == 2.0) {
-                xpPhys[el] = 1.0;
-            }
-            if (xpPassive[el] == 4.0) {
-                xpPhys[el] = 0.0;
-            }
-        }
-        VecRestoreArray(opt->xPassive, &xpPassive);
-        VecRestoreArray(opt->xPhys, &xpPhys);
+        // Set variables in xPhys, xPhysEro, xPhysDil
+        opt->SetVariables(opt->xPhys, opt->xPassive);
+        opt->SetVariables(opt->xPhysEro, opt->xPassive);
+        opt->SetVariables(opt->xPhysDil, opt->xPassive);
 
         // Discreteness measure
         PetscScalar mnd = filter->GetMND(opt->xPhys);
@@ -254,7 +235,7 @@ int solve(DataObj data) {
 
         // Write field data: first 10 iterations and then every 20th
         if (itr < 11 || itr % 20 == 0 || changeBeta) {
-            output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr);
+            output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, itr);
         }
 
         // Dump data needed for restarting code at termination
@@ -269,7 +250,7 @@ int solve(DataObj data) {
     //physics->WriteRestartFiles();
 
     // Dump final design
-    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr + 1);
+    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, itr + 1);
 
     // stop timer total runtime
     rt2 = MPI_Wtime();
@@ -282,6 +263,24 @@ int solve(DataObj data) {
     if (opt->testStatus) {
         data.check_ev(opt->fx / opt->fscale, rt2 - rt1, mem);
     }
+
+    //// Print output
+    PetscScalar xPhys_sum;
+    VecSum(opt->xPhys, &(xPhys_sum));
+    //PetscPrintf(PETSC_COMM_WORLD, "# xPhys_sum: %f\n", xPhys_sum);
+    xPhys_sum = xPhys_sum - data.nrel * 10.0 - data.nsel * 1.0;
+    //PetscPrintf(PETSC_COMM_WORLD, "# xPhys_sum1: %f\n", xPhys_sum);
+
+    // Calculate porosity
+    //PetscScalar Poro = 1.0 - (xPhys_sum / ((opt->nxyz[0] - 1) * (opt->nxyz[1] - 1) * (opt->nxyz[2] - 1)));
+    PetscScalar Poro = 1.0 - (xPhys_sum / data.nael);
+
+    PetscPrintf(PETSC_COMM_WORLD, "######################## Final output ########################\n");
+    PetscPrintf(PETSC_COMM_WORLD, "# Porosity: %f\n", Poro);
+    PetscPrintf(PETSC_COMM_WORLD, "# Total Volume: %f\n", xPhys_sum);
+    PetscPrintf(PETSC_COMM_WORLD, "# Mesh resolution: %f\n", opt->xc[1] / (opt->nxyz[0] - 1));
+    PetscPrintf(PETSC_COMM_WORLD, "##############################################################\n");
+
 
     // STEP 7: CLEAN UP AFTER YOURSELF
     delete mma;

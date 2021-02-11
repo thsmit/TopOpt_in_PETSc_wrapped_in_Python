@@ -36,11 +36,11 @@ class LinearElasticity {
     //  Compute objective and constraints and sensitivities at once: GOOD FOR
     //  SELF_ADJOINT PROBLEMS
     PetscErrorCode ComputeObjectiveConstraintsSensitivities(PetscScalar* fx, PetscScalar* gx, Vec dfdx, Vec dgdx,
-                                                            Vec xPhys, PetscScalar Emin, PetscScalar Emax,
+                                                            Vec xPhys, Vec xPhysDil, PetscScalar Emin, PetscScalar Emax,
                                                             PetscScalar penal, PetscScalar volfrac, DataObj data);
-    
+
     PetscErrorCode ComputeObjectiveConstraintsSensitivities(PetscScalar* fx, PetscScalar* gx, Vec dfdx, Vec dgdx,
-                                                            Vec xPhys, PetscScalar Emin, PetscScalar Emax,
+                                                            Vec xPhys, Vec xPhysDil, PetscScalar Emin, PetscScalar Emax,
                                                             PetscScalar penal, PetscScalar volfrac, PetscInt loadcase, DataObj data);
 
     // Compute objective and constraints for the optimiation
@@ -78,10 +78,10 @@ class LinearElasticity {
     Vec*        U;           // Displacement vector
     Vec*        RHS;         // Load vector
     Vec*        N;           // Dirichlet vector (used when imposing BCs)
-    //Vec*        S;   
+    //Vec*        S;
 
     PetscScalar KE[24 * 24]; // Element stiffness matrix
-  
+
     // Solver
     KSP         ksp; // Pointer to the KSP object i.e. the linear solver+prec
     PetscInt    nlvls;

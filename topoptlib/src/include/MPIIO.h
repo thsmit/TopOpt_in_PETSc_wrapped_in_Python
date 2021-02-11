@@ -39,8 +39,8 @@ class MPIIO {
     ~MPIIO();
 
     // NOT CLEAN INTERFACE: REPLACE BY STD::PAIR OR SUCH !!!!!!
+    PetscErrorCode WriteVTK(DM da_nodes, Vec U, Vec x, Vec xTilde, Vec xPhysEro, Vec xPhys, Vec xPhysDil, PetscInt itr);
     PetscErrorCode WriteVTK(DM da_nodes, Vec U, Vec x, Vec xTilde, Vec xPhys, PetscInt itr);
-    PetscErrorCode WriteVTK(DM da_nodes, Vec U, Vec x, Vec xTilde, Vec xPhys, Vec dfdx, PetscInt itr);
 
   private:
     // -------------- METHODS -----------------------------------------

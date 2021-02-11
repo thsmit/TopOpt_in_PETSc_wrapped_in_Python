@@ -42,7 +42,7 @@ class Filter {
     ~Filter();
 
     // Filter design variables
-    PetscErrorCode FilterProject(Vec x, Vec xTilde, Vec xPhys, PetscBool projectionFilter, PetscScalar beta,
+    PetscErrorCode FilterProject(Vec x, Vec xTilde, Vec xPhysEro, Vec xPhys, Vec xPhysDil, PetscBool projectionFilter, PetscScalar beta,
                                  PetscScalar eta);
 
     // Filter the sensitivities
@@ -60,6 +60,7 @@ class Filter {
     Mat H;  // Filter matrix
     Vec Hs; // Filter "sum weight" (normalization factor) vector
     Vec dx; // Projection filter chainrule correction
+    Vec dx1; // Projection filter chainrule correction
 
     PetscInt    filterType;
     PetscScalar R;

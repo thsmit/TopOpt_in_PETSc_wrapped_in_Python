@@ -44,6 +44,7 @@ struct DataObj {
         int filter_w;
         double rmin_w;
         double volumefrac_w;
+        double init_volumefrac_w;
         double b_w[6];
 
         // continuation, projections
@@ -57,6 +58,7 @@ struct DataObj {
         double penalinitial_w;
         double stepsize_w;
         int iterProg_w;
+        int IterProgPro_w;
 
         // needed as members to be used in python script
         int nNodes;
@@ -212,9 +214,9 @@ struct DataObj {
             return result;
         }
 
-        double const_ev(double comp, double sumXP) {
+        double const_ev(double comp, double sumXP, double volfrac) {
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("dd", comp, sumXP);
+            PyObject *arglist = Py_BuildValue("ddd", comp, sumXP, volfrac);
 
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(const_func, arglist);

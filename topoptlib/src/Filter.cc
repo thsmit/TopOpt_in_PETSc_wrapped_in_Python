@@ -48,7 +48,7 @@ Filter::Filter(DM da_nodes, Vec x, PetscInt filterT, PetscScalar Rin) {
     // Get parameters
     R          = Rin;
     filterType = filterT;
-    
+
     // Create dummy passive vector
     Vec xPassive;
     VecDuplicate(x, &xPassive);
@@ -77,10 +77,13 @@ Filter::~Filter() {
     if (dx != NULL) {
         VecDestroy(&dx);
     }
+    if (dx1 != NULL) {
+        VecDestroy(&dx1);
+    }
 }
 
 // Filter design variables
-PetscErrorCode Filter::FilterProject(Vec x, Vec xTilde, Vec xPhys, PetscBool projectionFilter, PetscScalar beta,
+PetscErrorCode Filter::FilterProject(Vec x, Vec xTilde, Vec xPhysEro, Vec xPhys, Vec xPhysDil, PetscBool projectionFilter, PetscScalar beta,
                                      PetscScalar eta) {
     PetscErrorCode ierr;
 
@@ -131,7 +134,9 @@ PetscErrorCode Filter::FilterProject(Vec x, Vec xTilde, Vec xPhys, PetscBool pro
 
     // Check for projection
     if (projectionFilter) {
+        HeavisideFilter(xPhysEro, xTilde, beta, eta + 0.1);
         HeavisideFilter(xPhys, xTilde, beta, eta);
+        HeavisideFilter(xPhysDil, xTilde, beta, eta - 0.1);
     } else {
         VecCopy(xTilde, xPhys);
     }
@@ -150,9 +155,10 @@ PetscErrorCode Filter::Gradients(Vec x, Vec xTilde, Vec dfdx, PetscInt m, Vec* d
         //PetscPrintf(PETSC_COMM_WORLD, "CHECK \n");
 
         // Get correction
-        ChainruleHeavisideFilter(dx, xTilde, beta, eta);
+        ChainruleHeavisideFilter(dx, xTilde, beta, eta + 0.1);
+        ChainruleHeavisideFilter(dx1, xTilde, beta, eta - 0.1);
 
-        PetscScalar *xt, *dg, *df, *dxp;
+        PetscScalar *xt, *dg, *df, *dxp, *dxp1;
         PetscInt     locsiz;
 
         ierr = VecGetLocalSize(xTilde, &locsiz);
@@ -160,6 +166,8 @@ PetscErrorCode Filter::Gradients(Vec x, Vec xTilde, Vec dfdx, PetscInt m, Vec* d
         ierr = VecGetArray(xTilde, &xt);
         CHKERRQ(ierr);
         ierr = VecGetArray(dx, &dxp);
+        CHKERRQ(ierr);
+        ierr = VecGetArray(dx1, &dxp1);
         CHKERRQ(ierr);
         // Objective function
         ierr = VecGetArray(dfdx, &df);
@@ -175,12 +183,14 @@ PetscErrorCode Filter::Gradients(Vec x, Vec xTilde, Vec dfdx, PetscInt m, Vec* d
             CHKERRQ(ierr);
             // The eta item corresponding to the correct realization
             for (PetscInt j = 0; j < locsiz; j++) {
-                dg[j] = dg[j] * dxp[j];
+                dg[j] = dg[j] * dxp1[j];
             }
             ierr = VecRestoreArray(dgdx[i], &dg);
             CHKERRQ(ierr);
         }
         ierr = VecRestoreArray(dx, &dxp);
+        CHKERRQ(ierr);
+        ierr = VecRestoreArray(dx1, &dxp1);
         CHKERRQ(ierr);
         ierr = VecRestoreArray(dgdx[0], &dg);
         CHKERRQ(ierr);
@@ -297,7 +307,9 @@ PetscBool Filter::IncreaseBeta(PetscReal* beta, PetscReal betaFinal, PetscScalar
     PetscBool changeBeta = PETSC_FALSE;
 
     // Increase beta when fitting, itr 10 or 50
-    if ((ch < 0.01 || itr % 20 == 0) && beta[0] < betaFinal && gx < 0.000001) {
+    //if ((ch < 0.01 || itr % 50 == 0) && beta[0] < betaFinal && gx < 0.000001) {
+    //if ((ch < 0.01 || itr % 20 == 0) && beta[0] < betaFinal) {
+    if ((ch < 0.01 || itr % 40 == 0) && beta[0] < betaFinal) {
         changeBeta = PETSC_TRUE;
         if (beta[0] < 7) {
             beta[0] = beta[0] + 1;
@@ -308,7 +320,9 @@ PetscBool Filter::IncreaseBeta(PetscReal* beta, PetscReal betaFinal, PetscScalar
             beta[0]    = betaFinal;
             changeBeta = PETSC_FALSE;
         }
+        PetscPrintf(PETSC_COMM_WORLD,"=====================\n");
         PetscPrintf(PETSC_COMM_WORLD, "Beta has been increased to: %f\n", beta[0]);
+        PetscPrintf(PETSC_COMM_WORLD,"=====================\n");
     }
 
     return changeBeta;
@@ -323,6 +337,10 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
 
     VecDuplicate(x, &dx);
     VecSet(dx, 1.0);
+
+    VecDuplicate(x, &dx1);
+    VecSet(dx1, 1.0);
+
 
     if (filterType == 0 || filterType == 1) {
 
@@ -464,7 +482,7 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
                                     dist = R - dist;
                                     MatSetValuesLocal(H, 1, &row, 1, &col, &dist, INSERT_VALUES);
                                     //PetscPrintf(PETSC_COMM_WORLD, "row: %i, col: %i, H: %f \n", row, col, dist);
-                                    
+
                                 }
                             }
                         }
@@ -475,9 +493,9 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
         // Assemble H:
         MatAssemblyBegin(H, MAT_FINAL_ASSEMBLY);
         MatAssemblyEnd(H, MAT_FINAL_ASSEMBLY);
-        
+
         ///////////////////////////////////////////////////////////////////////////////////////////////////
-        
+
         // FOR PASSIVE
         DMDAGetElements_3D(da_nodes, &nel, &nen, &necon);
 
@@ -546,7 +564,7 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
     } else if (filterType == 2) {
         // Print WARNING!
         PetscPrintf(PETSC_COMM_WORLD, "WARNING: it is not adviced to use the PDE filter in combination with passive elements \n");
-        
+
         // ALLOCATE AND SETUP THE PDE FILTER CLASS
         pdef = new PDEFilt(da_nodes, R);
     }

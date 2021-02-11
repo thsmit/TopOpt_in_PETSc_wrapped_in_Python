@@ -125,7 +125,7 @@ private:
 };
 
 class Voxelizer {
-public:	
+public:
 	// constructor do the vexelization
 	Voxelizer(Geometry& geo_, GridBox& grid_);
 	// return the voxelized flag;

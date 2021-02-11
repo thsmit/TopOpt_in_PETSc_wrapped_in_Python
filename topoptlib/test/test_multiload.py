@@ -42,7 +42,7 @@ def sensitivity(xp, uKu, penal):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
 
 
-def constraint(comp, sumXp):
+def constraint(comp, sumXp, volfrac):
     return sumXp / nEl - materialvolumefraction
 
 

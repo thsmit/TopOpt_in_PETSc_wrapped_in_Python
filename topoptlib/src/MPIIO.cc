@@ -144,7 +144,7 @@ MPIIO::~MPIIO() {
     delete[] nCFields;
 }
 
-PetscErrorCode MPIIO::WriteVTK(DM da_nodes, Vec U, Vec x, Vec xTilde, Vec xPhys, Vec dfdx, PetscInt itr) {
+PetscErrorCode MPIIO::WriteVTK(DM da_nodes, Vec U, Vec x, Vec xTilde, Vec xPhysEro, Vec xPhys, Vec xPhysDil, PetscInt itr) {
 
     // Here we only have one "timestep" (no optimization)
     unsigned long int timestep = itr;
@@ -180,25 +180,28 @@ PetscErrorCode MPIIO::WriteVTK(DM da_nodes, Vec U, Vec x, Vec xTilde, Vec xPhys,
     CHKERRQ(ierr);
 
     // CELL FIELD(S)
-    PetscScalar *xpp, *xp, *xt, *xd;
+    PetscScalar *xpp, *xp, *xt, *xe, *xd;
     VecGetArray(x, &xp);
     VecGetArray(xTilde, &xt);
+    VecGetArray(xPhysEro, &xe);
     VecGetArray(xPhys, &xpp);
-    VecGetArray(dfdx, &xd);
+    VecGetArray(xPhysDil, &xd);
 
     for (unsigned long int i = 0; i < nCellsMyrank[0]; i++) {
         // Density
         workCellField[i + 0 * nCellsMyrank[0]] = float(xp[i]);
         workCellField[i + 1 * nCellsMyrank[0]] = float(xt[i]);
-        workCellField[i + 2 * nCellsMyrank[0]] = float(xpp[i]);
-        workCellField[i + 3 * nCellsMyrank[0]] = float(xd[i]);
+        workCellField[i + 2 * nCellsMyrank[0]] = float(xe[i]);
+        workCellField[i + 3 * nCellsMyrank[0]] = float(xpp[i]);
+        workCellField[i + 4 * nCellsMyrank[0]] = float(xd[i]);
     }
     writeCellFields(0, workCellField);
     // Restore arrays
     VecRestoreArray(x, &xp);
     VecRestoreArray(xTilde, &xt);
+    VecRestoreArray(xPhysEro, &xe);
     VecRestoreArray(xPhys, &xpp);
-    VecRestoreArray(dfdx, &xd);
+    VecRestoreArray(xPhysDil, &xd);
 
     // clean up
     ierr = VecDestroy(&Ulocal);

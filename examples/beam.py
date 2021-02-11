@@ -36,6 +36,9 @@ def main():
     Emin, Emax, nu, Dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 3.0
     data.material(Emin, Emax, nu, Dens, penal)
 
+    # setup heavyside projection filter (betaFinal, betaInit, eta, iter progression) update of beta every 10 iterations
+    data.projection(64.0, 1.0, 0.5, 20)  # robust formulation
+
     # filter: (type, radius)
     # filter types: sensitivity = 0, density = 1
     # using 0.08, 0.04 or 0.02
@@ -67,19 +70,20 @@ def main():
         return comp  # for minimizing compliance
         # return sumXp # for minimizing volume
 
-    def sensitivity(xp, uKu):
+    def sensitivity(xp, uKu, penal):
         return (
             -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
         )  # for minimizing compliance
         # return 1.0 # for minimizing volume
 
-    def constraint(comp, sumXp):
+    def constraint(comp, sumXp, volfrac):
         # print('sumXp: ', sumXp)
         # return 0.0
-        return sumXp / nEl - materialvolumefraction  # for minimizing compliance
+        # return sumXp / nEl - materialvolumefraction  # for minimizing compliance
+        return sumXp / nEl - volfrac  # for minimizing compliance
         # return comp / complicancetarget - 1.0 # for minimizing volume
 
-    def constraintSensitivity(xp, uKu):
+    def constraintSensitivity(xp, uKu, penal):
         # return 0.0
         return 1.0 / nEl  # for minimizing compliance
         # return (-1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu) / complicancetarget # for minimizing volume
@@ -115,7 +119,7 @@ def main():
 
     # step 3:
     # solve topopt problem with input data and wait for "complete" signal
-    complete = data.solve()
+    data.solve()
 
 
 if __name__ == "__main__":

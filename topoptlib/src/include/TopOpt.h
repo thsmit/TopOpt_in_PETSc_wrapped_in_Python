@@ -51,6 +51,7 @@ class TopOpt {
     PetscErrorCode WriteRestartFiles(PetscInt* itr, MMA* mma);
 
     PetscErrorCode UpdateVariables(PetscInt updateDirection, Vec elementVector, Vec MMAVector);
+    PetscErrorCode SetVariables(Vec x, Vec xPassive);
 
     // Physical domain variables
     PetscScalar xc[11];      // Domain coordinates
@@ -77,7 +78,9 @@ class TopOpt {
     PetscScalar  Xmax;   // Max. value of design variables
 
     PetscScalar movlim;     // Max. change of design variables
+    PetscScalar init_volfrac;
     PetscScalar volfrac;    // Volume fraction
+    PetscScalar volfracREF;
     PetscScalar penal;      // Penalization parameter
     PetscBool continuationStatus;
     PetscBool testStatus;
@@ -113,14 +116,9 @@ class TopOpt {
 
     Vec xPhysEro;
     Vec xPhysDil;
-    Vec dErodFilt;
-    Vec dDildFilt;
+    //Vec dErodFilt;
+    //Vec dDildFilt;
 
-    PetscScalar etaEro; // erosion threshold
-	  //PetscScalar eta; // Intermediate threshold
-	  PetscScalar etaDil; // dilation threshold
-	  PetscScalar tero; // offset distance
-	  PetscScalar tdil; // offset distance;
 
     // new vectors for passive element implementations
     Vec xMMA;

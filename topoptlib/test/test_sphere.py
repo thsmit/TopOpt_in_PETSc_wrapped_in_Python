@@ -8,17 +8,34 @@
 # free from errors. Furthermore, we shall not be liable in any event
 # caused by the use of the program.
 
+# import numpy as np
+
 import topoptlib
-import numpy as np
 
 data = topoptlib.Data()
 
-data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.1875, 0.9875, 0.0), (161, 193, 193))
-data.stlread(3.0, -1.0, 4, (0.0, 0.0, 0.0), (1.0, 1.2, 1.2), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/rigidtorsion.stl')
-data.stlread(4.0, 0.0, 4, (0.0, 0.0, 0.0), (1.0, 1.2, 1.2), '/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/torsionvoid.stl')
+data.structuredGrid(
+    (0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.1875, 0.9875, 0.0), (161, 193, 193)
+)
+data.stlread(
+    3.0,
+    -1.0,
+    4,
+    (0.0, 0.0, 0.0),
+    (1.0, 1.2, 1.2),
+    "/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/rigidtorsion.stl",
+)
+data.stlread(
+    4.0,
+    0.0,
+    4,
+    (0.0, 0.0, 0.0),
+    (1.0, 1.2, 1.2),
+    "/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/torsionvoid.stl",
+)
 
 
 if data.nael == 5816564 and data.nvel == 74978 and data.nrel == 6698:
-    open("test_sphere SUCCESFULL","w+")
+    open("test_sphere SUCCESFULL", "w+")
 else:
-    open("test_sphere not succesfull!","w+")
+    open("test_sphere not succesfull!", "w+")

@@ -528,7 +528,7 @@ PetscErrorCode MMA::GenSub(Vec xval, Vec dfdx, PetscScalar* gx, Vec* dgdx, Vec x
     //PetscPrintf(PETSC_COMM_WORLD, "start GenSub \n");
 
     PetscScalar gamma, helpvar;
-    
+
     //PetscInt nlocx;
     //VecGetSize(xval, &nlocx);
     //PetscPrintf(PETSC_COMM_WORLD, "len xval %i\n", nlocx);

@@ -20,7 +20,7 @@ Disclaimer:
  caused by the use of the program.
 */
 
-static PyMemberDef members[] = 
+static PyMemberDef members[] =
     { {"nNodes", T_INT, offsetof(DataObj, nNodes), 0, "nNodes docstring"},
       {"nElements", T_INT, offsetof(DataObj, nElements), 0, "nNodes docstring"},
       {"nDOF", T_INT, offsetof(DataObj, nDOF), 0, "nNodes docstring"},
@@ -37,7 +37,7 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
     double xc0, xc1, xc2, xc3, xc4, xc5, xc6, xc7, xc8, xc9, xc10;
     int nxyz0, nxyz1, nxyz2;
 
-    if(!PyArg_ParseTuple(args, "(ddddddddddd)(iii)", &xc0, &xc1, &xc2, &xc3, &xc4, &xc5, &xc6, &xc7, &xc8, &xc9, &xc10, &nxyz0, &nxyz1, &nxyz2)) { 
+    if(!PyArg_ParseTuple(args, "(ddddddddddd)(iii)", &xc0, &xc1, &xc2, &xc3, &xc4, &xc5, &xc6, &xc7, &xc8, &xc9, &xc10, &nxyz0, &nxyz1, &nxyz2)) {
         return NULL;
     }
 
@@ -70,15 +70,15 @@ static PyObject *stlread_py(DataObj *self, PyObject *args)
     double encoding, backround;
     int treshold;
     double b0, b1, b2, b3, b4, b5;
-    char *path = NULL; 
-    
-    if (!PyArg_ParseTuple(args, "ddi(ddd)(ddd)s", &encoding, &backround, &treshold, &b0, &b1, &b2, &b3, &b4, &b5, &path)) { 
+    char *path = NULL;
+
+    if (!PyArg_ParseTuple(args, "ddi(ddd)(ddd)s", &encoding, &backround, &treshold, &b0, &b1, &b2, &b3, &b4, &b5, &path)) {
         return NULL;
     }
 
     // check if STL is in binary format
     if (!checkBinarySTL(path)) {
-        printf("Stl file is not in binary format\n");        
+        printf("Stl file is not in binary format\n");
         return NULL;
     }
 
@@ -134,7 +134,7 @@ static PyObject *stlread_py(DataObj *self, PyObject *args)
     for (int z = 0; z < nelz; z++) {
         for (int y = 0; y < nely; y++) {
             for (int x = 0; x < nelx; x++) {
-                
+
                 int node1 = flag[nox];
                 int node2 = flag[nox + 1];
                 int node3 = flag[noy + 1];
@@ -156,17 +156,17 @@ static PyObject *stlread_py(DataObj *self, PyObject *args)
                     nox = (z + 1) * (nelx + 1) * (nely + 1);
                     noy = (z + 1) * ((nelx + 1) * (nely + 1)) + nelx + 1;
                 }
-                
+
                 int sum = node1 + node2 + node3 + node4 + node5 + node6 + node7 + node8;
-            
+
                 if (sum >= treshold) {
                     self->xPassive_w.at(ecount) = encoding;
                 } else if (backround != 0.0) {
                     self->xPassive_w.at(ecount) = backround;
                 }
-                
+
                 ecount++;
-            
+
             }
         }
     }
@@ -179,9 +179,9 @@ static PyObject *stlread_py(DataObj *self, PyObject *args)
 // set material variables
 static PyObject *material_py(DataObj *self, PyObject *args)
 {
-    double Emin, Emax, nu, dens, penal; 
-    
-    if(!PyArg_ParseTuple(args, "ddddd", &Emin, &Emax, &nu, &dens, &penal)) { 
+    double Emin, Emax, nu, dens, penal;
+
+    if(!PyArg_ParseTuple(args, "ddddd", &Emin, &Emax, &nu, &dens, &penal)) {
         return NULL;
     }
 
@@ -197,9 +197,9 @@ static PyObject *material_py(DataObj *self, PyObject *args)
 static PyObject *filter_py(DataObj *self, PyObject *args)
 {
     int filter;
-    double rmin; 
-    
-    if(!PyArg_ParseTuple(args, "id", &filter, &rmin)) { 
+    double rmin;
+
+    if(!PyArg_ParseTuple(args, "id", &filter, &rmin)) {
         return NULL;
     }
 
@@ -210,11 +210,11 @@ static PyObject *filter_py(DataObj *self, PyObject *args)
 }
 
 static PyObject *continuation_py(DataObj *self, PyObject *args)
-{        
+{
     double Pinitial, Pfinal, stepsize;
     int IterProg;
 
-    if(!PyArg_ParseTuple(args, "dddi", &Pinitial, &Pfinal, &stepsize, &IterProg)) { 
+    if(!PyArg_ParseTuple(args, "dddi", &Pinitial, &Pfinal, &stepsize, &IterProg)) {
         return NULL;
     }
 
@@ -228,15 +228,17 @@ static PyObject *continuation_py(DataObj *self, PyObject *args)
 }
 
 static PyObject *projection_py(DataObj *self, PyObject *args)
-{   
-    double betaFinal, betaInit, eta;     
-    if(!PyArg_ParseTuple(args, "ddd", &betaFinal, &betaInit, &eta)) { 
+{
+    double betaFinal, betaInit, eta;
+    int IterProgPro;
+    if(!PyArg_ParseTuple(args, "dddi", &betaFinal, &betaInit, &eta, &IterProgPro)) {
         return NULL;
     }
 
     self->betaFinal_w = betaFinal;
     self->betaInit_w = betaInit;
     self->eta_w = eta;
+    self->IterProgPro_w = IterProgPro;
 
     self->projection_w = 1;
 
@@ -247,9 +249,9 @@ static PyObject *projection_py(DataObj *self, PyObject *args)
 static PyObject *mma_py(DataObj *self, PyObject *args)
 {
     int maxIter;
-    double tol; 
-    
-    if(!PyArg_ParseTuple(args, "id", &maxIter, &tol)) { 
+    double tol;
+
+    if(!PyArg_ParseTuple(args, "id", &maxIter, &tol)) {
         return NULL;
     }
 
@@ -266,9 +268,9 @@ static PyObject *bcpara_py(DataObj *self, PyObject *args)
         return NULL;
 
     // Make sure second argument is a function
-    if (!PyCallable_Check(pypara_func)) 
+    if (!PyCallable_Check(pypara_func))
         return NULL;
-    
+
     self->para_func = pypara_func;
     Py_INCREF(self->para_func);
 
@@ -277,12 +279,12 @@ static PyObject *bcpara_py(DataObj *self, PyObject *args)
 
 static PyObject *bc_py(DataObj *self, PyObject *args)
 {
-    
+
     PyObject *checker;
     PyObject *setter_dof;
     PyObject *setter_val;
     //PyObject *param_func;
- 
+
     int loadcase_ID;
     int BCtypes;
     int nChecker;
@@ -305,11 +307,11 @@ static PyObject *bc_py(DataObj *self, PyObject *args)
     //printf("Number of Setters val: %i\n", nSetter_val);
 
     condition.BCtype = BCtypes;
-    
+
     PyObject *iterator = PyObject_GetIter(checker);
     PyObject *item;
 
-    
+
     while ((item = PyIter_Next(iterator)))
         {
             int val = PyLong_AsLong(item);
@@ -344,7 +346,7 @@ static PyObject *bc_py(DataObj *self, PyObject *args)
     Py_DECREF(iteratorrr);
 
 
-    condition.Para = param_funci;        
+    condition.Para = param_funci;
     self->loadcases_list.at(loadcase_ID).push_back(condition);
 
     Py_RETURN_NONE;
@@ -357,7 +359,7 @@ static PyObject *loadcases_py(DataObj *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i", &n)) {
         return NULL;
     }
-    
+
     // Set number of loadcases variable
     self->nL = n;
 
@@ -368,7 +370,7 @@ static PyObject *loadcases_py(DataObj *self, PyObject *args)
 }
 
 static PyObject *localVolume_py(DataObj *self, PyObject *args)
-{   
+{
     double Rlocvol, alpha;
 
     if (!PyArg_ParseTuple(args, "dd", &Rlocvol, &alpha)) {
@@ -377,7 +379,7 @@ static PyObject *localVolume_py(DataObj *self, PyObject *args)
 
     self->Rlocvol_w = Rlocvol;
     self->alpha_w = alpha;
-    self->m = 2;     
+    self->m = 2;
     self->localVolume_w = 1;
 
     Py_RETURN_NONE;
@@ -390,9 +392,9 @@ static PyObject *obj_py(DataObj *self, PyObject *args)
         return NULL;
 
     // Make sure second argument is a function
-    if (!PyCallable_Check(pyobj_func)) 
+    if (!PyCallable_Check(pyobj_func))
         return NULL;
-    
+
     self->obj_func = pyobj_func;
     Py_INCREF(self->obj_func);
 
@@ -406,9 +408,9 @@ static PyObject *objsens_py(DataObj *self, PyObject *args)
         return NULL;
 
     // Make sure second argument is a function
-    if (!PyCallable_Check(pyobj_sens_func)) 
+    if (!PyCallable_Check(pyobj_sens_func))
         return NULL;
-    
+
     self->obj_sens_func = pyobj_sens_func;
     Py_INCREF(self->obj_sens_func);
 
@@ -416,14 +418,14 @@ static PyObject *objsens_py(DataObj *self, PyObject *args)
 }
 
 static PyObject *initialcondition_py(DataObj *self, PyObject *args)
-{    
-    double volufrac; 
-    
-    if(!PyArg_ParseTuple(args, "d", &volufrac)) { 
+{
+    double init_volfrac;
+
+    if(!PyArg_ParseTuple(args, "d", &init_volfrac)) {
         return NULL;
     }
 
-    self->volumefrac_w = volufrac;
+    self->init_volumefrac_w = init_volfrac;
 
     Py_RETURN_NONE;
 }
@@ -435,9 +437,9 @@ static PyObject *cons_py(DataObj *self, PyObject *args)
         return NULL;
 
     // Make sure second argument is a function
-    if (!PyCallable_Check(pyconst_func)) 
+    if (!PyCallable_Check(pyconst_func))
         return NULL;
-    
+
     self->const_func = pyconst_func;
     Py_INCREF(self->const_func);
 
@@ -451,9 +453,9 @@ static PyObject *conssens_py(DataObj *self, PyObject *args)
         return NULL;
 
     // Make sure second argument is a function
-    if (!PyCallable_Check(pyconst_sens_func)) 
+    if (!PyCallable_Check(pyconst_sens_func))
         return NULL;
-    
+
     self->const_sens_func = pyconst_sens_func;
     Py_INCREF(self->const_sens_func);
 
@@ -468,9 +470,9 @@ static PyObject *check_py(DataObj *self, PyObject *args)
         return NULL;
 
     // Make sure second argument is a function
-    if (!PyCallable_Check(test_func)) 
+    if (!PyCallable_Check(test_func))
         return NULL;
-    
+
     self->test_func = test_func;
     Py_INCREF(self->test_func);
 
@@ -572,10 +574,10 @@ static struct PyModuleDef module =
 
 PyMODINIT_FUNC PyInit_topoptlib(void)
 {
-    
+
     if (PyType_Ready(&DataType) < 0)
         return NULL;
-    
+
     PyObject* m = PyModule_Create(&module);
 
     // for numpy arrays
@@ -591,4 +593,3 @@ PyMODINIT_FUNC PyInit_topoptlib(void)
 
     return m;
 }
-

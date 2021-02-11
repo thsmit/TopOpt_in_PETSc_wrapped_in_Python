@@ -53,8 +53,8 @@ TopOpt::TopOpt(DataObj data) {
     // ==== Robust Formulation
     xPhysEro   = NULL;
     xPhysDil   = NULL;
-    dErodFilt  = NULL;
-    dDildFilt  = NULL;
+    //dErodFilt  = NULL;
+    //dDildFilt  = NULL;
     // =======================
 
     SetUp(data);
@@ -140,8 +140,8 @@ TopOpt::~TopOpt() {
     // ========================== ROBUST FORMULATION
 	if (xPhysEro!=NULL){ VecDestroy(&xPhysEro); }
 	if (xPhysDil!=NULL){ VecDestroy(&xPhysDil); }
-	if (dErodFilt!=NULL){ VecDestroy(&dErodFilt); }
-	if (dDildFilt!=NULL){ VecDestroy(&dDildFilt); }
+	//if (dErodFilt!=NULL){ VecDestroy(&dErodFilt); }
+	//if (dDildFilt!=NULL){ VecDestroy(&dDildFilt); }
 	// ================================================
 
 }
@@ -170,7 +170,11 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     nlvls   = 4;
 
     // SET DEFAULTS for optimization problems
-    volfrac = data.volumefrac_w;
+    init_volfrac = data.init_volumefrac_w;
+    //volfrac = data.volumefrac_w;
+    //volfracREF = data.volumefrac_w;
+    volfrac = 0.02;
+    volfracREF = 0.02;
     maxItr  = data.maxIter_w;
     tol  = data.tol_w;
     rmin    = data.rmin_w;
@@ -227,14 +231,6 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
         betaFinal        = data.betaFinal_w;
         eta              = data.eta_w;
     }
-
-    // Robust formulation =======================
-	etaEro  = 0.75 ; // erosion threshold
-	eta     = 0.50 ; // Intermediate threshold
-	etaDil  = 0.25 ; // dilation threshold
-	tero    = rmin/2.0*0.58 ; // offset distance
-	tdil    = rmin/2.0*0.58 ; // offset distance
-	// ==========================================
 
     ierr = SetUpMESH();
     CHKERRQ(ierr);
@@ -473,16 +469,16 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     ierr = VecDuplicate(xPhys, &xTilde);
     CHKERRQ(ierr);
 
-    VecSet(x, volfrac);      // Initialize to volfrac !
-    VecSet(xTilde, volfrac); // Initialize to volfrac !
-    VecSet(xPhys, volfrac);  // Initialize to volfrac !
+    VecSet(x, init_volfrac);      // Initialize to volfrac !
+    VecSet(xTilde, init_volfrac); // Initialize to volfrac !
+    VecSet(xPhys, init_volfrac);  // Initialize to volfrac !
 
     // ROBUST FORMULATION =====================
-	VecSet(xPhysEro,volfrac);
-	VecSet(xPhysDil,volfrac);
+	VecSet(xPhysEro, init_volfrac);
+	VecSet(xPhysDil, init_volfrac);
 	//VecDuplicate(x,&dPhysdFilt);
-	VecDuplicate(x,&dErodFilt);
-	VecDuplicate(x,&dDildFilt);
+	//VecDuplicate(x,&dErodFilt);
+	//VecDuplicate(x,&dDildFilt);
 	// ========================================
 
     // Sensitivity vectors
@@ -495,7 +491,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     VecDuplicate(x, &xmin);
     VecDuplicate(x, &xmax);
     VecDuplicate(x, &xold);
-    VecSet(xold, volfrac);
+    VecSet(xold, init_volfrac);
 
     // create xPassive vector
     ierr = VecDuplicate(xPhys, &xPassive);
@@ -634,10 +630,10 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         for (PetscInt el = 0; el < nel; el++) {
             if (xpPassive[el] == -1.0) {
                 xpIndicator[count] = el;
-                xpPhys[el] = volfrac;
-                xptilde[el] = volfrac;
-                xpx[el] = volfrac;
-                xpold[el] = volfrac;
+                xpPhys[el] = init_volfrac;
+                xptilde[el] = init_volfrac;
+                xpx[el] = init_volfrac;
+                xpold[el] = init_volfrac;
                 count++;
             }
         }
@@ -898,6 +894,42 @@ PetscErrorCode TopOpt::UpdateVariables(PetscInt updateDirection, Vec elementVect
     ierr = VecRestoreArray(MMAVector, &xpMMA);
     CHKERRQ(ierr);
     ierr = VecRestoreArray(indicator, &indicesMap);
+    CHKERRQ(ierr);
+
+    return ierr;
+}
+
+PetscErrorCode TopOpt::SetVariables(Vec xVector, Vec passiveVector) {
+
+    PetscErrorCode ierr;
+
+    // Add rigid, solid and void elements
+    PetscScalar *xpPassive;
+    PetscScalar *xp;
+    ierr = VecGetArray(passiveVector, &xpPassive);
+    CHKERRQ(ierr);
+    ierr = VecGetArray(xVector, &xp);
+    CHKERRQ(ierr);
+
+    PetscInt nel;
+    ierr = VecGetLocalSize(x, &nel);
+    CHKERRQ(ierr);
+
+    for (PetscInt el = 0; el < nel; el++) {
+        if (xpPassive[el] == 3.0) {
+            xp[el] = 10.0;
+        }
+        if (xpPassive[el] == 2.0) {
+            xp[el] = 1.0;
+        }
+        if (xpPassive[el] == 4.0) {
+            xp[el] = 0.0;
+        }
+    }
+
+    ierr = VecRestoreArray(passiveVector, &xpPassive);
+    CHKERRQ(ierr);
+    ierr = VecRestoreArray(xVector, &xp);
     CHKERRQ(ierr);
 
     return ierr;

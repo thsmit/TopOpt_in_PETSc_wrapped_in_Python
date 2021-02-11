@@ -219,7 +219,7 @@ Line tri_sec_plane(Triangle& tri_, std::vector<int>& aboveP_, double z_) {
 		if (aboveP_[0] == 1 && aboveP_[1] == 2) {
 			line1 = Line(tri_.p3, tri_.p1);
 			line2 = Line(tri_.p3, tri_.p2);
-		} 
+		}
 		else if (aboveP_[0] == 1 && aboveP_[1] == 3) {
 			line1 = Line(tri_.p2, tri_.p3);
 			line2 = Line(tri_.p2, tri_.p1);
@@ -238,7 +238,7 @@ Line tri_sec_plane(Triangle& tri_, std::vector<int>& aboveP_, double z_) {
 
 std::ostream& operator<<(std::ostream& os_, Bbox& box_)
 {
-	os_ << "Bbox(" << std::endl 
+	os_ << "Bbox(" << std::endl
 		<< "minCorner: \t" << box_.minCorner << std::endl
 		<< "maxCorner: \t" << box_.maxCorner << std::endl
 		<< "Extend: \t" << box_.get_extend() << std::endl << ")" << std::endl;
@@ -271,7 +271,7 @@ Geometry::Geometry(std::string fname) {
 
 Geometry::~Geometry() {}
 
-GridBox::GridBox(V3& minCorner_, V3& maxCorner_, double dx_) 
+GridBox::GridBox(V3& minCorner_, V3& maxCorner_, double dx_)
 	: Bbox(minCorner_, maxCorner_), dx(dx_)
 {
 	// the size in x/y/z direction has to be multiple of dx
@@ -304,7 +304,7 @@ GridBox::GridBox(V3& minCorner_, double dx_, int3 gridNum_)
 
 void Geometry::read_stl_file(std::string fname) {
 	std::ifstream stlFile(fname, std::ios::in | std::ios::binary);
-    
+
     char headInfo[80] = "";
 	// read 80 byte header
 	if (stlFile)
@@ -399,7 +399,7 @@ Voxelizer::Voxelizer(Geometry& geo_, GridBox& grid_) : geo(geo_), grid(grid_) {
 	int nz = gridNum.nz + 1;
 	//std::cout << "nx = " << nx << ", ny = " << ny << ", nz = " << nz << std::endl;
 	long numTotal = nx * ny * nz;
-	
+
 	// flag is point data!
 	flag = new char[numTotal];
 	for (int i = 0; i < numTotal; i++)
@@ -419,7 +419,7 @@ Voxelizer::Voxelizer(Geometry& geo_, GridBox& grid_) : geo(geo_), grid(grid_) {
 				for (int ix = 0; ix < nx; ix++) {
 					flag[(iz - 1) * nx * ny + (iy - 1) * nx + ix] = isBlack;
 				}
-			} 
+			}
 			else{
 				for (int ix = 0; ix < nx; ix++) {
 					//cout << "ix = " << ix << "   n_change  = " << n_change << endl;
@@ -497,7 +497,7 @@ void Voxelizer::get_xid_cross(std::vector<int>& xids_, int iy_, std::vector<Line
 	double dx = grid.get_dx();
 	double y = iy_ * dx + minCorner.y;
 	xids_.clear();
-	for (auto && lineTmp : lines_) 
+	for (auto && lineTmp : lines_)
 		if ((lineTmp.p1.y - y) * (lineTmp.p2.y - y) < 0.0) { // line cross y
 			V3 cross = lineTmp.p_cross_y_plane(y);
 			int xx = int((cross.x - minCorner.x) / dx);
@@ -529,4 +529,3 @@ void Voxelizer::write_vtk_image() {
 	for (int i = 0; i < n; i++)
 		of << (int)flag[i] << std::endl;
 }
-

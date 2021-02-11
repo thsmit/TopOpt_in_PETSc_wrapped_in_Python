@@ -10,4 +10,3 @@ AlignConsecutiveDeclarations: true
 AllowShortBlocksOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
-

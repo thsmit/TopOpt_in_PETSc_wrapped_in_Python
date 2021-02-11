@@ -9,7 +9,8 @@ The Python interface simplifies the problem definition, is expanding the potenti
 
 .. summary-end
 
-.. image:: img/bracket.gif
+.. image:: img/bracket_crop.gif
+.. image:: img/michell_crop.gif
 
 .. not-in-documentation-start
 

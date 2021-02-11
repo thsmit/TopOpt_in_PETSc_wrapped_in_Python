@@ -351,7 +351,7 @@ PetscErrorCode LinearElasticity::SolveState(Vec xPhys, PetscScalar Emin, PetscSc
 }
 
 PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscScalar* fx, PetscScalar* gx, Vec dfdx,
-                                                                          Vec dgdx, Vec xPhys, PetscScalar Emin,
+                                                                          Vec dgdx, Vec xPhys, Vec xPhysDil, PetscScalar Emin,
                                                                           PetscScalar Emax, PetscScalar penal,
                                                                           PetscScalar volfrac, DataObj data) {
 
@@ -376,7 +376,7 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
         // Keep overwriting volume constraint... should be removed from this method !!!!!!
         ftmp = 0.0;
         gtmp = 0.0;
-        ierr = ComputeObjectiveConstraintsSensitivities(&ftmp, &gtmp, dftemp, dgtemp, xPhys, Emin, Emax, penal, volfrac,
+        ierr = ComputeObjectiveConstraintsSensitivities(&ftmp, &gtmp, dftemp, dgtemp, xPhys, xPhysDil, Emin, Emax, penal, volfrac,
                                                         loadcase, data);
         CHKERRQ(ierr);
         fx[0] += ftmp;
@@ -393,7 +393,7 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
 }
 
 PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscScalar* fx, PetscScalar* gx, Vec dfdx,
-                                                                          Vec dgdx, Vec xPhys, PetscScalar Emin,
+                                                                          Vec dgdx, Vec xPhys, Vec xPhysDil, PetscScalar Emin,
                                                                           PetscScalar Emax, PetscScalar penal,
                                                                           PetscScalar volfrac, PetscInt loadcase, DataObj data) {
     // Errorcode
@@ -435,7 +435,8 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
 
     // wrapper
     PetscScalar sumXP;
-    VecSum(xPhys, &sumXP);
+    //VecSum(xPhys, &sumXP);
+    VecSum(xPhysDil, &sumXP);
 
     // Edof array
     PetscInt edof[24];
@@ -480,7 +481,7 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
     MPI_Allreduce(&tmp, &(comp), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
 
     fx[0] = data.obj_ev(comp, sumXP);
-    gx[0] = data.const_ev(comp, sumXP);
+    gx[0] = data.const_ev(comp, sumXP, volfrac);
 
     // Loop over elements
     for (PetscInt i = 0; i < nel; i++) {
@@ -490,6 +491,19 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
         // Wrapper callback for sensitivity
         dg[i] = data.const_sens_ev(xp[i], uKu[i], penal);
     }
+
+    //gx[0]=0;
+	//VecSum(xPhysDil, &(gx[0]));
+	//gx[0]=gx[0]/(((PetscScalar)data.nael)*volfrac)-1.0;
+	//VecSet(dgdx,1.0/(((PetscScalar)nel)*volfrac));
+
+    //PetscInt neltot;
+    //VecGetSize(xPhys, &neltot);
+    //gx[0] = 0;
+    //VecSum(xPhysDil, &(gx[0]));
+    //gx[0] = gx[0] - (data.nrel * 10.0);
+    //gx[0] = gx[0] / (((PetscScalar)data.nael)) - volfrac;
+    //VecSet(dgdx, 1.0 / (((PetscScalar)data.nael)));
 
     VecRestoreArray(dgdx, &dg);
     VecRestoreArray(xPhys, &xp);
