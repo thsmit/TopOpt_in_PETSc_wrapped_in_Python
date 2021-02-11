@@ -140,6 +140,11 @@ To generate .vtu files from the output file use ``post_process_topopt.sh`` with 
     cd TopOpt_in_PETSc_wrapped_in_Python
     ./post_process_topopt.sh *
 
+Disclaimer:
+--------
+
+The authors reserves all rights but does not guaranty that the code is free from errors. Furthermore, we shall not be liable in any event caused by the use of the program.
+
 Citing
 --------
 
