@@ -9,11 +9,13 @@ The Python interface simplifies the problem definition, is expanding the potenti
 
 .. summary-end
 
-.. image:: img/bracket_crop.gif
-    :align: left
+|pic1| |pic2|
 
-.. image:: img/michell_crop.gif
-    :align: right
+.. |pic1| image:: img/bracket_crop.gif
+    :width: 45%
+
+.. |pic2| image:: img/michell_crop.gif
+    :width: 45%
 
 .. not-in-documentation-start
 
