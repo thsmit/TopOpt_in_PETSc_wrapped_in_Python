@@ -11,11 +11,15 @@ The Python interface simplifies the problem definition, is expanding the potenti
 
 |pic1| |pic2|
 
-.. |pic1| image:: img/bracket_crop.gif
+.. |pic1| figure:: img/bracket_crop.gif
     :width: 45%
 
-.. |pic2| image:: img/michell_crop.gif
+    Bracket example
+
+.. |pic2| figure:: img/michell_crop.gif
     :width: 45%
+
+    3D torsion ball / Michell sphere
 
 .. not-in-documentation-start
 
