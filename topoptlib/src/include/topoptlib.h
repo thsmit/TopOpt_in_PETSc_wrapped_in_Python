@@ -49,11 +49,13 @@ struct DataObj {
 
         // continuation, projections
         int continuation_w = 0;
+        int robust_w = 0;
         int projection_w = 0;
         int localVolume_w = 0;
         double betaInit_w = 1.0;
         double betaFinal_w = 64.0;
         double eta_w = 0.5;
+        double delta_w;
         double penalfinal_w;
         double penalinitial_w;
         double stepsize_w;

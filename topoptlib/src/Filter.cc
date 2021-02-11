@@ -134,6 +134,66 @@ PetscErrorCode Filter::FilterProject(Vec x, Vec xTilde, Vec xPhysEro, Vec xPhys,
 
     // Check for projection
     if (projectionFilter) {
+        HeavisideFilter(xPhys, xTilde, beta, eta);
+    } else {
+        VecCopy(xTilde, xPhys);
+    }
+
+    return ierr;
+}
+
+// Filter design variables
+PetscErrorCode Filter::FilterProjectRobust(Vec x, Vec xTilde, Vec xPhysEro, Vec xPhys, Vec xPhysDil, PetscBool projectionFilter, PetscScalar beta,
+                                     PetscScalar eta) {
+    PetscErrorCode ierr;
+
+    // Filter the design variables or copy to xPhys
+    // STANDARD FILTER
+    if (filterType == 1) {
+        // Filter the densitities
+        ierr = MatMult(H, x, xTilde);
+        CHKERRQ(ierr);
+        VecPointwiseDivide(xTilde, xTilde, Hs);
+    }
+    // PDE FILTER
+    else if (filterType == 2) {
+        ierr = pdef->FilterProject(x, xTilde);
+        CHKERRQ(ierr);
+        // Check for bound violation: simple, but cheap check!
+        PetscScalar* xp;
+        PetscInt     locsiz;
+        VecGetArray(xTilde, &xp);
+        VecGetLocalSize(xTilde, &locsiz);
+        for (PetscInt i = 0; i < locsiz; i++) {
+            if (xp[i] < 0.0) {
+                if (PetscAbsReal(xp[i]) > 1.0e-4) {
+                    PetscPrintf(PETSC_COMM_WORLD,
+                                "BOUND VIOLATION IN PDEFILTER - INCREASE RMIN OR MESH "
+                                "RESOLUTION: xPhys = %f\n",
+                                xp[i]);
+                }
+                xp[i] = 0.0;
+            }
+            if (xp[i] > 1.0) {
+                if (PetscAbsReal(xp[i] - 1.0) > 1.0e-4) {
+                    PetscPrintf(PETSC_COMM_WORLD,
+                                "BOUND VIOLATION IN PDEFILTER - INCREASE RMIN OR MESH "
+                                "RESOLUTION: xPhys = %f\n",
+                                xp[i]);
+                }
+                xp[i] = 1.0;
+            }
+        }
+        VecRestoreArray(xTilde, &xp);
+    }
+    // COPY IN CASE OF SENSITIVITY FILTER
+    else {
+        ierr = VecCopy(x, xTilde);
+        CHKERRQ(ierr);
+    }
+
+    // Check for projection
+    if (projectionFilter) {
         HeavisideFilter(xPhysEro, xTilde, beta, eta + 0.1);
         HeavisideFilter(xPhys, xTilde, beta, eta);
         HeavisideFilter(xPhysDil, xTilde, beta, eta - 0.1);
@@ -146,6 +206,97 @@ PetscErrorCode Filter::FilterProject(Vec x, Vec xTilde, Vec xPhysEro, Vec xPhys,
 
 // Filter the sensitivities
 PetscErrorCode Filter::Gradients(Vec x, Vec xTilde, Vec dfdx, PetscInt m, Vec* dgdx, PetscBool projectionFilter,
+                                 PetscScalar beta, PetscScalar eta) {
+
+    PetscErrorCode ierr;
+    // Cheinrule for projection filtering
+    if (projectionFilter) {
+
+        //PetscPrintf(PETSC_COMM_WORLD, "CHECK \n");
+
+        // Get correction
+        ChainruleHeavisideFilter(dx, xTilde, beta, eta);
+
+        PetscScalar *xt, *dg, *df, *dxp;
+        PetscInt     locsiz;
+
+        ierr = VecGetLocalSize(xTilde, &locsiz);
+        CHKERRQ(ierr);
+        ierr = VecGetArray(xTilde, &xt);
+        CHKERRQ(ierr);
+        ierr = VecGetArray(dx, &dxp);
+        CHKERRQ(ierr);
+        // Objective function
+        ierr = VecGetArray(dfdx, &df);
+        CHKERRQ(ierr);
+        for (PetscInt j = 0; j < locsiz; j++) {
+            df[j] = df[j] * dxp[j];
+        }
+        ierr = VecRestoreArray(dfdx, &df);
+        CHKERRQ(ierr);
+        // Run through all constraints
+        for (PetscInt i = 0; i < m; i++) {
+            ierr = VecGetArray(dgdx[i], &dg);
+            CHKERRQ(ierr);
+            // The eta item corresponding to the correct realization
+            for (PetscInt j = 0; j < locsiz; j++) {
+                dg[j] = dg[j] * dxp[j];
+            }
+            ierr = VecRestoreArray(dgdx[i], &dg);
+            CHKERRQ(ierr);
+        }
+        ierr = VecRestoreArray(dx, &dxp);
+        CHKERRQ(ierr);
+        ierr = VecRestoreArray(dgdx[0], &dg);
+        CHKERRQ(ierr);
+        ierr = VecRestoreArray(xTilde, &xt);
+        CHKERRQ(ierr);
+    }
+
+    // Chainrule/Filter for the sensitivities
+    if (filterType == 0)
+    // Filter the sensitivities, df,dg
+    {
+        //PetscPrintf(PETSC_COMM_WORLD, "CHECK SENSITIVITY \n");
+        Vec xtmp;
+        ierr = VecDuplicate(xTilde, &xtmp);
+        CHKERRQ(ierr);
+
+        VecPointwiseMult(xtmp, dfdx, x);
+        MatMult(H, xtmp, dfdx);
+        VecPointwiseDivide(xtmp, dfdx, Hs);
+        VecPointwiseDivide(dfdx, xtmp, x);
+        VecDestroy(&xtmp);
+    } else if (filterType == 1) {
+        // Filter the densities, df,dg: STANDARD FILTER
+        Vec xtmp;
+        ierr = VecDuplicate(x, &xtmp);
+        CHKERRQ(ierr);
+        // dfdx
+        VecPointwiseDivide(xtmp, dfdx, Hs);
+        MatMult(H, xtmp, dfdx);
+        // dgdx
+        for (PetscInt i = 0; i < m; i++) {
+            VecPointwiseDivide(xtmp, dgdx[i], Hs);
+            MatMult(H, xtmp, dgdx[i]);
+        }
+        // tidy up
+        VecDestroy(&xtmp);
+    } else if (filterType == 2) {
+        // Filter the densities, df,dg: PDE FILTER
+        ierr = pdef->Gradients(dfdx, dfdx);
+        CHKERRQ(ierr);
+        for (PetscInt i = 0; i < m; i++) {
+            ierr = pdef->Gradients(dgdx[i], dgdx[i]);
+            CHKERRQ(ierr);
+        }
+    }
+
+    return ierr;
+}
+
+// Filter the sensitivities
+PetscErrorCode Filter::GradientsRobust(Vec x, Vec xTilde, Vec dfdx, PetscInt m, Vec* dgdx, PetscBool projectionFilter,
                                  PetscScalar beta, PetscScalar eta) {
 
     PetscErrorCode ierr;

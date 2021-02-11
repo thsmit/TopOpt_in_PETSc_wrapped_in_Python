@@ -245,6 +245,26 @@ static PyObject *projection_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *robust_py(DataObj *self, PyObject *args)
+{
+    double betaFinal, betaInit, eta, delta;
+    int IterProgPro;
+
+    if(!PyArg_ParseTuple(args, "ddddi", &betaFinal, &betaInit, &eta, &delta, &IterProgPro)) {
+        return NULL;
+    }
+
+    self->betaFinal_w = betaFinal;
+    self->betaInit_w = betaInit;
+    self->eta_w = eta;
+    self->IterProgPro_w = IterProgPro;
+    self->delta_w = delta;
+
+    self->robust_w = 1;
+
+    Py_RETURN_NONE;
+}
+
 // set optimizer variables
 static PyObject *mma_py(DataObj *self, PyObject *args)
 {
@@ -499,6 +519,7 @@ static PyMethodDef methods[] =
       {"material", (PyCFunction)material_py, METH_VARARGS, "Implement material\n"},
       {"filter", (PyCFunction)filter_py, METH_VARARGS, "Implement filter\n"},
       {"continuation", (PyCFunction)continuation_py, METH_VARARGS, "Implement filter\n"},
+      {"robust", (PyCFunction)robust_py, METH_VARARGS, "Implement filter\n"},
       {"projection", (PyCFunction)projection_py, METH_VARARGS, "Implement filter\n"},
       {"mma", (PyCFunction)mma_py, METH_VARARGS, "Implement mma\n"},
       {"bc", (PyCFunction)bc_py, METH_VARARGS, "Implement boundery conditions\n"},

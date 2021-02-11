@@ -8,10 +8,6 @@
 # free from errors. Furthermore, we shall not be liable in any event
 # caused by the use of the program.
 
-##EULER_MEMORY="2500"
-# NCPU=32
-# WALL_TIME="24:00"
-
 import numpy as np
 
 import topoptlib
@@ -140,21 +136,22 @@ nEl = data.nael
 rigidVol = data.nrel * 10.0
 solidVol = data.nsel * 1.0
 
+
 # Calculate the objective function
 # objective input: (design variable value, SED)
 def objective(comp, sumXp):
     return comp
 
 
-def sensitivity(xp, uKu):
+def sensitivity(xp, uKu, penal):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
 
 
-def constraint(comp, sumXp):
+def constraint(comp, sumXp, volfrac):
     return (sumXp - rigidVol - solidVol) / nEl - materialvolumefraction
 
 
-def constraintSensitivity(xp, uKu):
+def constraintSensitivity(xp, uKu, penal):
     return 1.0 / nEl
 
 

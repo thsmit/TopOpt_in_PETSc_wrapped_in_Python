@@ -36,9 +36,6 @@ def main():
     Emin, Emax, nu, Dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 3.0
     data.material(Emin, Emax, nu, Dens, penal)
 
-    # setup heavyside projection filter (betaFinal, betaInit, eta, iter progression) update of beta every 10 iterations
-    data.projection(64.0, 1.0, 0.5, 20)  # robust formulation
-
     # filter: (type, radius)
     # filter types: sensitivity = 0, density = 1
     # using 0.08, 0.04 or 0.02

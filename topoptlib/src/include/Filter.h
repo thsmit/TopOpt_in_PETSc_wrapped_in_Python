@@ -45,8 +45,17 @@ class Filter {
     PetscErrorCode FilterProject(Vec x, Vec xTilde, Vec xPhysEro, Vec xPhys, Vec xPhysDil, PetscBool projectionFilter, PetscScalar beta,
                                  PetscScalar eta);
 
+    // Filter design variables for Robust approach
+    PetscErrorCode FilterProjectRobust(Vec x, Vec xTilde, Vec xPhysEro, Vec xPhys, Vec xPhysDil, PetscBool projectionFilter, PetscScalar beta,
+                                 PetscScalar eta);
+
+
     // Filter the sensitivities
     PetscErrorCode Gradients(Vec x, Vec xTilde, Vec dfdx, PetscInt m, Vec* dgdx, PetscBool projectionFilter,
+                             PetscScalar beta, PetscScalar eta);
+
+    // Filter the sensitivities for Robust approach
+    PetscErrorCode GradientsRobust(Vec x, Vec xTilde, Vec dfdx, PetscInt m, Vec* dgdx, PetscBool projectionFilter,
                              PetscScalar beta, PetscScalar eta);
 
     // COntinuation for projection filter

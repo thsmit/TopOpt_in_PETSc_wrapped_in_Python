@@ -99,6 +99,8 @@ class TopOpt {
     PetscReal   beta;
     PetscReal   betaFinal;
     PetscReal   eta;
+    PetscReal   delta;
+    PetscBool   robustStatus;
 
     Vec xPassive;
     Vec indicator;

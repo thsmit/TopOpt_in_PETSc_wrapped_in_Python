@@ -50,12 +50,9 @@ TopOpt::TopOpt(DataObj data) {
     U   = NULL;
     L   = NULL;
 
-    // ==== Robust Formulation
+    // Robust Formulation
     xPhysEro   = NULL;
     xPhysDil   = NULL;
-    //dErodFilt  = NULL;
-    //dDildFilt  = NULL;
-    // =======================
 
     SetUp(data);
 }
@@ -137,12 +134,13 @@ TopOpt::~TopOpt() {
         VecDestroy(&U);
     }
 
-    // ========================== ROBUST FORMULATION
-	if (xPhysEro!=NULL){ VecDestroy(&xPhysEro); }
-	if (xPhysDil!=NULL){ VecDestroy(&xPhysDil); }
-	//if (dErodFilt!=NULL){ VecDestroy(&dErodFilt); }
-	//if (dDildFilt!=NULL){ VecDestroy(&dDildFilt); }
-	// ================================================
+    // ROBUST FORMULATION
+	if (xPhysEro!=NULL) {
+        VecDestroy(&xPhysEro);
+    }
+	if (xPhysDil!=NULL) {
+        VecDestroy(&xPhysDil);
+    }
 
 }
 
@@ -171,10 +169,10 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
 
     // SET DEFAULTS for optimization problems
     init_volfrac = data.init_volumefrac_w;
-    //volfrac = data.volumefrac_w;
-    //volfracREF = data.volumefrac_w;
-    volfrac = 0.02;
-    volfracREF = 0.02;
+    volfrac = data.init_volumefrac_w;
+    volfracREF = data.init_volumefrac_w;
+    //volfrac = 0.02;
+    //volfracREF = 0.02;
     maxItr  = data.maxIter_w;
     tol  = data.tol_w;
     rmin    = data.rmin_w;
@@ -230,6 +228,17 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
         beta             = data.betaInit_w;
         betaFinal        = data.betaFinal_w;
         eta              = data.eta_w;
+    }
+
+     // Projection filter, treshold designvar
+    robustStatus = PETSC_FALSE;
+    if (data.robust_w == 1) {
+        robustStatus = PETSC_TRUE;
+        projectionFilter = PETSC_TRUE;
+        beta             = data.betaInit_w;
+        betaFinal        = data.betaFinal_w;
+        eta              = data.eta_w;
+        delta            = data.delta_w;
     }
 
     ierr = SetUpMESH();
@@ -413,10 +422,10 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     ierr = DMCreateGlobalVector(da_elem, &xPhys);
     CHKERRQ(ierr);
 
-    // FOR ROBUST FORMULATION ===========
-	DMCreateGlobalVector(da_elem,&xPhysEro);
-    DMCreateGlobalVector(da_elem,&xPhysDil);
-	// ==================================
+    if (robustStatus) {
+        DMCreateGlobalVector(da_elem,&xPhysEro);
+        DMCreateGlobalVector(da_elem,&xPhysDil);
+    }
 
     // Total number of design variables
     VecGetSize(xPhys, &n);
@@ -445,7 +454,8 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     PetscPrintf(PETSC_COMM_WORLD, "# -filter: %i  (0=sens., 1=dens, 2=PDE)\n", filter);
     PetscPrintf(PETSC_COMM_WORLD, "# -rmin: %f\n", rmin);
     PetscPrintf(PETSC_COMM_WORLD, "# -projectionFilter: %i  (0/1)\n", projectionFilter);
-    PetscPrintf(PETSC_COMM_WORLD, "# -localVolume: %i  (0/1)\n", data.localVolume_w);
+    PetscPrintf(PETSC_COMM_WORLD, "# -localVolume: %i  (0/1)\n", localVolumeStatus);
+    PetscPrintf(PETSC_COMM_WORLD, "# -RobustApproach: %i  (0/1)\n", robustStatus);
     PetscPrintf(PETSC_COMM_WORLD, "# -beta: %f\n", beta);
     PetscPrintf(PETSC_COMM_WORLD, "# -betaFinal: %f\n", betaFinal);
     PetscPrintf(PETSC_COMM_WORLD, "# -eta: %f\n", eta);
@@ -473,13 +483,10 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     VecSet(xTilde, init_volfrac); // Initialize to volfrac !
     VecSet(xPhys, init_volfrac);  // Initialize to volfrac !
 
-    // ROBUST FORMULATION =====================
-	VecSet(xPhysEro, init_volfrac);
-	VecSet(xPhysDil, init_volfrac);
-	//VecDuplicate(x,&dPhysdFilt);
-	//VecDuplicate(x,&dErodFilt);
-	//VecDuplicate(x,&dDildFilt);
-	// ========================================
+    if (robustStatus) {
+        VecSet(xPhysEro, init_volfrac);
+	    VecSet(xPhysDil, init_volfrac);
+    }
 
     // Sensitivity vectors
     ierr = VecDuplicate(x, &dfdx);
@@ -638,7 +645,6 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
             }
         }
 
-
         VecRestoreArray(xPhys, &xpPhys);
         VecRestoreArray(xTilde, &xptilde);
         VecRestoreArray(x, &xpx);
@@ -793,7 +799,7 @@ PetscErrorCode TopOpt::AllocateMMAwithRestart(PetscInt* itr, MMA** mma) {
         PetscInt nxMMA;
         VecGetSize(xMMA, &nxMMA);
         *mma = new MMA(nxMMA, m, xMMA, aMMA, cMMA, dMMA);
-        PetscPrintf(PETSC_COMM_WORLD, "MMA create, just checking\n");
+        //PetscPrintf(PETSC_COMM_WORLD, "MMA create, just checking\n");
     } else {
         *mma = new MMA(nGlobalDesignVar, m, x, aMMA, cMMA, dMMA);
     }
@@ -855,7 +861,6 @@ PetscErrorCode TopOpt::WriteRestartFiles(PetscInt* itr, MMA* mma) {
     PetscViewerDestroy(&view);
     PetscViewerDestroy(&restartItrF0);
 
-    // PetscPrintf(PETSC_COMM_WORLD,"DONE WRITING DATA\n");
     return ierr;
 }
 

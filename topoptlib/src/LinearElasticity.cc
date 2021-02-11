@@ -492,19 +492,6 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
         dg[i] = data.const_sens_ev(xp[i], uKu[i], penal);
     }
 
-    //gx[0]=0;
-	//VecSum(xPhysDil, &(gx[0]));
-	//gx[0]=gx[0]/(((PetscScalar)data.nael)*volfrac)-1.0;
-	//VecSet(dgdx,1.0/(((PetscScalar)nel)*volfrac));
-
-    //PetscInt neltot;
-    //VecGetSize(xPhys, &neltot);
-    //gx[0] = 0;
-    //VecSum(xPhysDil, &(gx[0]));
-    //gx[0] = gx[0] - (data.nrel * 10.0);
-    //gx[0] = gx[0] / (((PetscScalar)data.nael)) - volfrac;
-    //VecSet(dgdx, 1.0 / (((PetscScalar)data.nael)));
-
     VecRestoreArray(dgdx, &dg);
     VecRestoreArray(xPhys, &xp);
     VecRestoreArray(Uloc, &up);

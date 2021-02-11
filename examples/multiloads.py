@@ -59,20 +59,21 @@ data.bc(1, 2, [0, 1, 1, 3, 2, 5], [1], [0.0005], 0)
 materialvolumefraction = 0.12
 nEl = data.nElements
 
+
 # Calculate the objective function, senitivity, constraint and constraint sensitivity
 def objective(comp, sumXp):
     return comp
 
 
-def sensitivity(xp, uKu):
+def sensitivity(xp, uKu, penal):
     return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
 
 
-def constraint(comp, sumXp):
+def constraint(comp, sumXp, volfrac):
     return sumXp / nEl - materialvolumefraction
 
 
-def constraintSensitivity(xp, uKu):
+def constraintSensitivity(xp, uKu, penal):
     return 1.0 / nEl
 
 
@@ -84,8 +85,8 @@ data.objsens(sensitivity)
 data.cons(constraint)
 data.conssens(constraintSensitivity)
 
-# Volume constraint is standard, input (volume fraction)
-data.volumeConstraint(volumefraction)
+# Homogeniuos initial condition
+data.initialcondition(materialvolumefraction)
 
 # step 3:
 # solve topopt problem with input data and wait for "complete" signal
