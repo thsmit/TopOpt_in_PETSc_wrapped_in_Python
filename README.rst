@@ -57,18 +57,18 @@ Available examples:
 Installation
 ------------
 
-The framework should be compiled ones, on a cluster or a desktop computer. A problem file can use the functionality of the framework without compiling thereafter. A Linux system is recommended, however not tested, a Windows machine should also work.
+The framework should be compiled ones, on a cluster or a desktop computer. A problem file can use the functionality of the framework without compiling thereafter. A Linux system is recommended. A Windows machine should also work, however not tested.
 The framework uses [CMake](https://cmake.org) to compile. The following third party libraries are required and located using CMake's ``find_package``.
 
-- [PETSc](https://www.mcs.anl.gov/petsc/): version 3.13
-- [Python] (https://www.python.org/): version 3
+- [Git] (https://git-scm.com/)
+- [PETSc](https://www.mcs.anl.gov/petsc/mirror/release-snapshots/): version 3.14.1
+- [Python] (https://www.python.org/): version 3.7 or higher
 
 It install PETSc:
 
 .. code:: bash
 
-    git clone -b release https://gitlab.com/petsc/petsc.git petsc
-    cd petsc
+    cd petsc-3.14.1
     ./configure --with-cc=mpicc --with-cxx=mpicxx --with-fc=0 --download-f2cblaslapack=1 --with-debugging=0
     make PETSC_DIR=/home/ts/Documents/petsc PETSC_ARCH=arch-linux-c-opt all
     make PETSC_DIR=/home/ts/Documents/petsc PETSC_ARCH=arch-linux-c-opt check
@@ -104,7 +104,7 @@ Running on ETH Euler
     cmake ..
     make
     cd ..
-    bsub -n 8 mpirun -n 8 python bracket.py
+    bsub -n 8 mpirun -n 8 python3 bracket.py
 
 Or use ``run_topopt.sh`` for automated building and running
 
@@ -126,6 +126,8 @@ Implemented tests in ``/tests``:
 - Testing continuation of penalization ``test_continuation.py``
 - Testing heavyside projection filtering ``test_projection.py``
 - Testing stl readin of design domain, rigid domain ``test_sphere.py``
+- Testing stl readin of design domain, rigid domain ``test_bracket.py``
+- Testing the robust approach ``test_michell.py``
 
 Or use ``test_topopt.sh`` for automated building and running the tests
 

@@ -60,10 +60,10 @@ def Test(trueFX, runtime, memory):
     trueFX = int(trueFX * 1000) / 1000
     print("trueFX: ", trueFX)
 
-    if trueFX == 13.278:
-        open("test_beam_continuation SUCCESFULL", "w+")
+    if trueFX == 1.808:
+        open("test_continuation SUCCESFULL", "w+")
     else:
-        open("test_beam_ccontinuation not succesfull!", "w+")
+        open("test_ccontinuation not succesfull!", "w+")
 
 
 data.check(Test)

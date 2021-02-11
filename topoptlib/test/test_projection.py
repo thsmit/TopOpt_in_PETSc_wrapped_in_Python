@@ -60,7 +60,7 @@ def Test(trueFX, runtime, memory):
     trueFX = int(trueFX * 1000) / 1000
     print("trueFX: ", trueFX)
 
-    if trueFX == 0.388:
+    if trueFX == 0.489:
         open("test_projection SUCCESFULL", "w+")
     else:
         open("test_projection not succesfull!", "w+")

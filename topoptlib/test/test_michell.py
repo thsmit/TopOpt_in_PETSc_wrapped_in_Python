@@ -128,9 +128,9 @@ def Test(trueFX, runtime, memory):
         and data.nvel == 74978
         and data.nrel == 6698
     ):
-        open("test_beam_michell SUCCESFULL", "w+")
+        open("test_michell SUCCESFULL", "w+")
     else:
-        open("test_beam_michell not succesfull!", "w+")
+        open("test_michell not succesfull!", "w+")
 
 
 # activate test

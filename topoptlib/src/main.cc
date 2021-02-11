@@ -273,8 +273,13 @@ int solve(DataObj data) {
     //opt->WriteRestartFiles(&itr, mma);
     //physics->WriteRestartFiles();
 
-    // Dump final design
-    output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, itr + 1);
+    if (opt->robustStatus) {
+        // Dump final design
+        output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, itr + 1);
+    } else {
+        // Dump final design
+        output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr + 1);
+    }
 
     // stop timer total runtime
     rt2 = MPI_Wtime();
@@ -296,8 +301,12 @@ int solve(DataObj data) {
     //PetscPrintf(PETSC_COMM_WORLD, "# xPhys_sum1: %f\n", xPhys_sum);
 
     // Calculate porosity
-    //PetscScalar Poro = 1.0 - (xPhys_sum / ((opt->nxyz[0] - 1) * (opt->nxyz[1] - 1) * (opt->nxyz[2] - 1)));
-    PetscScalar Poro = 1.0 - (xPhys_sum / data.nael);
+    PetscScalar Poro;
+    if (opt->xPassiveStatus) {
+        Poro = 1.0 - (xPhys_sum / data.nael);
+    } else {
+        Poro = 1.0 - (xPhys_sum / ((opt->nxyz[0] - 1) * (opt->nxyz[1] - 1) * (opt->nxyz[2] - 1)));
+    }
 
     PetscPrintf(PETSC_COMM_WORLD, "######################## Final output ########################\n");
     PetscPrintf(PETSC_COMM_WORLD, "# Porosity: %f\n", Poro);
