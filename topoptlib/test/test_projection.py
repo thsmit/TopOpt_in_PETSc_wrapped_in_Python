@@ -18,7 +18,7 @@ data.structuredGrid(
 )
 Emin, Emax, nu, Dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 3.0
 data.material(Emin, Emax, nu, Dens, penal)
-data.projection(64.0, 1.0, 0.5)
+data.projection(64.0, 1.0, 0.05, 50)
 data.filter(1, 0.08)
 data.mma(40, 0.01)
 data.loadcases(1)

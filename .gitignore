@@ -27,6 +27,7 @@ __pycache__/
 *performance.py
 *hip.py
 *implant.py
+
 # stl
 implant/
 *box.stl
@@ -45,5 +46,5 @@ implant/
 *torsionvoidsmall14.stl
 *domaintorsion.stl
 *H1402_LF_mesh.stl
-*torsionridid14.stl
+*torsionrigid14.stl
 *torsionvoid14.stl

@@ -58,8 +58,7 @@ data.stlread(
 Emin, Emax, nu, dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 1.0
 data.material(Emin, Emax, nu, dens, penal)
 
-# setup heavyside projection filter (betaFinal, betaInit, eta) update of beta every 10 iterations
-data.projection(64.0, 1.0, 0.5, 50)  # robust formulation
+data.robust(64.0, 1.0, 0.5, 0.1, 50)  # robust formulation
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1,

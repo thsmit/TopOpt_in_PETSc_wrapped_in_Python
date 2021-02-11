@@ -19,7 +19,7 @@ data.structuredGrid(
 Emin, Emax, nu, dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 1.0
 data.material(Emin, Emax, nu, dens, penal)
 data.filter(1, 0.08)
-data.continuation(1.0, 3.0, 1.0, 10)
+data.continuation(1.0, 3.0, 0.5, 5)
 data.mma(40, 0.01)
 data.loadcases(1)
 data.bc(0, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
@@ -40,7 +40,7 @@ def sensitivity(xp, uKu, penal):
 
 
 def constraint(comp, sumXp, volfrac):
-    return sumXp / nEl - materialvolumefraction
+    return sumXp / nEl - volfrac
 
 
 def constraintSensitivity(xp, uKu, penal):
