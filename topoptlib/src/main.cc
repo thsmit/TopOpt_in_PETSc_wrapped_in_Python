@@ -24,6 +24,8 @@ caused by the use of the program.
 
 static char help[] = "3D TopOpt using KSP-MG on PETSc's DMDA (structured grids) \n";
 
+//using namespace data;
+
 int solve(DataObj data) {
 
     // HACK to fake zero run time input data...
@@ -216,7 +218,9 @@ int solve(DataObj data) {
 
         // Increase beta if needed
         PetscBool changeBeta = PETSC_FALSE;
-        if (opt->projectionFilter) {
+        if (opt->robustStatus && itr > 150) {
+            changeBeta = filter->IncreaseBeta(&(opt->beta), opt->betaFinal, opt->gx[0], itr, ch);
+        } else if (opt->projectionFilter && opt->robustStatus == 0) {
         //if (opt->projectionFilter && opt->penal == opt->penalFin) {
         //if (opt->projectionFilter && itr > 150) {
             changeBeta = filter->IncreaseBeta(&(opt->beta), opt->betaFinal, opt->gx[0], itr, ch);

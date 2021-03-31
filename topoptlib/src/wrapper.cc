@@ -53,9 +53,13 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
     self->xc_w[9] = xc9;
     self->xc_w[10] = xc10;
 
-    self->nxyz_w[0] = nxyz0;
-    self->nxyz_w[1] = nxyz1;
-    self->nxyz_w[2] = nxyz2;
+    self->nxyz[0] = nxyz0;
+    self->nxyz[1] = nxyz1;
+    self->nxyz[2] = nxyz2;
+
+    //self->nxyz_w[0] = nxyz0;
+    //self->nxyz_w[1] = nxyz1;
+    //self->nxyz_w[2] = nxyz2;
 
     self->nNodes = nxyz0 * nxyz1 * nxyz2;
     self->nElements = (nxyz0 - 1) * (nxyz1 - 1) * (nxyz2 - 1);
@@ -97,9 +101,9 @@ static PyObject *stlread_py(DataObj *self, PyObject *args)
     V3 gridMaxCorner(b3, b4, b5);
     V3 gridExtend = gridMaxCorner - gridMinCorner;
 
-    double dx = self->xc_w[1] / (self->nxyz_w[0] - 1);
-    double dy = self->xc_w[3] / (self->nxyz_w[1] - 1);
-    double dz = self->xc_w[5] / (self->nxyz_w[2] - 1);
+    double dx = self->xc_w[1] / (self->nxyz[0] - 1);
+    double dy = self->xc_w[3] / (self->nxyz[1] - 1);
+    double dz = self->xc_w[5] / (self->nxyz[2] - 1);
 
     // set grid bounding corner
     // gridNum = number of voxels
@@ -120,9 +124,9 @@ static PyObject *stlread_py(DataObj *self, PyObject *args)
     }
 
     // Point data to cell data
-    int nelx = (self->nxyz_w[0] - 1);
-    int nely = (self->nxyz_w[1] - 1);
-    int nelz = (self->nxyz_w[2] - 1);
+    int nelx = (self->nxyz[0] - 1);
+    int nely = (self->nxyz[1] - 1);
+    int nelz = (self->nxyz[2] - 1);
 
     int nox = 0;
     int noy = nelx + 1;

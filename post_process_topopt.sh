@@ -23,19 +23,11 @@ python $HOME/TopOpt_in_PETSc/bin2vtu.py 0
 echo Final dataset number? ...
 read fin
 
-# User input
-echo Convert all or only final 1/0?
-read input
-
-# compile
-if [ $input -eq 1 ]
-    then
-        for i in 00 01 02 03 04 05 06 07 08 09 10 11 20 30 40 50 60 70 80 90 100
-        do
-        python $HOME/TopOpt_in_PETSc/bin2vtu.py $i
-        mv output_000$i.vtu vtu
-        done
-fi
+for i in 00 01 02 03 04 05 06 07 08 09 10 11 20 30 40 50 60 70 80 90 100
+do
+python $HOME/TopOpt_in_PETSc/bin2vtu.py $i
+mv output_000$i.vtu vtu
+done
 
 python $HOME/TopOpt_in_PETSc/bin2vtu.py $fin
 mv output_000$fin.vtu vtu

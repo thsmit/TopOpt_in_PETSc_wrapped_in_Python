@@ -149,10 +149,15 @@ TopOpt::~TopOpt() {
 PetscErrorCode TopOpt::SetUp(DataObj data) {
     PetscErrorCode ierr;
 
+    //using namespace data;
+
     // SET DEFAULTS for FE mesh and levels for MG solver
-    nxyz[0] = data.nxyz_w[0];
-    nxyz[1] = data.nxyz_w[1];
-    nxyz[2] = data.nxyz_w[2];
+    nxyz[0] = data.nxyz[0];
+    nxyz[1] = data.nxyz[1];
+    nxyz[2] = data.nxyz[2];
+    //nxyz[0] = data.nxyz_w[0];
+    //nxyz[1] = data.nxyz_w[1];
+    //nxyz[2] = data.nxyz_w[2];
     xc[0]   = data.xc_w[0];
     xc[1]   = data.xc_w[1];
     xc[2]   = data.xc_w[2];
@@ -241,7 +246,7 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
         delta            = data.delta_w;
     }
 
-    ierr = SetUpMESH();
+    ierr = SetUpMESH(data);
     CHKERRQ(ierr);
 
     ierr = SetUpOPT(data);
@@ -250,9 +255,11 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     return (ierr);
 }
 
-PetscErrorCode TopOpt::SetUpMESH() {
+PetscErrorCode TopOpt::SetUpMESH(DataObj data) {
 
     PetscErrorCode ierr;
+
+    //using data::nxyz;
 
     // Read input from arguments
     PetscBool flg;

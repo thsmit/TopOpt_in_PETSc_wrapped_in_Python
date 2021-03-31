@@ -28,7 +28,7 @@ make
 cd ..
 
 # RUN
-cd $SCRATCH/wrapped;
+cd $SCRATCH;
 
 id=`date '+%Y%m%d_%H:%M:%S_test'`;
 #echo $id
@@ -36,14 +36,14 @@ id=`date '+%Y%m%d_%H:%M:%S_test'`;
 mkdir $id
 cd $id
 
-cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib.so .
-cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_beam.py .
-cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_multiload.py .
-cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_continuation.py .
-cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_projection.py .
-cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_bracket.py .
-cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_sphere.py .
-cp ../../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_michell.py .
+cp ../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib.so .
+cp ../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_beam.py .
+cp ../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_multiload.py .
+cp ../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_continuation.py .
+cp ../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_projection.py .
+cp ../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_bracket.py .
+cp ../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_sphere.py .
+cp ../../../home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/topoptlib/test/test_michell.py .
 
 
 # ADJUSTABLE PARAMETERS

@@ -1,6 +1,8 @@
 #ifndef TOPOPT_H
 #define TOPOPT_H
 
+#include <topoptlib.h>
+
 #include <petsc.h>
 //#include <petsc-private/dmdaimpl.h>
 #include "MMA.h"
@@ -10,7 +12,7 @@
 #include <petsc/private/dmdaimpl.h>
 #include <sstream>
 
-#include <topoptlib.h>
+//#include <topoptlib.h>
 
 /*
  Modified by: Thijs Smit, Dec 2020
@@ -37,7 +39,7 @@
  *
  */
 
-//class TopOpt: public Data{
+//class TopOpt : public Data {
 class TopOpt {
 
   public:
@@ -140,7 +142,7 @@ class TopOpt {
     void           Init(DataObj data);
     PetscErrorCode SetUp(DataObj data);
 
-    PetscErrorCode SetUpMESH();
+    PetscErrorCode SetUpMESH(DataObj data);
     PetscErrorCode SetUpOPT(DataObj data);
 
     // Restart filenames

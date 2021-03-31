@@ -256,11 +256,17 @@ PetscErrorCode LocalVolume::SetUp(DM da_nodes, Vec xPassive){
                                                         PetscInt col = (i2-info.gxs) + (j2-info.gys)*(info.gxm) + (k2-info.gzs)*(info.gxm)*(info.gym);
                                                         PetscScalar dist = 0.0;
                                                         // Compute the distance from the "col"-element to the "row"-element
-                                                        for(PetscInt kk=0; kk<3; kk++){
-                                                                dist = dist + PetscPowScalar(lcoorp[3*row+kk]-lcoorp[3*col+kk],2.0);
-                                                        }
-                                                        dist = PetscSqrtScalar(dist);
-                                                        if (dist<R){
+                                                        //for(PetscInt kk=0; kk<3; kk++){
+                                                        //        dist = dist + PetscPowScalar(lcoorp[3*row+kk]-lcoorp[3*col+kk],2.0);
+                                                        //}
+                                                        //dist = PetscSqrtScalar(dist);
+                                                        //if (dist<R){
+                                                        dist = (PetscPowScalar(lcoorp[3*row+0]-lcoorp[3*col+0], 2.0) / PetscPowScalar((R / 2.0), 2.0));
+                                                        dist = dist + (PetscPowScalar(lcoorp[3*row+1]-lcoorp[3*col+1], 2.0) / PetscPowScalar((R / 2.0), 2.0));
+                                                        dist = dist + (PetscPowScalar(lcoorp[3*row+2]-lcoorp[3*col+2], 2.0) / PetscPowScalar(R, 2.0));
+                                                        //dist = PetscSqrtScalar(dist);
+
+                                                        if (dist<=1){
                                                                 // Equal weight average
                                                                 dist = 1.0;
                                                                 MatSetValuesLocal(H, 1, &row, 1, &col, &dist, INSERT_VALUES);

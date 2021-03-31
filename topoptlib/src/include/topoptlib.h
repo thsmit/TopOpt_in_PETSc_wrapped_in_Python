@@ -4,6 +4,7 @@
 #include <Python.h>
 #include <vector>
 #include <string>
+#include <petsc.h>
 
 /*
 Author: Thijs Smit, Dec 2020
@@ -34,7 +35,8 @@ struct DataObj {
     public:
         // data storage standard var
         double xc_w[11];
-        int nxyz_w[3];
+        //int nxyz_w[3];
+        PetscInt    nxyz[3];
         double Emin_w;
         double Emax_w;
         double nu_w;

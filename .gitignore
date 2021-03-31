@@ -27,9 +27,13 @@ __pycache__/
 *performance.py
 *hip.py
 *implant.py
+*shelfbracket.py
+*shelfbracket2.py
+*ivd.py
 
 # stl
 implant/
+shelfBracket/
 *box.stl
 *domaintorsionfull.stl
 *domaintorsionq.stl
