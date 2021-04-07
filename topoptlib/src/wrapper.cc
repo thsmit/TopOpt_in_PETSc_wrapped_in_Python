@@ -20,6 +20,33 @@ Disclaimer:
  caused by the use of the program.
 */
 
+// Initialize standard problem settings, beam example
+static int Data_init(DataObj *self, PyObject *args, PyObject *kwds)
+{
+
+    self->xc[0] = 0.0;
+    self->xc[1] = 2.0;
+    self->xc[2] = 0.0;
+    self->xc[3] = 1.0;
+    self->xc[4] = 0.0;
+    self->xc[5] = 1.0;
+    self->xc[6] = 0.0;
+    self->xc[7] = 0.0;
+    self->xc[8] = 0.0;
+    self->xc[9] = 0.0;
+    self->xc[10] = 0.0;
+
+    self->nxyz[0] = 65; //129;
+    self->nxyz[1] = 33; //65;
+    self->nxyz[2] = 33; //65;
+
+    self->nNodes = 129 * 65 * 65;
+    self->nElements = 128 * 64 * 64;
+    self->nDOF = self->nNodes * 3;
+
+    return 0;
+}
+
 static PyMemberDef members[] =
     { {"nNodes", T_INT, offsetof(DataObj, nNodes), 0, "nNodes docstring"},
       {"nElements", T_INT, offsetof(DataObj, nElements), 0, "nNodes docstring"},
@@ -41,17 +68,17 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
         return NULL;
     }
 
-    self->xc_w[0] = xc0;
-    self->xc_w[1] = xc1;
-    self->xc_w[2] = xc2;
-    self->xc_w[3] = xc3;
-    self->xc_w[4] = xc4;
-    self->xc_w[5] = xc5;
-    self->xc_w[6] = xc6;
-    self->xc_w[7] = xc7;
-    self->xc_w[8] = xc8;
-    self->xc_w[9] = xc9;
-    self->xc_w[10] = xc10;
+    self->xc[0] = xc0;
+    self->xc[1] = xc1;
+    self->xc[2] = xc2;
+    self->xc[3] = xc3;
+    self->xc[4] = xc4;
+    self->xc[5] = xc5;
+    self->xc[6] = xc6;
+    self->xc[7] = xc7;
+    self->xc[8] = xc8;
+    self->xc[9] = xc9;
+    self->xc[10] = xc10;
 
     self->nxyz[0] = nxyz0;
     self->nxyz[1] = nxyz1;
@@ -101,9 +128,9 @@ static PyObject *stlread_py(DataObj *self, PyObject *args)
     V3 gridMaxCorner(b3, b4, b5);
     V3 gridExtend = gridMaxCorner - gridMinCorner;
 
-    double dx = self->xc_w[1] / (self->nxyz[0] - 1);
-    double dy = self->xc_w[3] / (self->nxyz[1] - 1);
-    double dz = self->xc_w[5] / (self->nxyz[2] - 1);
+    double dx = self->xc[1] / (self->nxyz[0] - 1);
+    double dy = self->xc[3] / (self->nxyz[1] - 1);
+    double dz = self->xc[5] / (self->nxyz[2] - 1);
 
     // set grid bounding corner
     // gridNum = number of voxels
@@ -422,6 +449,8 @@ static PyObject *obj_py(DataObj *self, PyObject *args)
     self->obj_func = pyobj_func;
     Py_INCREF(self->obj_func);
 
+    self->objectiveInput = PETSC_TRUE;
+
     Py_RETURN_NONE;
 }
 
@@ -505,6 +534,22 @@ static PyObject *check_py(DataObj *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+// stl read design domain
+static PyObject *vtr_py(DataObj *self, PyObject *args)
+{
+    int output;
+
+    if (!PyArg_ParseTuple(args, "i", &output)) {
+        return NULL;
+    }
+
+    //self->name = std::string(str, len);
+    self->outputIter = output;
+    self->writevtr = PETSC_TRUE;
+
+    Py_RETURN_NONE;
+}
+
 static PyObject *solve_py(DataObj *self)
 {
     // variable to store output variables
@@ -536,6 +581,7 @@ static PyMethodDef methods[] =
       {"cons", (PyCFunction)cons_py, METH_VARARGS, "Callback for Objective function\n"},
       {"conssens", (PyCFunction)conssens_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"check", (PyCFunction)check_py, METH_VARARGS, "Callback for Sensitivity function\n"},
+      {"vtr", (PyCFunction)vtr_py, METH_VARARGS, "Output vtr files\n"},
       {"solve", (PyCFunction)solve_py, METH_NOARGS, "Python bindings to solve() in topoptlib\n"},
       {NULL, NULL, 0, NULL}
     };
@@ -577,7 +623,8 @@ static PyTypeObject DataType = {
     0,                         /* tp_descr_get */
     0,                         /* tp_descr_set */
     0,                         /* tp_dictoffset */
-    0,                         /* tp_init */
+    //0,                         /* tp_init */
+    (initproc)Data_init,         /* tp_init */
     0,                         /* tp_alloc */
     PyType_GenericNew,         /* tp_new */
 };

@@ -98,11 +98,11 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
         xc[3] = ne[1] * dy;
         xc[4] = 0.0;
         xc[5] = ne[2] * dz;
-        xc[6]   = data.xc_w[6];
-        xc[7]   = data.xc_w[7];
-        xc[8]   = data.xc_w[8];
-        xc[9]   = data.xc_w[9];
-        xc[10]   = data.xc_w[10];
+        xc[6]   = data.xc[6];
+        xc[7]   = data.xc[7];
+        xc[8]   = data.xc[8];
+        xc[9]   = data.xc[9];
+        xc[10]   = data.xc[10];
     }
 
     // Create the nodal mesh
@@ -429,70 +429,120 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
     PetscScalar* df;
     VecGetArray(dfdx, &df);
 
-    // wrapper
-    PetscScalar* dg;
-    VecGetArray(dgdx, &dg);
+    if (data.objectiveInput) {
+        PetscPrintf(PETSC_COMM_WORLD, "User objective\n");
 
-    // wrapper
-    PetscScalar sumXP;
-    //VecSum(xPhys, &sumXP);
-    VecSum(xPhysDil, &sumXP);
 
-    // Edof array
-    PetscInt edof[24];
+        // wrapper
+        PetscScalar* dg;
+        VecGetArray(dgdx, &dg);
 
-    fx[0] = 0.0;
-    gx[0] = 0.0;
+        // wrapper
+        PetscScalar sumXP;
+        //VecSum(xPhys, &sumXP);
+        VecSum(xPhysDil, &sumXP);
 
-    // wrapper
-    PetscScalar comp;
-    comp = 0.0;
+        // Edof array
+        PetscInt edof[24];
 
-    // wrapper
-    Vec uKuX;
-    PetscScalar* uKu;
-    VecDuplicate(xPhys, &uKuX);
-    VecGetArray(uKuX, &uKu);
+        fx[0] = 0.0;
+        gx[0] = 0.0;
 
-    // Loop over elements
-    for (PetscInt i = 0; i < nel; i++) {
-        // loop over element nodes
-        for (PetscInt j = 0; j < nen; j++) {
-            // Get local dofs
-            for (PetscInt k = 0; k < 3; k++) {
-                edof[j * 3 + k] = 3 * necon[i * nen + j] + k;
+        // wrapper
+        PetscScalar comp;
+        comp = 0.0;
+
+        // wrapper
+        Vec uKuX;
+        PetscScalar* uKu;
+        VecDuplicate(xPhys, &uKuX);
+        VecGetArray(uKuX, &uKu);
+
+        // Loop over elements
+        for (PetscInt i = 0; i < nel; i++) {
+            // loop over element nodes
+            for (PetscInt j = 0; j < nen; j++) {
+                // Get local dofs
+                for (PetscInt k = 0; k < 3; k++) {
+                    edof[j * 3 + k] = 3 * necon[i * nen + j] + k;
+                }
             }
-        }
-        // Use SIMP for stiffness interpolation
-        //PetscScalar uKu = 0.0;
-        for (PetscInt k = 0; k < 24; k++) {
-            for (PetscInt h = 0; h < 24; h++) {
-                uKu[i] += up[edof[k]] * KE[k * 24 + h] * up[edof[h]];
+            // Use SIMP for stiffness interpolation
+            //PetscScalar uKu = 0.0;
+            for (PetscInt k = 0; k < 24; k++) {
+                for (PetscInt h = 0; h < 24; h++) {
+                    uKu[i] += up[edof[k]] * KE[k * 24 + h] * up[edof[h]];
+                }
             }
+
+            comp += (Emin + PetscPowScalar(xp[i], penal) * (Emax - Emin)) * uKu[i];
+
         }
 
-        comp += (Emin + PetscPowScalar(xp[i], penal) * (Emax - Emin)) * uKu[i];
+        // Allreduce comp
+        PetscScalar tmp = comp;
+        comp           = 0.0;
+        MPI_Allreduce(&tmp, &(comp), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
 
+        fx[0] = data.obj_ev(comp, sumXP);
+        gx[0] = data.const_ev(comp, sumXP, volfrac);
+
+        // Loop over elements
+        for (PetscInt i = 0; i < nel; i++) {
+            // Wrapper callback code
+            df[i] = data.obj_sens_ev(xp[i], uKu[i], penal);
+
+            // Wrapper callback for sensitivity
+            dg[i] = data.const_sens_ev(xp[i], uKu[i], penal);
+        }
+
+        VecRestoreArray(dgdx, &dg);
+
+    } else {
+
+        PetscPrintf(PETSC_COMM_WORLD, "Default\n");
+
+        // Edof array
+        PetscInt edof[24];
+
+        fx[0] = 0.0;
+        // Loop over elements
+        for (PetscInt i = 0; i < nel; i++) {
+            // loop over element nodes
+            for (PetscInt j = 0; j < nen; j++) {
+                // Get local dofs
+                for (PetscInt k = 0; k < 3; k++) {
+                    edof[j * 3 + k] = 3 * necon[i * nen + j] + k;
+                }
+            }
+            // Use SIMP for stiffness interpolation
+            PetscScalar uKu = 0.0;
+            for (PetscInt k = 0; k < 24; k++) {
+                for (PetscInt h = 0; h < 24; h++) {
+                    uKu += up[edof[k]] * KE[k * 24 + h] * up[edof[h]];
+                }
+            }
+            // Add to objective
+            fx[0] += (Emin + PetscPowScalar(xp[i], penal) * (Emax - Emin)) * uKu;
+            // Set the Senstivity
+            df[i] = -1.0 * penal * PetscPowScalar(xp[i], penal - 1) * (Emax - Emin) * uKu;
+        }
+
+        // Allreduce fx[0]
+        PetscScalar tmp = fx[0];
+        fx[0]           = 0.0;
+        MPI_Allreduce(&tmp, &(fx[0]), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
+
+        // Compute volume constraint gx[0]
+        PetscInt neltot;
+        VecGetSize(xPhys, &neltot);
+        gx[0] = 0;
+        VecSum(xPhys, &(gx[0]));
+        gx[0] = gx[0] / (((PetscScalar)neltot)) - volfrac;
+        VecSet(dgdx, 1.0 / (((PetscScalar)neltot)));
     }
 
-    // Allreduce comp
-    PetscScalar tmp = comp;
-    comp           = 0.0;
-    MPI_Allreduce(&tmp, &(comp), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
 
-    fx[0] = data.obj_ev(comp, sumXP);
-    gx[0] = data.const_ev(comp, sumXP, volfrac);
-
-    // Loop over elements
-    for (PetscInt i = 0; i < nel; i++) {
-        // Wrapper callback code
-        df[i] = data.obj_sens_ev(xp[i], uKu[i], penal);
-
-        // Wrapper callback for sensitivity
-        dg[i] = data.const_sens_ev(xp[i], uKu[i], penal);
-    }
-
-    VecRestoreArray(dgdx, &dg);
     VecRestoreArray(xPhys, &xp);
     VecRestoreArray(Uloc, &up);
     VecRestoreArray(dfdx, &df);

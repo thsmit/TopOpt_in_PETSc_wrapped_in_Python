@@ -7,6 +7,10 @@
 #include "TopOpt.h"
 #include "mpi.h"
 #include <petsc.h>
+//#include <string>
+//#include <fstream>
+//#include <iostream>
+
 
 /*
 Modified: Thijs Smit, Dec 2020
@@ -24,7 +28,27 @@ caused by the use of the program.
 
 static char help[] = "3D TopOpt using KSP-MG on PETSc's DMDA (structured grids) \n";
 
-//using namespace data;
+PetscErrorCode outputPoints(const char *name, DM nd, Vec U) {
+
+    PetscErrorCode ierr;
+
+    PetscViewer viewer;
+
+    ierr = PetscViewerVTKOpen(PETSC_COMM_WORLD, name, FILE_MODE_WRITE, &viewer);
+    CHKERRQ(ierr);
+
+    ierr = DMView(nd, viewer);
+    CHKERRQ(ierr);
+
+    PetscObjectSetName((PetscObject)U,"U");
+    ierr = VecView(U, viewer);
+    CHKERRQ(ierr);
+
+    ierr = PetscViewerDestroy(&viewer);
+    CHKERRQ(ierr);
+
+    return ierr;
+}
 
 int solve(DataObj data) {
 
@@ -98,6 +122,12 @@ int solve(DataObj data) {
     } else {
         // print initial condition to vtk
         output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr);
+
+        //if (data.writevtr) {
+         //   std::string name = "TopOpt_0.vtr";
+         //   ierr = outputPoints(name.c_str(), physics->da_nodal, physics->GetStateField());
+         //   CHKERRQ(ierr);
+        //}
     }
 
 
@@ -261,10 +291,18 @@ int solve(DataObj data) {
             } else {
                 // print initial condition to vtk
                 output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr);
+
+                if (data.writevtr) {
+                    std::string name = "TopOpt.vtr";
+                    //int iitr = itr;
+                    //name.append(std::to_string(iitr));
+                    //name.append(".vtr");
+                    ierr = outputPoints(name.c_str(), physics->da_nodal, physics->GetStateField());
+                    CHKERRQ(ierr);
+                }
+
             }
         }
-
-
 
         // Dump data needed for restarting code at termination
         //if (itr % 10 == 0) {

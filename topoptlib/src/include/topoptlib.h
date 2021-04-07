@@ -34,9 +34,18 @@ struct DataObj {
 
     public:
         // data storage standard var
-        double xc_w[11];
+        //double xc_w[11];
         //int nxyz_w[3];
+
         PetscInt    nxyz[3];
+        PetscScalar xc[11];
+
+        PetscInt outputIter;
+        PetscBool objectiveInput = PETSC_FALSE;
+        PetscBool writevtr = PETSC_FALSE;
+
+
+
         double Emin_w;
         double Emax_w;
         double nu_w;
@@ -48,6 +57,7 @@ struct DataObj {
         double volumefrac_w;
         double init_volumefrac_w;
         double b_w[6];
+
 
         // continuation, projections
         int continuation_w = 0;

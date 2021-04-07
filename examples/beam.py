@@ -22,9 +22,11 @@ def main():
     # define input data
     # mesh: (domain: x, y, z, center)(mesh: number of nodes)
     # data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (65, 33, 33))
-    data.structuredGrid(
-        (0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (129, 65, 65)
-    )
+
+    # data.structuredGrid(
+    #    (0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (129, 65, 65)
+    # )
+
     # data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (257, 129, 129))
 
     # Optional printing:
@@ -42,7 +44,7 @@ def main():
     data.filter(1, 0.04)
 
     # optimizer: (maxIter, tol)
-    data.mma(400, 0.01)
+    data.mma(40, 0.01)
 
     # loadcases: (# of loadcases)
     data.loadcases(1)
@@ -60,8 +62,9 @@ def main():
 
     materialvolumefraction = 0.12
     # complicancetarget = 1.5
-    nEl = data.nElements
+    # nEl = data.nElements
 
+    """
     # Calculate the objective function, senitivity, constraint and constraint sensitivity
     def objective(comp, sumXp):
         return comp  # for minimizing compliance
@@ -92,6 +95,7 @@ def main():
     # Define constraint
     data.cons(constraint)
     data.conssens(constraintSensitivity)
+    """
 
     # Use local volume constraint additionally
     # Local volume constraint input: (Rlocvol, alpha)
@@ -110,9 +114,15 @@ def main():
         memory = int((memory * 0.000001) * nc)  # in mega bytes
         print("trueFX: ", trueFX)
         print("CPU time: ", CPUtime, " sec")
-        print("Memory use per core, extrapolated: ", memory, " MB")
+        print("Memory use: (extrapolated) ", memory, " MB")
 
     data.check(Test)
+
+    # To output vtr files
+    # By default the initial condition and the first 10 iterations
+    # will be written to a vtr file
+    # Specify for which interval you need vtr files after the first 10
+    data.vtr(1)
 
     # step 3:
     # solve topopt problem with input data and wait for "complete" signal
