@@ -34,6 +34,7 @@ __pycache__/
 # stl
 implant/
 shelfBracket/
+ivd/
 *box.stl
 *domaintorsionfull.stl
 *domaintorsionq.stl
@@ -45,6 +46,7 @@ shelfBracket/
 *solidtorsion.stl
 *tabledomain.stl
 *tablesolid.stl
+*torsionrigid14.stl
 *beam.stl
 *sphere.stl
 *torsionvoidsmall14.stl
