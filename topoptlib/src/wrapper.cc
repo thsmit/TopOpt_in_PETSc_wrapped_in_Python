@@ -24,6 +24,7 @@ Disclaimer:
 static int Data_init(DataObj *self, PyObject *args, PyObject *kwds)
 {
 
+    // MESH
     self->xc[0] = 0.0;
     self->xc[1] = 2.0;
     self->xc[2] = 0.0;
@@ -43,6 +44,87 @@ static int Data_init(DataObj *self, PyObject *args, PyObject *kwds)
     self->nNodes = 129 * 65 * 65;
     self->nElements = 128 * 64 * 64;
     self->nDOF = self->nNodes * 3;
+
+    // MATERIAL
+    self->Emin = 1.0e-9;
+    self->Emax = 1.0;
+    self->nu = 0.3;
+    self->penal = 3.0;
+
+    // FILTER
+    self->filter = 1;
+    self->rmin = 0.04;
+
+    // MMA
+    self->maxIter = 400;
+    self->tol = 0.01;
+
+    // BC
+    self->nL = 1;
+    self->loadcases_list.resize(1);
+
+    // BC1
+    BC condition1;
+    condition1.BCtype = 1;
+    condition1.Checker_vec.push_back(0);
+    condition1.Checker_vec.push_back(0);
+    condition1.Setter_dof_vec.push_back(0);
+    condition1.Setter_dof_vec.push_back(1);
+    condition1.Setter_dof_vec.push_back(2);
+    condition1.Setter_val_vec.push_back(0.0);
+    condition1.Setter_val_vec.push_back(0.0);
+    condition1.Setter_val_vec.push_back(0.0);
+    condition1.Para = 0;
+    self->loadcases_list.at(0).push_back(condition1);
+
+    // BC2
+    BC condition2;
+    condition2.BCtype = 2;
+    condition2.Checker_vec.push_back(0);
+    condition2.Checker_vec.push_back(1);
+    condition2.Checker_vec.push_back(2);
+    condition2.Checker_vec.push_back(4);
+    condition2.Setter_dof_vec.push_back(2);
+    condition2.Setter_val_vec.push_back(-0.001);
+    condition2.Para = 0;
+    self->loadcases_list.at(0).push_back(condition2);
+
+    // BC3
+    BC condition3;
+    condition3.BCtype = 2;
+    condition3.Checker_vec.push_back(0);
+    condition3.Checker_vec.push_back(1);
+    condition3.Checker_vec.push_back(1);
+    condition3.Checker_vec.push_back(2);
+    condition3.Checker_vec.push_back(2);
+    condition3.Checker_vec.push_back(4);
+    condition3.Setter_dof_vec.push_back(2);
+    condition3.Setter_val_vec.push_back(-0.0005);
+    condition3.Para = 0;
+    self->loadcases_list.at(0).push_back(condition3);
+
+    // BC4
+    BC condition4;
+    condition4.BCtype = 2;
+    condition4.Checker_vec.push_back(0);
+    condition4.Checker_vec.push_back(1);
+    condition4.Checker_vec.push_back(1);
+    condition4.Checker_vec.push_back(3);
+    condition4.Checker_vec.push_back(2);
+    condition4.Checker_vec.push_back(4);
+    condition4.Setter_dof_vec.push_back(2);
+    condition4.Setter_val_vec.push_back(-0.0005);
+    condition4.Para = 0;
+    self->loadcases_list.at(0).push_back(condition4);
+
+    // volume fraction
+    self->volumefrac = 0.12;
+
+    // User defined objective and constraint
+    self->objectiveInput = PETSC_FALSE;
+
+    // OUTPUT
+    self->writevtr = PETSC_FALSE;
 
     return 0;
 }
@@ -216,10 +298,10 @@ static PyObject *material_py(DataObj *self, PyObject *args)
         return NULL;
     }
 
-    self->Emin_w = Emin;
-    self->Emax_w = Emax;
-    self->nu_w = nu;
-    self->penal_w = penal;
+    self->Emin = Emin;
+    self->Emax = Emax;
+    self->nu = nu;
+    self->penal = penal;
 
     Py_RETURN_NONE;
 }
@@ -234,8 +316,8 @@ static PyObject *filter_py(DataObj *self, PyObject *args)
         return NULL;
     }
 
-    self->filter_w = filter;
-    self->rmin_w = rmin;
+    self->filter = filter;
+    self->rmin = rmin;
 
     Py_RETURN_NONE;
 }
@@ -306,8 +388,8 @@ static PyObject *mma_py(DataObj *self, PyObject *args)
         return NULL;
     }
 
-    self->maxIter_w = maxIter;
-    self->tol_w = tol;
+    self->maxIter = maxIter;
+    self->tol = tol;
 
     Py_RETURN_NONE;
 }
@@ -330,7 +412,6 @@ static PyObject *bcpara_py(DataObj *self, PyObject *args)
 
 static PyObject *bc_py(DataObj *self, PyObject *args)
 {
-
     PyObject *checker;
     PyObject *setter_dof;
     PyObject *setter_val;
@@ -414,6 +495,9 @@ static PyObject *loadcases_py(DataObj *self, PyObject *args)
     // Set number of loadcases variable
     self->nL = n;
 
+    // Clean vector
+    self->loadcases_list.clear();
+
     // Resize the loadcases list according to user input
     self->loadcases_list.resize(n);
 
@@ -478,7 +562,7 @@ static PyObject *initialcondition_py(DataObj *self, PyObject *args)
         return NULL;
     }
 
-    self->init_volumefrac_w = init_volfrac;
+    self->volumefrac = init_volfrac;
 
     Py_RETURN_NONE;
 }

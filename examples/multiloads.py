@@ -61,7 +61,7 @@ nEl = data.nElements
 
 
 # Calculate the objective function, senitivity, constraint and constraint sensitivity
-def objective(comp, sumXp):
+def objective(comp, sumXp, volfrac):
     return comp
 
 

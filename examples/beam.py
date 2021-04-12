@@ -35,32 +35,32 @@ def main():
     # print(data.nDOF)
 
     # material: (Emin, Emax, nu, penal)
-    Emin, Emax, nu, Dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 3.0
-    data.material(Emin, Emax, nu, Dens, penal)
+    # Emin, Emax, nu, Dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 3.0
+    # data.material(Emin, Emax, nu, Dens, penal)
 
     # filter: (type, radius)
     # filter types: sensitivity = 0, density = 1
     # using 0.08, 0.04 or 0.02
-    data.filter(1, 0.04)
+    # data.filter(1, 0.04)
 
     # optimizer: (maxIter, tol)
-    data.mma(40, 0.01)
+    # data.mma(40, 0.01)
 
     # loadcases: (# of loadcases)
-    data.loadcases(1)
+    # data.loadcases(1)
 
     # bc: (loadcase, type, [checker: lcoorp[i+?], xc[?]], [setter: dof index], [setter: values])
-    data.bc(0, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
-    data.bc(0, 2, [0, 1, 2, 4], [2], [-0.001], 0)
-    data.bc(0, 2, [0, 1, 1, 2, 2, 4], [2], [-0.0005], 0)
-    data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], 0)
+    # data.bc(0, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+    # data.bc(0, 2, [0, 1, 2, 4], [2], [-0.001], 0)
+    # data.bc(0, 2, [0, 1, 1, 2, 2, 4], [2], [-0.0005], 0)
+    # data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], 0)
 
     # data.bc(1, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
     # data.bc(1, 2, [0, 1, 1, 3], [1], [0.001], 0)
     # data.bc(1, 2, [0, 1, 1, 3, 2, 4], [1], [0.0005], 0)
     # data.bc(1, 2, [0, 1, 1, 3, 2, 5], [1], [0.0005], 0)
 
-    materialvolumefraction = 0.12
+    # materialvolumefraction = 0.12
     # complicancetarget = 1.5
     # nEl = data.nElements
 
@@ -102,7 +102,7 @@ def main():
     # data.localVolume(0.16, 0.12)
 
     # Volume constraint is standard, input (volume fraction)
-    data.initialcondition(materialvolumefraction)
+    # data.initialcondition(materialvolumefraction)
 
     # number of cores used
     nc = 32
@@ -122,7 +122,7 @@ def main():
     # By default the initial condition and the first 10 iterations
     # will be written to a vtr file
     # Specify for which interval you need vtr files after the first 10
-    data.vtr(1)
+    # data.vtr(20)
 
     # step 3:
     # solve topopt problem with input data and wait for "complete" signal

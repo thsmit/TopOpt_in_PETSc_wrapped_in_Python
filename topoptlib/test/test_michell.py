@@ -86,7 +86,7 @@ rigidVol = data.nrel * 10.0
 
 # Calculate the objective function
 # objective input: (design variable value, SED)
-def objective(comp, sumXp):
+def objective(comp, sumXp, volfrac):
     return comp
 
 

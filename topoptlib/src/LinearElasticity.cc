@@ -24,7 +24,7 @@ LinearElasticity::LinearElasticity(DM da_nodes, DataObj data) {
     da_nodal;
 
     // Parameters - to be changed on read of variables
-    nu    = data.nu_w;
+    nu    = data.nu;
     nlvls = 4;
     PetscBool flg;
     PetscOptionsGetInt(NULL, NULL, "-nlvls", &nlvls, &flg);
@@ -430,7 +430,7 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
     VecGetArray(dfdx, &df);
 
     if (data.objectiveInput) {
-        PetscPrintf(PETSC_COMM_WORLD, "User objective\n");
+        //PetscPrintf(PETSC_COMM_WORLD, "User objective\n");
 
 
         // wrapper
@@ -484,7 +484,7 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
         comp           = 0.0;
         MPI_Allreduce(&tmp, &(comp), 1, MPIU_SCALAR, MPI_SUM, PETSC_COMM_WORLD);
 
-        fx[0] = data.obj_ev(comp, sumXP);
+        fx[0] = data.obj_ev(comp, sumXP, volfrac);
         gx[0] = data.const_ev(comp, sumXP, volfrac);
 
         // Loop over elements
@@ -500,7 +500,7 @@ PetscErrorCode LinearElasticity::ComputeObjectiveConstraintsSensitivities(PetscS
 
     } else {
 
-        PetscPrintf(PETSC_COMM_WORLD, "Default\n");
+        //PetscPrintf(PETSC_COMM_WORLD, "Default\n");
 
         // Edof array
         PetscInt edof[24];

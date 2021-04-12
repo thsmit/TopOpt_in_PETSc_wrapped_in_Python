@@ -33,30 +33,59 @@ struct DataObj {
     PyObject_HEAD
 
     public:
-        // data storage standard var
+
         //double xc_w[11];
         //int nxyz_w[3];
+        //double Emin_w;
+        //double Emax_w;
+        //double nu_w;
+        //double penal_w;
+        //int maxIter_w;
+        //double tol_w;
+        //int filter_w;
+        //double rmin_w;
+        //double volumefrac_w;
+        //double init_volumefrac_w;
+        double b_w[6];
 
+        // data storage standard var
+        // Mesh
         PetscInt    nxyz[3];
         PetscScalar xc[11];
 
-        PetscInt outputIter;
-        PetscBool objectiveInput = PETSC_FALSE;
+        // Material
+        PetscScalar Emin;
+        PetscScalar Emax;
+        PetscScalar nu;
+        PetscScalar penal;
+
+        // MMA
+        PetscInt maxIter;
+        PetscScalar tol;
+
+        // Filtering
+        PetscInt filter;
+        PetscScalar rmin;
+
+        // BC
+        // Loadcases
+        //int nL = 1;
+        PetscInt nL;
+        std::vector<std::vector<BC>> loadcases_list;
+
+        // volume fraction
+        PetscScalar volumefrac;
+
+        // parametrization
+        PyObject *para_func = NULL;
+
+        // User defined objective and constraint
+        PetscBool objectiveInput;
+
+        // Outputing VTR files
         PetscBool writevtr = PETSC_FALSE;
+        PetscInt outputIter;
 
-
-
-        double Emin_w;
-        double Emax_w;
-        double nu_w;
-        double penal_w;
-        int maxIter_w;
-        double tol_w;
-        int filter_w;
-        double rmin_w;
-        double volumefrac_w;
-        double init_volumefrac_w;
-        double b_w[6];
 
 
         // continuation, projections
@@ -98,13 +127,6 @@ struct DataObj {
         // constraints
         int m = 1;
         double Rlocvol_w, alpha_w;
-
-        // Loadcases
-        int nL = 1;
-        std::vector<std::vector<BC>> loadcases_list;
-
-        // parametrization
-        PyObject *para_func = NULL;
 
         // test function
         PyObject *test_func = NULL;
@@ -187,9 +209,9 @@ struct DataObj {
             return result;
         }
 
-        double obj_ev(double comp, double sumXP) {
+        double obj_ev(double comp, double sumXP, double volfrac) {
             // Py_BuildValue
-            PyObject *arglist = Py_BuildValue("dd", comp, sumXP);
+            PyObject *arglist = Py_BuildValue("ddd", comp, sumXP, volfrac);
 
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(obj_func, arglist);

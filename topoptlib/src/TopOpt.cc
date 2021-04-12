@@ -54,6 +54,9 @@ TopOpt::TopOpt(DataObj data) {
     xPhysEro   = NULL;
     xPhysDil   = NULL;
 
+    // xPhys to point data for output to .vtr
+    xPhysPoints = NULL;
+
     SetUp(data);
 }
 
@@ -134,11 +137,14 @@ TopOpt::~TopOpt() {
         VecDestroy(&U);
     }
 
-    // ROBUST FORMULATION
 	if (xPhysEro!=NULL) {
         VecDestroy(&xPhysEro);
     }
 	if (xPhysDil!=NULL) {
+        VecDestroy(&xPhysDil);
+    }
+
+    if (xPhysPoints!=NULL) {
         VecDestroy(&xPhysDil);
     }
 
@@ -180,18 +186,17 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     //xc[8]   = data.xc_w[8];
     //xc[9]   = data.xc_w[9];
     //xc[10]   = data.xc_w[10];
-    nu      = data.nu_w;
+    nu      = data.nu;
     nlvls   = 4;
 
     // SET DEFAULTS for optimization problems
-    init_volfrac = data.init_volumefrac_w;
-    volfrac = data.init_volumefrac_w;
-    volfracREF = data.init_volumefrac_w;
+    volfrac = data.volumefrac;
+    volfracREF = data.volumefrac;
     //volfrac = 0.02;
     //volfracREF = 0.02;
-    maxItr  = data.maxIter_w;
-    tol  = data.tol_w;
-    rmin    = data.rmin_w;
+    maxItr  = data.maxIter;
+    tol  = data.tol;
+    rmin    = data.rmin;
 
     localVolumeStatus = PETSC_FALSE;
     if (data.localVolume_w == 1) {
@@ -207,7 +212,7 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     // Status
     penalIni = 1.0;
     penalFin = 3.0;
-    penal = data.penal_w;
+    penal = data.penal;
     penalStep = 0.25;
     IterProj = 10;
     continuationStatus = PETSC_FALSE;
@@ -219,9 +224,9 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
         IterProj = data.iterProg_w;
     }
 
-    Emin    = data.Emin_w;
-    Emax    = data.Emax_w;
-    filter  = data.filter_w; // 0=sens,1=dens,2=PDE
+    Emin    = data.Emin;
+    Emax    = data.Emax;
+    filter  = data.filter; // 0=sens,1=dens,2=PDE
     Xmin    = 0.0;
     Xmax    = 1.0;
     movlim  = 0.2;
@@ -474,6 +479,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     PetscPrintf(PETSC_COMM_WORLD, "# -projectionFilter: %i  (0/1)\n", projectionFilter);
     PetscPrintf(PETSC_COMM_WORLD, "# -localVolume: %i  (0/1)\n", localVolumeStatus);
     PetscPrintf(PETSC_COMM_WORLD, "# -RobustApproach: %i  (0/1)\n", robustStatus);
+    PetscPrintf(PETSC_COMM_WORLD, "# -User defined objective/constraint: %i  (0/1)\n", data.objectiveInput);
     PetscPrintf(PETSC_COMM_WORLD, "# -beta: %f\n", beta);
     PetscPrintf(PETSC_COMM_WORLD, "# -betaFinal: %f\n", betaFinal);
     PetscPrintf(PETSC_COMM_WORLD, "# -eta: %f\n", eta);
@@ -497,13 +503,13 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     ierr = VecDuplicate(xPhys, &xTilde);
     CHKERRQ(ierr);
 
-    VecSet(x, init_volfrac);      // Initialize to volfrac !
-    VecSet(xTilde, init_volfrac); // Initialize to volfrac !
-    VecSet(xPhys, init_volfrac);  // Initialize to volfrac !
+    VecSet(x, volfrac);      // Initialize to volfrac !
+    VecSet(xTilde, volfrac); // Initialize to volfrac !
+    VecSet(xPhys, volfrac);  // Initialize to volfrac !
 
     if (robustStatus) {
-        VecSet(xPhysEro, init_volfrac);
-	    VecSet(xPhysDil, init_volfrac);
+        VecSet(xPhysEro, volfrac);
+	    VecSet(xPhysDil, volfrac);
     }
 
     // Sensitivity vectors
@@ -516,7 +522,7 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
     VecDuplicate(x, &xmin);
     VecDuplicate(x, &xmax);
     VecDuplicate(x, &xold);
-    VecSet(xold, init_volfrac);
+    VecSet(xold, volfrac);
 
     // create xPassive vector
     ierr = VecDuplicate(xPhys, &xPassive);
@@ -655,10 +661,10 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         for (PetscInt el = 0; el < nel; el++) {
             if (xpPassive[el] == -1.0) {
                 xpIndicator[count] = el;
-                xpPhys[el] = init_volfrac;
-                xptilde[el] = init_volfrac;
-                xpx[el] = init_volfrac;
-                xpold[el] = init_volfrac;
+                xpPhys[el] = volfrac;
+                xptilde[el] = volfrac;
+                xpx[el] = volfrac;
+                xpold[el] = volfrac;
                 count++;
             }
         }
@@ -954,6 +960,13 @@ PetscErrorCode TopOpt::SetVariables(Vec xVector, Vec passiveVector) {
     CHKERRQ(ierr);
     ierr = VecRestoreArray(xVector, &xp);
     CHKERRQ(ierr);
+
+    return ierr;
+}
+
+PetscErrorCode TopOpt::UpdatexPhys(Vec x, Vec xp) {
+
+    PetscErrorCode ierr;
 
     return ierr;
 }

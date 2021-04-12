@@ -34,7 +34,7 @@ materialvolumefraction = 0.12
 nEl = data.nElements
 
 
-def objective(comp, sumXp):
+def objective(comp, sumXp, volfrac):
     return comp
 
 
