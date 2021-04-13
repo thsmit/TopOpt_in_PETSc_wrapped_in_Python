@@ -64,6 +64,10 @@ class Filter {
     // Measure of non-discreteness
     PetscScalar GetMND(Vec x);
 
+    PetscErrorCode UpdatexPhys(Vec x, Vec xp);
+
+    PetscErrorCode SetUpT(DM da_nodes);
+
   private:
     // Standard density/sensitivity filter matrix
     Mat H;  // Filter matrix

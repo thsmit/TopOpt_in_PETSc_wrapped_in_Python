@@ -145,7 +145,7 @@ TopOpt::~TopOpt() {
     }
 
     if (xPhysPoints!=NULL) {
-        VecDestroy(&xPhysDil);
+        VecDestroy(&xPhysPoints);
     }
 
 }
@@ -413,6 +413,9 @@ PetscErrorCode TopOpt::SetUpMESH(DataObj data) {
             Lz[i] = Lz[i] - 1;
         }
     }
+
+    // Create xPhysPoints vector
+    DMCreateGlobalVector(da_nodes, &(xPhysPoints));
 
     // Create the element grid: NOTE CONNECTIVITY IS 0
     PetscInt conn = 0;
@@ -693,7 +696,6 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         VecDuplicate(xMMA, &xmaxMMA);
         VecDuplicate(xMMA, &xoldMMA);
 
-
     } else {
         VecSet(xPassive, -1.0);
     }
@@ -960,13 +962,6 @@ PetscErrorCode TopOpt::SetVariables(Vec xVector, Vec passiveVector) {
     CHKERRQ(ierr);
     ierr = VecRestoreArray(xVector, &xp);
     CHKERRQ(ierr);
-
-    return ierr;
-}
-
-PetscErrorCode TopOpt::UpdatexPhys(Vec x, Vec xp) {
-
-    PetscErrorCode ierr;
 
     return ierr;
 }

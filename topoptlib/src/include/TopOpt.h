@@ -54,8 +54,6 @@ class TopOpt {
 
     PetscErrorCode UpdateVariables(PetscInt updateDirection, Vec elementVector, Vec MMAVector);
     PetscErrorCode SetVariables(Vec x, Vec xPassive);
-    PetscErrorCode UpdatexPhys(Vec x, Vec xp);
-
 
     // Physical domain variables
     PetscScalar xc[11];      // Domain coordinates

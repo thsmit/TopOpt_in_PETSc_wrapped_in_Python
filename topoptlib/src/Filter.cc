@@ -713,12 +713,11 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
         delete[] Lz;
 
     } else if (filterType == 2) {
-        // Print WARNING!
-        PetscPrintf(PETSC_COMM_WORLD, "WARNING: it is not adviced to use the PDE filter in combination with passive elements \n");
 
         // ALLOCATE AND SETUP THE PDE FILTER CLASS
-        pdef = new PDEFilt(da_nodes, R);
+        //pdef = new PDEFilt(da_nodes, R);
     }
+    pdef = new PDEFilt(da_nodes, R);
 
     return ierr;
 }
@@ -777,4 +776,24 @@ PetscErrorCode Filter::DMDAGetElements_3D(DM dm, PetscInt* nel, PetscInt* nen, c
     *nen = nn;
     *e   = da->e;
     return (0);
+}
+
+PetscErrorCode Filter::SetUpT(DM da_nodes) {
+
+    PetscErrorCode ierr;
+
+    // Always initialize PDE filter for cell to point transformation for output
+    pdef = new PDEFilt(da_nodes, R);
+
+    return (0);
+}
+
+PetscErrorCode Filter::UpdatexPhys(Vec x, Vec xp) {
+
+    PetscErrorCode ierr;
+
+    ierr = MatMult(pdef->T, x, xp);
+    CHKERRQ(ierr);
+
+    return ierr;
 }

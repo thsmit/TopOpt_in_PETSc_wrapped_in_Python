@@ -35,6 +35,8 @@ class PDEFilt {
     PetscErrorCode FilterProject(Vec XX, Vec F);
     PetscErrorCode Gradients(Vec OS, Vec FS);
 
+    Mat T;   // Transformation matrix   RHS=T*X
+
   private:
     PetscInt    nn[3];   // Number of nodes in each direction
     PetscInt    ne[3];   // Number of elements in each direction
@@ -54,7 +56,7 @@ class PDEFilt {
     DM da_element;
 
     Mat K;   // Global stiffness matrix
-    Mat T;   // Transformation matrix   RHS=T*X
+    //Mat T;   // Transformation matrix   RHS=T*X
     Vec RHS; // Load vector - nodal
     Vec U;
     Vec X; // filtered filed - element

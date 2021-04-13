@@ -29,7 +29,7 @@ caused by the use of the program.
 
 static char help[] = "3D TopOpt using KSP-MG on PETSc's DMDA (structured grids) \n";
 
-PetscErrorCode outputPoints(const char *name, DM nd, Vec U) {
+PetscErrorCode outputPoints(const char *name, DM nd, Vec U, Vec xp) {
 
     PetscErrorCode ierr;
 
@@ -43,6 +43,10 @@ PetscErrorCode outputPoints(const char *name, DM nd, Vec U) {
 
     PetscObjectSetName((PetscObject)U,"U");
     ierr = VecView(U, viewer);
+    CHKERRQ(ierr);
+
+    PetscObjectSetName((PetscObject)xp,"xPhysPoints");
+    ierr = VecView(xp, viewer);
     CHKERRQ(ierr);
 
     ierr = PetscViewerDestroy(&viewer);
@@ -122,10 +126,13 @@ int solve(DataObj data) {
 
     // OUTPUT
     if (data.writevtr) {
-
-        opt->UpdatexPhys(opt->xPhys, opt->xPhysPoints); // get xPhys point data
+        // filter->xPhysPoints
+        //if (data.filter == 0 || data.filter == 1) {
+        //    filter->SetUpT(opt->da_nodes);
+        //}
+        filter->UpdatexPhys(opt->xPhys, opt->xPhysPoints); // get xPhys point data
         std::string name = "TopOpt_initial.vtr";
-        ierr = outputPoints(name.c_str(), physics->da_nodal, physics->GetStateField());
+        ierr = outputPoints(name.c_str(), physics->da_nodal, physics->GetStateField(), opt->xPhysPoints);
         CHKERRQ(ierr);
 
     } else if (opt->robustStatus) {
@@ -311,8 +318,9 @@ int solve(DataObj data) {
 
         // OUTPUT
         if (data.writevtr && (itr < 11 || itr % data.outputIter == 0 || changeBeta)) {
+            filter->UpdatexPhys(opt->xPhys, opt->xPhysPoints); // get xPhys point data
             std::string name = "TopOpt_" + std::to_string(itr) + ".vtr";
-            ierr = outputPoints(name.c_str(), physics->da_nodal, physics->GetStateField());
+            ierr = outputPoints(name.c_str(), physics->da_nodal, physics->GetStateField(), opt->xPhysPoints);
             CHKERRQ(ierr);
         } else if (itr < 11 || itr % 20 == 0 || changeBeta) {
             if (opt->robustStatus) {
@@ -337,8 +345,9 @@ int solve(DataObj data) {
 
     // OUTPUT
     if (data.writevtr) {
+        filter->UpdatexPhys(opt->xPhys, opt->xPhysPoints); // get xPhys point data
         std::string name = "TopOpt_final.vtr";
-        ierr = outputPoints(name.c_str(), physics->da_nodal, physics->GetStateField());
+        ierr = outputPoints(name.c_str(), physics->da_nodal, physics->GetStateField(), opt->xPhysPoints);
         CHKERRQ(ierr);
     } else if (opt->robustStatus) {
         // Dump final design
