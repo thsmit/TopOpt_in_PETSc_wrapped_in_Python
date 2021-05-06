@@ -29,7 +29,9 @@ def main():
     #    (0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), (129, 65, 65)
     # )
 
-    # data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), (257, 129, 129))
+    # data.structuredGrid(
+    #   (0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), (257, 129, 129)
+    # )
 
     # Optional printing:
     # print(data.nNodes)
@@ -58,18 +60,13 @@ def main():
     data.bc(0, 2, [0, 1, 1, 2, 2, 4], [2], [-0.0005], 0)
     data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], 0)
 
-    # data.bc(1, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
-    # data.bc(1, 2, [0, 1, 1, 3], [1], [0.001], 0)
-    # data.bc(1, 2, [0, 1, 1, 3, 2, 4], [1], [0.0005], 0)
-    # data.bc(1, 2, [0, 1, 1, 3, 2, 5], [1], [0.0005], 0)
-
+    materialvolumefraction = 0.12
     # materialvolumefraction = 0.24 # 3.f
     # complicancetarget = 1.5
-    # nEl = data.nElements
+    nEl = data.nElements
 
-    """
     # Calculate the objective function, senitivity, constraint and constraint sensitivity
-    def objective(comp, sumXp):
+    def objective(comp, sumXp, volfrac):
         return comp  # for minimizing compliance
         # return sumXp # for minimizing volume
 
@@ -82,8 +79,7 @@ def main():
     def constraint(comp, sumXp, volfrac):
         # print('sumXp: ', sumXp)
         # return 0.0
-        # return sumXp / nEl - materialvolumefraction  # for minimizing compliance
-        return sumXp / nEl - volfrac  # for minimizing compliance
+        return sumXp / nEl - materialvolumefraction  # for minimizing compliance
         # return comp / complicancetarget - 1.0 # for minimizing volume
 
     def constraintSensitivity(xp, uKu, penal):
@@ -98,20 +94,13 @@ def main():
     # Define constraint
     data.cons(constraint)
     data.conssens(constraintSensitivity)
-    """
 
     # Use local volume constraint additionally
     # Local volume constraint input: (Rlocvol, alpha)
     # data.localVolume(0.16, 0.12)
 
     # Volume constraint is standard, input (volume fraction)
-    # data.initialcondition(materialvolumefraction)
-
-    # To output vtr files
-    # By default the initial condition and the first 10 iterations
-    # will be written to a vtr file
-    # Specify for which interval you need vtr files after the first 10
-    # data.vtr(20)
+    data.initialcondition(materialvolumefraction)
 
     # number of cores used
     nc = 4

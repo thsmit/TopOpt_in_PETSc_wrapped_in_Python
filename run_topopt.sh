@@ -63,7 +63,7 @@ cp $HOME/TopOpt_in_PETSc_wrapped_in_Python/examples/$1 .
 
 ## ETH EULER settings
 EULER_MEMORY="4000"
-NCPU=4
+NCPU=32
 WALL_TIME="12:00"
 
 # FUNCTION CALL
