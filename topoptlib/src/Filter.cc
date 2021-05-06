@@ -472,8 +472,7 @@ PetscBool Filter::IncreaseBeta(PetscReal* beta, PetscReal betaFinal, PetscScalar
             changeBeta = PETSC_FALSE;
         }
         PetscPrintf(PETSC_COMM_WORLD,"=====================\n");
-        PetscPrintf(PETSC_COMM_WORLD, "Beta has been increased to: %f\n", beta[0]);
-        PetscPrintf(PETSC_COMM_WORLD,"=====================\n");
+        PetscPrintf(PETSC_COMM_WORLD, "Beta increased to: %f\n", beta[0]);
     }
 
     return changeBeta;
@@ -717,7 +716,6 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
         // ALLOCATE AND SETUP THE PDE FILTER CLASS
         pdef = new PDEFilt(da_nodes, R);
     }
-    //pdef = new PDEFilt(da_nodes, R);
 
     return ierr;
 }

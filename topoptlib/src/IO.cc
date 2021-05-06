@@ -1,4 +1,3 @@
-// Import necessary stuff
 #include "IO.h"
 #include <cstdlib> // To get the exit function
 

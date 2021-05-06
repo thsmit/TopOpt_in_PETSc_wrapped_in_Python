@@ -2,6 +2,9 @@
 
 
 /* -----------------------------------------------------------------------------
+
+Modified by: Thijs Smit, Dec 2020
+
 Authors: Niels Aage, June 2019
 Copyright (C) 2013-2019,
 
@@ -112,26 +115,6 @@ PetscErrorCode LocalVolume::Constraint(Vec x, PetscScalar *gx, Vec dx){
 
 	return ierr;
 }
-
-/*
-// LocalVolume the sensitivities
-PetscErrorCode LocalVolume::Gradients(Vec dx){
-
-	PetscErrorCode ierr;
-	// Chainrule/LocalVolume for the sensitivities
-	VecSet(dx,0.0);
-
-
-        // FOR THE PNORM FUNCTION !!!!
-
-
-
-        // LocalVolume the densities, df,dg: STANDARD FILTER
-
-
-	return ierr;
-}
-*/
 
 //PetscErrorCode LocalVolume::SetUp(TopOpt *opt){
 PetscErrorCode LocalVolume::SetUp(DM da_nodes, Vec xPassive){
