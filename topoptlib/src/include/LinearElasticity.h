@@ -43,15 +43,6 @@ class LinearElasticity {
                                                             Vec xPhys, Vec xPhysDil, PetscScalar Emin, PetscScalar Emax,
                                                             PetscScalar penal, PetscScalar volfrac, PetscInt loadcase, DataObj data);
 
-    // Compute objective and constraints for the optimiation
-    //PetscErrorCode ComputeObjectiveConstraints(PetscScalar* fx, PetscScalar* gx, Vec xPhys, PetscScalar Emin,
-    //                                           PetscScalar Emax, PetscScalar penal, PetscScalar volfrac);
-
-    // Compute sensitivities
-    //PetscErrorCode ComputeSensitivities(Vec dfdx, Vec dgdx, Vec xPhys, PetscScalar Emin, PetscScalar Emax,
-    //                                    PetscScalar penal,
-    //                                    PetscScalar volfrac); // needs ....
-
     // Restart writer
     PetscErrorCode WriteRestartFiles();
 
@@ -89,9 +80,6 @@ class LinearElasticity {
 
     // Set up the FE mesh and data structures
     PetscErrorCode SetUpLoadAndBC(DM da_nodes, DataObj data);
-
-    // Solve the FE problem
-    //PetscErrorCode SolveState(Vec xPhys, PetscScalar Emin, PetscScalar Emax, PetscScalar penal);
 
     // Solve the FE problem
     PetscErrorCode SolveState(Vec xPhys, PetscScalar Emin, PetscScalar Emax, PetscScalar penal, PetscInt loadcase);

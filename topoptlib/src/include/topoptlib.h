@@ -236,11 +236,6 @@ struct DataObj {
             // PyEval_CallObject
             PyObject *results = PyEval_CallObject(obj_sens_func, arglist);
 
-            // Parse
-            //double result;
-
-            //result = PyFloat_AsDouble(results);
-
             double result = PyFloat_AsDouble(results);
 
             //printf("result: %f\n", result);

@@ -130,7 +130,7 @@ int solve(DataObj data) {
     if (data.writevtr) {
         // filter->xPhysPoints
         if (data.filter == 0 || data.filter == 1) {
-            PetscPrintf(PETSC_COMM_WORLD,"SetUpT\n");
+            PetscPrintf(PETSC_COMM_WORLD,"SetUp T for output\n");
             filter->SetUpT(opt->da_nodes);
         }
         filter->UpdatexPhys(opt->xPhys, opt->xPhysPoints); // get xPhys point data
