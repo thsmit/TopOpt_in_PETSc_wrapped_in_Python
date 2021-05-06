@@ -29,6 +29,7 @@ data.structuredGrid(
 # Active elements: -1.0
 # Solid elements: 2.0
 # Rigid elements: 3.0
+# Void elements: 4.0
 # Do not overwrite: 0.0
 data.stlread(
     -1.0,

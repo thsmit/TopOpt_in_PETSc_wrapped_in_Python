@@ -42,15 +42,10 @@ fi
 ###### RUNNING
 
 # Go to the working directory
-#cd ../lot/TopOpt;
-#cd $HOME
-#cd /nfs/nas12.ethz.ch/fs1202/green_groups_lot_euler
 cd $SCRATCH
 pwd
-#cd TopOpt;
 
 # Name of the new folder you store your files in
-#id="$1"_`date '+%Y%m%d_%H:%M:%S'`;
 id=`date '+%Y%m%d_%H:%M:%S'`;
 echo 'Name of new folder:'
 echo $id
@@ -76,10 +71,3 @@ bsub -n ${NCPU} -W ${WALL_TIME} -R ib -R "rusage[mem=${EULER_MEMORY}]" mpirun -n
 
 # VIEW JOBS
 bjobs
-
-#cd $HOME
-#cd /nfs/nas12.ethz.ch/fs1202/green_groups_lot_euler
-#cd lot
-#pwd
-#mkdir vtu
-#cp $1/vtu/output_000$fin.vtu vtu

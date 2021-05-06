@@ -8,8 +8,6 @@
 # free from errors. Furthermore, we shall not be liable in any event
 # caused by the use of the program.
 
-# import numpy as np
-
 import topoptlib
 
 data = topoptlib.Data()

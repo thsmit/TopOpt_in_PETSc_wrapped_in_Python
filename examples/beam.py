@@ -20,7 +20,7 @@ def main():
 
     # step 2:
     # define input data
-    # mesh: (domain: x, y, z, center)(mesh: number of nodes)
+    # mesh: (domain: x, y, z)(mesh: number of nodes)
     data.structuredGrid(
         (0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), (65, 33, 33)
     )

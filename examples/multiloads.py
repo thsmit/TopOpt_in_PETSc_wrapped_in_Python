@@ -88,6 +88,9 @@ data.conssens(constraintSensitivity)
 # Homogeniuos initial condition
 data.initialcondition(materialvolumefraction)
 
+# Output vtr files
+data.vtr(20)
+
 # step 3:
 # solve topopt problem with input data and wait for "complete" signal
 complete = data.solve()

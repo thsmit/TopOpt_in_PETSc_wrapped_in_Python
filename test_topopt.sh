@@ -8,17 +8,19 @@
 # free from errors. Furthermore, we shall not be liable in any event
 # caused by the use of the program.
 
-### SETUP ENVIRONMENT
+### SETUP ENVIRONMENT ON ETH EULER
 # by hand: env2lmod
-#module load gcc/4.8.5 cmake/3.16.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4
+# to use pre-installed petsc version: module load gcc/4.8.5 cmake/3.16.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4
 module load gcc/4.8.5 cmake/3.16.5 openmpi/3.0.1 python/3.7.4
 
-export PETSC_ARCH=arch-linux2-c-opt
-export PETSC_DIR=$home/petsc
+# to use petsc in PETSC_DIR
+export PETSC_ARCH=arch-linux2-c-opt # change path
+export PETSC_DIR=$home/petsc # change path
 
 # Print loaded modules
 module list
 
+# remove old files
 rm -rf topoptlib.so
 rm -rf build
 mkdir build
