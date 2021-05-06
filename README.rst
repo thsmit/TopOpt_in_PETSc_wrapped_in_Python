@@ -142,7 +142,7 @@ To generate .vtr files add the following command to the problem definition:
     vtr(20)
 
 
-Post-processing (origional)
+Post-processing (original)
 --------
 
 After solving the problem the output is written to a ``output.dat`` file. The designs can be viewed in Paraview (https://www.paraview.org/).

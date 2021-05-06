@@ -51,11 +51,11 @@ ivd/
 *solidtorsion.stl
 *tabledomain.stl
 *tablesolid.stl
-*torsionrigid14.stl
+torsionrigid14.stl
 *beam.stl
 *sphere.stl
-*torsionvoidsmall14.stl
+torsionvoidsmall14.stl
 *domaintorsion.stl
 *H1402_LF_mesh.stl
-*torsionrigid14.stl
-*torsionvoid14.stl
+torsionrigid14.stl
+torsionvoid14.stl
