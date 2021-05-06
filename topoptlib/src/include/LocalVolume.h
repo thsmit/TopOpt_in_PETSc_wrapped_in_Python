@@ -53,6 +53,7 @@ private:
     PetscScalar R;      // Radius for averaging
     PetscScalar pnorm;  // expnontent for p-norm
     PetscScalar alpha;  // max average value
+    PetscScalar naEl;
 
     Vec xVol;
     Mat H; 		    // LocalVolume matrix

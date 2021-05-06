@@ -70,6 +70,8 @@ int solve(DataObj data) {
     // Capture runtime
     double rt1, rt2;
 
+    PetscPrintf(PETSC_COMM_WORLD,"Solve\n");
+
     // Monitor memory usage
     PetscMemorySetGetMaximumUsage();
 
@@ -127,9 +129,10 @@ int solve(DataObj data) {
     // OUTPUT
     if (data.writevtr) {
         // filter->xPhysPoints
-        //if (data.filter == 0 || data.filter == 1) {
-        //    filter->SetUpT(opt->da_nodes);
-        //}
+        if (data.filter == 0 || data.filter == 1) {
+            PetscPrintf(PETSC_COMM_WORLD,"SetUpT\n");
+            filter->SetUpT(opt->da_nodes);
+        }
         filter->UpdatexPhys(opt->xPhys, opt->xPhysPoints); // get xPhys point data
         std::string name = "TopOpt_initial.vtr";
         ierr = outputPoints(name.c_str(), physics->da_nodal, physics->GetStateField(), opt->xPhysPoints);
@@ -395,6 +398,7 @@ int solve(DataObj data) {
     delete filter;
     delete opt;
     delete physics;
+    //delete local;
 
     // Finalize PETSc / MPI
     PetscFinalize();

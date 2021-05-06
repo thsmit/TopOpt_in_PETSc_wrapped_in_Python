@@ -91,7 +91,7 @@ To compile the framework (paths will differ):
     cmake .. -D PETSC_EXECUTABLE_RUNS=ON
     make
 
-Running on ETH Euler
+Running on ETH Euler (without installing PETSc)
 --------
 
 .. code:: bash
@@ -131,7 +131,18 @@ Implemented tests in ``/tests``:
 
 Or use ``test_topopt.sh`` for automated building and running the tests
 
-Post-processing
+Post-processing (easy)
+--------
+
+The framework can write .vtr files of the designs. The designs can be viewed in Paraview (https://www.paraview.org/).
+To generate .vtr files add the following command to the problem definition:
+
+.. code:: bash
+
+    vtr(20)
+
+
+Post-processing (origional)
 --------
 
 After solving the problem the output is written to a ``output.dat`` file. The designs can be viewed in Paraview (https://www.paraview.org/).

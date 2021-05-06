@@ -68,8 +68,8 @@ cp $HOME/TopOpt_in_PETSc_wrapped_in_Python/examples/$1 .
 
 ## ETH EULER settings
 EULER_MEMORY="4000"
-NCPU=32
-WALL_TIME="24:00"
+NCPU=4
+WALL_TIME="12:00"
 
 # FUNCTION CALL
 bsub -n ${NCPU} -W ${WALL_TIME} -R ib -R "rusage[mem=${EULER_MEMORY}]" mpirun -n ${NCPU} python $1

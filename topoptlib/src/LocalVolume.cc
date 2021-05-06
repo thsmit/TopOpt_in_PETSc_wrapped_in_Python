@@ -33,6 +33,7 @@ LocalVolume::LocalVolume(DM da_nodes, Vec x, Vec xPassive, DataObj data){
         R = data.Rlocvol_w;
         pnorm = 16.0;
         alpha = data.alpha_w;
+        naEl = data.nael;
 
         // Create the xVol vector
         VecDuplicate(x,&xVol);
@@ -63,7 +64,8 @@ PetscErrorCode LocalVolume::Constraint(Vec x, PetscScalar *gx, Vec dx){
         PetscScalar *xv, *dxp, gxloc = 0.0;;
         PetscInt nelloc, nelglob;
         VecGetLocalSize(xVol,&nelloc);
-        VecGetSize(xVol,&nelglob);
+        //VecGetSize(xVol,&nelglob);
+        nelglob = naEl;
 
         // Compute power sum
         VecGetArray(xVol,&xv);
@@ -73,6 +75,8 @@ PetscErrorCode LocalVolume::Constraint(Vec x, PetscScalar *gx, Vec dx){
         // Collect from procs
         MPI_Allreduce(&gxloc,&(gx[1]),1,MPIU_SCALAR,MPI_SUM,PETSC_COMM_WORLD);
         gx[1] = PetscPowScalar(gx[1] / ((PetscScalar)nelglob),1.0/pnorm) /  alpha - 1.0;
+
+        PetscPrintf(PETSC_COMM_WORLD, "Local volume constraint value: %f\n", gx[1]);
 
         // Compute the Gradients
         //dgVoldx = 1/(alpha*nelx*nely)*(1/(nelx*nely)*sum(xVol.^penal_norm))^(1/penal_norm-1)*xVol.^(penal_norm-1);
@@ -256,6 +260,19 @@ PetscErrorCode LocalVolume::SetUp(DM da_nodes, Vec xPassive){
                                                         PetscInt col = (i2-info.gxs) + (j2-info.gys)*(info.gxm) + (k2-info.gzs)*(info.gxm)*(info.gym);
                                                         PetscScalar dist = 0.0;
                                                         // Compute the distance from the "col"-element to the "row"-element
+                                                        for(PetscInt kk=0; kk<3; kk++){
+                                                                dist = dist + PetscPowScalar(lcoorp[3*row+kk]-lcoorp[3*col+kk],2.0);
+                                                        }
+                                                        dist = PetscSqrtScalar(dist);
+                                                        if (dist<R){
+                                                                // Equal weight average
+                                                                dist = 1.0;
+                                                                MatSetValuesLocal(H, 1, &row, 1, &col, &dist, INSERT_VALUES);
+                                                        }
+                                                        /*
+                                                        PetscInt col = (i2-info.gxs) + (j2-info.gys)*(info.gxm) + (k2-info.gzs)*(info.gxm)*(info.gym);
+                                                        PetscScalar dist = 0.0;
+                                                        // Compute the distance from the "col"-element to the "row"-element
                                                         //for(PetscInt kk=0; kk<3; kk++){
                                                         //        dist = dist + PetscPowScalar(lcoorp[3*row+kk]-lcoorp[3*col+kk],2.0);
                                                         //}
@@ -271,6 +288,7 @@ PetscErrorCode LocalVolume::SetUp(DM da_nodes, Vec xPassive){
                                                                 dist = 1.0;
                                                                 MatSetValuesLocal(H, 1, &row, 1, &col, &dist, INSERT_VALUES);
                                                         }
+                                                        */
                                                 }
                                         }
                                 }

@@ -36,13 +36,15 @@ static int Data_init(DataObj *self, PyObject *args, PyObject *kwds)
     self->xc[8] = 0.0;
     self->xc[9] = 0.0;
     self->xc[10] = 0.0;
+    self->xc[11] = 0.0;
+    self->xc[12] = 0.0;
 
     self->nxyz[0] = 65; //129;
     self->nxyz[1] = 33; //65;
     self->nxyz[2] = 33; //65;
 
-    self->nNodes = 129 * 65 * 65;
-    self->nElements = 128 * 64 * 64;
+    self->nNodes = 65 * 33 * 33;
+    self->nElements = 64 * 32 * 32;
     self->nDOF = self->nNodes * 3;
 
     // MATERIAL
@@ -53,7 +55,7 @@ static int Data_init(DataObj *self, PyObject *args, PyObject *kwds)
 
     // FILTER
     self->filter = 1;
-    self->rmin = 0.04;
+    self->rmin = 0.08;
 
     // MMA
     self->maxIter = 400;
@@ -124,7 +126,8 @@ static int Data_init(DataObj *self, PyObject *args, PyObject *kwds)
     self->objectiveInput = PETSC_FALSE;
 
     // OUTPUT
-    self->writevtr = PETSC_FALSE;
+    self->outputIter = 20;
+    self->writevtr = PETSC_TRUE;
 
     return 0;
 }
@@ -143,10 +146,10 @@ static PyMemberDef members[] =
 // set mesh variables
 static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
 {
-    double xc0, xc1, xc2, xc3, xc4, xc5, xc6, xc7, xc8, xc9, xc10;
+    double xc0, xc1, xc2, xc3, xc4, xc5, xc6, xc7, xc8, xc9, xc10, xc11;
     int nxyz0, nxyz1, nxyz2;
 
-    if(!PyArg_ParseTuple(args, "(ddddddddddd)(iii)", &xc0, &xc1, &xc2, &xc3, &xc4, &xc5, &xc6, &xc7, &xc8, &xc9, &xc10, &nxyz0, &nxyz1, &nxyz2)) {
+    if(!PyArg_ParseTuple(args, "(dddddddddddd)(iii)", &xc0, &xc1, &xc2, &xc3, &xc4, &xc5, &xc6, &xc7, &xc8, &xc9, &xc10, &xc11, &nxyz0, &nxyz1, &nxyz2)) {
         return NULL;
     }
 
@@ -161,6 +164,7 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
     self->xc[8] = xc8;
     self->xc[9] = xc9;
     self->xc[10] = xc10;
+    self->xc[11] = xc11;
 
     self->nxyz[0] = nxyz0;
     self->nxyz[1] = nxyz1;
@@ -173,6 +177,8 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
     self->nNodes = nxyz0 * nxyz1 * nxyz2;
     self->nElements = (nxyz0 - 1) * (nxyz1 - 1) * (nxyz2 - 1);
     self->nDOF = self->nNodes * 3;
+
+    self->writevtr = PETSC_FALSE;
 
     Py_RETURN_NONE;
 }
@@ -343,15 +349,14 @@ static PyObject *continuation_py(DataObj *self, PyObject *args)
 static PyObject *projection_py(DataObj *self, PyObject *args)
 {
     double betaFinal, betaInit, eta;
-    int IterProgPro;
-    if(!PyArg_ParseTuple(args, "dddi", &betaFinal, &betaInit, &eta, &IterProgPro)) {
+    if(!PyArg_ParseTuple(args, "ddd", &betaFinal, &betaInit, &eta)) {
         return NULL;
     }
 
     self->betaFinal_w = betaFinal;
     self->betaInit_w = betaInit;
     self->eta_w = eta;
-    self->IterProgPro_w = IterProgPro;
+    self->IterProgPro_w = 40;
 
     self->projection_w = 1;
 
@@ -361,16 +366,15 @@ static PyObject *projection_py(DataObj *self, PyObject *args)
 static PyObject *robust_py(DataObj *self, PyObject *args)
 {
     double betaFinal, betaInit, eta, delta;
-    int IterProgPro;
 
-    if(!PyArg_ParseTuple(args, "ddddi", &betaFinal, &betaInit, &eta, &delta, &IterProgPro)) {
+    if(!PyArg_ParseTuple(args, "ddd", &betaFinal, &betaInit, &eta)) {
         return NULL;
     }
 
     self->betaFinal_w = betaFinal;
     self->betaInit_w = betaInit;
     self->eta_w = eta;
-    self->IterProgPro_w = IterProgPro;
+    self->IterProgPro_w = 40;
     self->delta_w = delta;
 
     self->robust_w = 1;
@@ -639,8 +643,18 @@ static PyObject *solve_py(DataObj *self)
     // variable to store output variables
     int complete = 0;
 
-    // initialte TopOpt loop
     complete = solve(*self);
+
+    // return "complete" signal
+    return PyLong_FromLong(complete);
+}
+
+static PyObject *solveRobust_py(DataObj *self)
+{
+    // variable to store output variables
+    int complete = 0;
+
+    //complete = solveRobust(*self);
 
     // return "complete" signal
     return PyLong_FromLong(complete);
@@ -667,6 +681,7 @@ static PyMethodDef methods[] =
       {"check", (PyCFunction)check_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"vtr", (PyCFunction)vtr_py, METH_VARARGS, "Output vtr files\n"},
       {"solve", (PyCFunction)solve_py, METH_NOARGS, "Python bindings to solve() in topoptlib\n"},
+      {"solveRobust", (PyCFunction)solveRobust_py, METH_NOARGS, "Python bindings to solve() in topoptlib\n"},
       {NULL, NULL, 0, NULL}
     };
 

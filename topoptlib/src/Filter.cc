@@ -715,9 +715,9 @@ PetscErrorCode Filter::SetUp(DM da_nodes, Vec x, Vec xPassive) {
     } else if (filterType == 2) {
 
         // ALLOCATE AND SETUP THE PDE FILTER CLASS
-        //pdef = new PDEFilt(da_nodes, R);
+        pdef = new PDEFilt(da_nodes, R);
     }
-    pdef = new PDEFilt(da_nodes, R);
+    //pdef = new PDEFilt(da_nodes, R);
 
     return ierr;
 }

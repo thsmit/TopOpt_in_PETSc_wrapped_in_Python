@@ -51,7 +51,7 @@ struct DataObj {
         // data storage standard var
         // Mesh
         PetscInt    nxyz[3];
-        PetscScalar xc[11];
+        PetscScalar xc[12];
 
         // Material
         PetscScalar Emin;
@@ -294,4 +294,5 @@ struct DataObj {
 };
 
 int solve(DataObj data);
+
 #endif

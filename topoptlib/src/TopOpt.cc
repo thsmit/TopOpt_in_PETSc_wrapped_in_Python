@@ -175,6 +175,7 @@ PetscErrorCode TopOpt::SetUp(DataObj data) {
     xc[8]   = data.xc[8];
     xc[9]   = data.xc[9];
     xc[10]   = data.xc[10];
+    xc[11]   = data.xc[11];
     //xc[0]   = data.xc_w[0];
     //xc[1]   = data.xc_w[1];
     //xc[2]   = data.xc_w[2];

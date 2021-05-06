@@ -21,7 +21,7 @@ data = topoptlib.Data()
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
 # 1/8
 data.structuredGrid(
-    (0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.0, 0.0, 0.0), (161, 193, 193)
+    (0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.0, 0.0, 0.0, 0.0), (161, 193, 193)
 )
 
 # readin STL file in binary format
@@ -58,13 +58,13 @@ data.stlread(
 Emin, Emax, nu, dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 1.0
 data.material(Emin, Emax, nu, dens, penal)
 
-# setup heavyside projection filter (betaFinal, betaInit, eta, beta update itr)
-# data.projection(64.0, 1.0, 0.05, 50)
+# setup heavyside projection filter (betaFinal, betaInit, eta)
+# data.projection(64.0, 1.0, 0.05)
 
 # OR
 
-# # robust formulation (betaFinal, betaInit, eta, delta, beta update itr)
-data.robust(64.0, 1.0, 0.5, 0.1, 50)
+# # robust formulation (betaFinal, betaInit, eta)
+data.robust(64.0, 1.0, 0.5)
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1,
@@ -118,6 +118,9 @@ data.conssens(constraintSensitivity)
 
 # Homogeniuos initial condition
 data.initialcondition(materialvolumefraction)
+
+# Output vtr files
+data.vtr(20)
 
 # step 3:
 # solve topopt problem with input data and wait for "complete" signal

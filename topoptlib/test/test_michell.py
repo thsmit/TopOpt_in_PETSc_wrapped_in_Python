@@ -21,7 +21,7 @@ data = topoptlib.Data()
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
 # 1/8
 data.structuredGrid(
-    (0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.0, 0.0, 0.0), (161, 193, 193)
+    (0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.0, 0.0, 0.0, 0.0), (161, 193, 193)
 )
 
 # readin STL file in binary format
@@ -58,7 +58,7 @@ data.stlread(
 Emin, Emax, nu, dens, penal = 1.0e-6, 1.0, 0.3, 1.0, 1.0
 data.material(Emin, Emax, nu, dens, penal)
 
-data.robust(64.0, 1.0, 0.5, 0.1, 50)  # robust formulation
+data.robust(64.0, 1.0, 0.5)  # robust formulation
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1,

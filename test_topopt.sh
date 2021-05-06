@@ -13,7 +13,7 @@
 #module load gcc/4.8.5 cmake/3.16.5 openmpi/3.0.1 petsc/3.10.5 python/3.7.4
 module load gcc/4.8.5 cmake/3.16.5 openmpi/3.0.1 python/3.7.4
 
-export PETSC_ARCH=arch-linux-c-opt
+export PETSC_ARCH=arch-linux2-c-opt
 export PETSC_DIR=$home/petsc
 
 # Print loaded modules

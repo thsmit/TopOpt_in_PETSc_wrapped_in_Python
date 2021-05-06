@@ -14,7 +14,7 @@ import topoptlib
 
 data = topoptlib.Data()
 data.structuredGrid(
-    (0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (129, 65, 65)
+    (0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), (129, 65, 65)
 )
 Emin, Emax, nu, dens, penal = 1.0e-9, 1.0, 0.3, 1.0, 3.0
 data.material(Emin, Emax, nu, dens, penal)

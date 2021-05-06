@@ -11,10 +11,13 @@ __pycache__/
 *.egg-info/
 *.vtu
 *.vtk
+*.so
 *~
 *pytest.ini
 *topoptlib.so
 *genvtu.py
+*setup.py
+*.clang-format
 
 # problems
 *table.py
@@ -36,6 +39,8 @@ implant/
 shelfBracket/
 ivd/
 *box.stl
+*void.stl
+*solid.stl
 *domaintorsionfull.stl
 *domaintorsionq.stl
 *hollowsphere.stl

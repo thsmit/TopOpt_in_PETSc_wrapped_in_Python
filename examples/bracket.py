@@ -20,11 +20,11 @@ data = topoptlib.Data()
 # define input data
 # mesh: (domain: x, y, z, centers)(mesh: number of nodes)
 data.structuredGrid(
-    (0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 7.0, 0.0, 0.0, 0.0), (193, 65, 105)
+    (0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 7.0, 0.0, 0.0, 0.0, 0.0), (193, 65, 105)
 )
 
 # readin STL file in binary format
-# stl read: (encoding, backround, treshold, box around stl: (min corner)(max corner), full path to file)
+# stl read and voxelize: (encoding, backround, treshold, box around stl: (min corner)(max corner), full path to file)
 # Passive elements: 1.0
 # Active elements: -1.0
 # Solid elements: 2.0
@@ -165,6 +165,9 @@ data.conssens(constraintSensitivity)
 
 # Homogeniuos initial condition
 data.initialcondition(materialvolumefraction)
+
+# Output vtr files
+data.vtr(20)
 
 # step 3:
 # solve topopt problem with input data and wait for "complete" signal
