@@ -132,7 +132,7 @@ data.bc(3, 1, [1, 7], [0, 1, 2], [0.0, 0.0, 0.0], 1)
 data.bc(3, 2, [0, 68, 1, 45, 2, 23], [2], [0.005], 2)
 data.bc(3, 2, [0, 111, 1, 45, 2, 19], [2], [-0.005], 2)
 
-materialvolumefraction = 0.2
+materialvolumefraction = 0.3
 nEl = data.nael
 rigidVol = data.nrel * 10.0
 solidVol = data.nsel * 1.0

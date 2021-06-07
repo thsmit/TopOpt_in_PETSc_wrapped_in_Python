@@ -573,4 +573,5 @@ void PDEFilt::PDEFilterMatrix(PetscScalar dx, PetscScalar dy, PetscScalar dz, Pe
     T[5]            = 0.125 * vol;
     T[6]            = 0.125 * vol;
     T[7]            = 0.125 * vol;
+
 }

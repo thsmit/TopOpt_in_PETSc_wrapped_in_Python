@@ -112,7 +112,7 @@ int solve(DataObj data) {
     // Apply projection
     if (opt->robustStatus) {
         // STEP 6: FILTER THE INITIAL DESIGN/RESTARTED DESIGN
-        ierr = filter->FilterProjectRobust(opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, opt->projectionFilter, opt->beta, opt->eta);
+        ierr = filter->FilterProjectRobust(opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, opt->projectionFilter, opt->beta, opt->eta, opt->delta);
         CHKERRQ(ierr);
     } else {
         ierr = filter->FilterProject(opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, opt->projectionFilter, opt->beta, opt->eta);
@@ -138,7 +138,9 @@ int solve(DataObj data) {
         ierr = outputPoints(name.c_str(), physics->da_nodal, physics->GetStateField(), opt->xPhysPoints);
         CHKERRQ(ierr);
 
-    } else if (opt->robustStatus) {
+    }
+
+    if (opt->robustStatus) {
         // print initial condition to vtk
         output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, itr);
     } else {
@@ -212,21 +214,21 @@ int solve(DataObj data) {
         opt->fx = opt->fx * opt->fscale;
         VecScale(opt->dfdx, opt->fscale);
 
+        // Calculate g and dgdx for the local volume constraint
+        if (opt->localVolumeStatus) {
+            ierr = local->Constraint(opt->xPhys, &(opt->gx[1]), opt->dgdx[1]);
+            CHKERRQ(ierr);
+        }
+
         // FILTERING
         if (opt->robustStatus) {
             // Filter sensitivities (chainrule)
             ierr = filter->GradientsRobust(opt->x, opt->xTilde, opt->dfdx, opt->m, opt->dgdx, opt->projectionFilter, opt->beta,
-                                    opt->eta);
+                                    opt->eta, opt->delta);
             CHKERRQ(ierr);
         } else {
             ierr = filter->Gradients(opt->x, opt->xTilde, opt->dfdx, opt->m, opt->dgdx, opt->projectionFilter, opt->beta,
                                     opt->eta);
-            CHKERRQ(ierr);
-        }
-
-        // Calculate g and dgdx for the local volume constraint
-        if (opt->localVolumeStatus) {
-            ierr = local->Constraint(opt->x, &(opt->gx[1]), opt->dgdx[1]);
             CHKERRQ(ierr);
         }
 
@@ -293,7 +295,7 @@ int solve(DataObj data) {
         // Apply projection
         if (opt->robustStatus) {
             // STEP 6: FILTER THE INITIAL DESIGN/RESTARTED DESIGN
-            ierr = filter->FilterProjectRobust(opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, opt->projectionFilter, opt->beta, opt->eta);
+            ierr = filter->FilterProjectRobust(opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, opt->projectionFilter, opt->beta, opt->eta, opt->delta);
             CHKERRQ(ierr);
         } else {
             ierr = filter->FilterProject(opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, opt->projectionFilter, opt->beta, opt->eta);
@@ -325,7 +327,8 @@ int solve(DataObj data) {
             std::string name = "TopOpt_" + std::to_string(itr) + ".vtr";
             ierr = outputPoints(name.c_str(), physics->da_nodal, physics->GetStateField(), opt->xPhysPoints);
             CHKERRQ(ierr);
-        } else if (itr < 11 || itr % 20 == 0 || changeBeta) {
+        }
+        if (itr < 11 || itr % 20 == 0 || changeBeta) {
             if (opt->robustStatus) {
                 // print initial condition to vtk
                 output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, itr);

@@ -63,8 +63,8 @@ data.material(Emin, Emax, nu, dens, penal)
 
 # OR
 
-# # robust formulation (betaFinal, betaInit, eta)
-data.robust(64.0, 1.0, 0.5)
+# # robust formulation (betaFinal, betaInit, eta, delta)
+data.robust(64.0, 1.0, 0.5, 0.1)
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1,

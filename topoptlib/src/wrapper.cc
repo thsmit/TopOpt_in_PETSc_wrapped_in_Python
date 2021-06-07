@@ -180,6 +180,14 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
 
     self->writevtr = PETSC_FALSE;
 
+    // resize the xPassive_wrapper vector and set defauld value -1 for active elements
+    if (self->xPassive_w.size() <= 1) {
+        self->xPassive_w.resize(self->nElements, -1);
+    }
+
+    // make sure that element counts are set
+    self->updatecounts();
+
     Py_RETURN_NONE;
 }
 
@@ -367,7 +375,7 @@ static PyObject *robust_py(DataObj *self, PyObject *args)
 {
     double betaFinal, betaInit, eta, delta;
 
-    if(!PyArg_ParseTuple(args, "ddd", &betaFinal, &betaInit, &eta)) {
+    if(!PyArg_ParseTuple(args, "dddd", &betaFinal, &betaInit, &eta, &delta)) {
         return NULL;
     }
 

@@ -19,11 +19,9 @@ data = topoptlib.Data()
 # step 2:
 # define input data
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
-# data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (65, 33, 33))
 data.structuredGrid(
     (0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), (129, 65, 65)
 )
-# data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0), (257, 129, 129))
 
 # Optional printing:
 # print(data.nNodes)
@@ -37,10 +35,10 @@ data.material(Emin, Emax, nu, Dens, penal)
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1
 # using 0.08, 0.04 or 0.02
-data.filter(1, 0.04)
+data.filter(1, 0.08)
 
 # optimizer: (maxIter, tol)
-data.mma(400, 0.01)
+data.mma(4000, 0.01)
 
 # loadcases: (# of loadcases)
 data.loadcases(2)
@@ -56,7 +54,7 @@ data.bc(1, 2, [0, 1, 1, 3], [1], [0.001], 0)
 data.bc(1, 2, [0, 1, 1, 3, 2, 4], [1], [0.0005], 0)
 data.bc(1, 2, [0, 1, 1, 3, 2, 5], [1], [0.0005], 0)
 
-materialvolumefraction = 0.12
+materialvolumefraction = 0.24
 nEl = data.nElements
 
 
@@ -84,6 +82,9 @@ data.objsens(sensitivity)
 # Define constraint
 data.cons(constraint)
 data.conssens(constraintSensitivity)
+
+# Local volume constraint input: (Rlocvol, alpha)
+data.localVolume(0.16, 0.12)
 
 # Homogeniuos initial condition
 data.initialcondition(materialvolumefraction)

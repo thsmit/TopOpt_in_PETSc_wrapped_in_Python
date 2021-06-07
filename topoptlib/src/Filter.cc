@@ -144,7 +144,7 @@ PetscErrorCode Filter::FilterProject(Vec x, Vec xTilde, Vec xPhysEro, Vec xPhys,
 
 // Filter design variables
 PetscErrorCode Filter::FilterProjectRobust(Vec x, Vec xTilde, Vec xPhysEro, Vec xPhys, Vec xPhysDil, PetscBool projectionFilter, PetscScalar beta,
-                                     PetscScalar eta) {
+                                     PetscScalar eta, PetscScalar delta) {
     PetscErrorCode ierr;
 
     // Filter the design variables or copy to xPhys
@@ -194,9 +194,9 @@ PetscErrorCode Filter::FilterProjectRobust(Vec x, Vec xTilde, Vec xPhysEro, Vec 
 
     // Check for projection
     if (projectionFilter) {
-        HeavisideFilter(xPhysEro, xTilde, beta, eta + 0.1);
+        HeavisideFilter(xPhysEro, xTilde, beta, eta + delta);
         HeavisideFilter(xPhys, xTilde, beta, eta);
-        HeavisideFilter(xPhysDil, xTilde, beta, eta - 0.1);
+        HeavisideFilter(xPhysDil, xTilde, beta, eta - delta);
     } else {
         VecCopy(xTilde, xPhys);
     }
@@ -297,7 +297,7 @@ PetscErrorCode Filter::Gradients(Vec x, Vec xTilde, Vec dfdx, PetscInt m, Vec* d
 
 // Filter the sensitivities
 PetscErrorCode Filter::GradientsRobust(Vec x, Vec xTilde, Vec dfdx, PetscInt m, Vec* dgdx, PetscBool projectionFilter,
-                                 PetscScalar beta, PetscScalar eta) {
+                                 PetscScalar beta, PetscScalar eta, PetscScalar delta) {
 
     PetscErrorCode ierr;
     // Cheinrule for projection filtering
@@ -306,8 +306,8 @@ PetscErrorCode Filter::GradientsRobust(Vec x, Vec xTilde, Vec dfdx, PetscInt m, 
         //PetscPrintf(PETSC_COMM_WORLD, "CHECK \n");
 
         // Get correction
-        ChainruleHeavisideFilter(dx, xTilde, beta, eta + 0.1);
-        ChainruleHeavisideFilter(dx1, xTilde, beta, eta - 0.1);
+        ChainruleHeavisideFilter(dx, xTilde, beta, eta + delta);
+        ChainruleHeavisideFilter(dx1, xTilde, beta, eta - delta);
 
         PetscScalar *xt, *dg, *df, *dxp, *dxp1;
         PetscInt     locsiz;
