@@ -25,7 +25,7 @@ Implemented functionality
 Large scale, high-resolution topology optimization including:
 
 - STL (file format for storing surface geometry) input files to define the design domain, solid-, void- and rigid regions and voxelization
-- Exclusion of passive elements from the simulation
+- Exclusion of passive elements from the optimization
 - Application of loads and constraints using parametrization functions
 - Multi-load cases and multi-constraints
 - User defined objective- and constraint functions
@@ -33,26 +33,6 @@ Large scale, high-resolution topology optimization including:
 - Continuation strategy for the penalization value
 - Robust formulation using three-field density projection
 - Test scripts for code verification
-
-
-Running examples
---------
-
-To run the cantilever beam example on one CPU (adjust the problem's mesh according to the number of available CPU's):
-
-.. code:: bash
-
-    cd TopOpt_in_PETSc_wrapped_in_Python
-    cp examples/beam.py .
-    python3 beam.py
-
-Available examples:
-
-- Cantilever beam in ``beam.py``
-- Multi-loads in ``multiloads.py``
-- Torsion ball in ``sphere.py``
-- The Jet engine bracket in ``bracket.py``
-
 
 Installation
 ------------
@@ -91,6 +71,37 @@ To compile the framework (paths will differ):
     cmake .. -D PETSC_EXECUTABLE_RUNS=ON
     make
 
+Running 'hello world' example
+--------
+
+Running a 'hello world' example from the commandline. Generates standard cantilever beam and output .vtr files for viewing in Paraview.
+
+.. code:: bash
+
+    import topoptlib
+    data = topoptlib.Data()
+    data.solve()
+
+
+Running examples
+--------
+
+To run the cantilever beam example on one CPU (adjust the problem's mesh according to the number of available CPU's):
+
+.. code:: bash
+
+    cd TopOpt_in_PETSc_wrapped_in_Python
+    cp examples/beam.py .
+    python3 beam.py
+
+Available examples:
+
+- Cantilever beam in ``beam.py``
+- Multi-loads in ``multiloads.py``
+- Torsion ball in ``sphere.py``
+- The Jet engine bracket in ``bracket.py``
+
+
 Running on ETH Euler (without installing PETSc)
 --------
 
@@ -107,6 +118,7 @@ Running on ETH Euler (without installing PETSc)
     bsub -n 8 mpirun -n 8 python3 bracket.py
 
 Or use ``run_topopt.sh`` for automated building and running
+
 
 Tests
 ------------
@@ -134,7 +146,7 @@ Or use ``test_topopt.sh`` for automated building and running the tests
 Post-processing (easy)
 --------
 
-The framework can write .vtr files of the designs. The designs can be viewed in Paraview (https://www.paraview.org/).
+The framework can write .vtr files of the designs with in point data. The designs can be viewed in Paraview (https://www.paraview.org/). The point data can be transformed into cell data by using Paraview's PointToCellData filter.
 To generate .vtr files add the following command to the problem definition:
 
 .. code:: bash

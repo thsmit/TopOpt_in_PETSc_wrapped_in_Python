@@ -31,13 +31,13 @@ static int Data_init(DataObj *self, PyObject *args, PyObject *kwds)
     self->xc[3] = 1.0;
     self->xc[4] = 0.0;
     self->xc[5] = 1.0;
-    self->xc[6] = 0.0;
-    self->xc[7] = 0.0;
-    self->xc[8] = 0.0;
-    self->xc[9] = 0.0;
-    self->xc[10] = 0.0;
-    self->xc[11] = 0.0;
-    self->xc[12] = 0.0;
+    //self->xc[6] = 0.0;
+    //self->xc[7] = 0.0;
+    //self->xc[8] = 0.0;
+    //self->xc[9] = 0.0;
+    //self->xc[10] = 0.0;
+    //self->xc[11] = 0.0;
+    //self->xc[12] = 0.0;
 
     self->nxyz[0] = 65; //129;
     self->nxyz[1] = 33; //65;
@@ -68,8 +68,8 @@ static int Data_init(DataObj *self, PyObject *args, PyObject *kwds)
     // BC1
     BC condition1;
     condition1.BCtype = 1;
-    condition1.Checker_vec.push_back(0);
-    condition1.Checker_vec.push_back(0);
+    condition1.Checker_dof_vec.push_back(0);
+    condition1.Checker_val_vec.push_back(0.0);
     condition1.Setter_dof_vec.push_back(0);
     condition1.Setter_dof_vec.push_back(1);
     condition1.Setter_dof_vec.push_back(2);
@@ -82,10 +82,10 @@ static int Data_init(DataObj *self, PyObject *args, PyObject *kwds)
     // BC2
     BC condition2;
     condition2.BCtype = 2;
-    condition2.Checker_vec.push_back(0);
-    condition2.Checker_vec.push_back(1);
-    condition2.Checker_vec.push_back(2);
-    condition2.Checker_vec.push_back(4);
+    condition2.Checker_dof_vec.push_back(0);
+    condition2.Checker_val_vec.push_back(2.0);
+    condition2.Checker_dof_vec.push_back(2);
+    condition2.Checker_val_vec.push_back(0.0);
     condition2.Setter_dof_vec.push_back(2);
     condition2.Setter_val_vec.push_back(-0.001);
     condition2.Para = 0;
@@ -94,12 +94,12 @@ static int Data_init(DataObj *self, PyObject *args, PyObject *kwds)
     // BC3
     BC condition3;
     condition3.BCtype = 2;
-    condition3.Checker_vec.push_back(0);
-    condition3.Checker_vec.push_back(1);
-    condition3.Checker_vec.push_back(1);
-    condition3.Checker_vec.push_back(2);
-    condition3.Checker_vec.push_back(2);
-    condition3.Checker_vec.push_back(4);
+    condition3.Checker_dof_vec.push_back(0);
+    condition3.Checker_val_vec.push_back(2.0);
+    condition3.Checker_dof_vec.push_back(1);
+    condition3.Checker_val_vec.push_back(0.0);
+    condition3.Checker_dof_vec.push_back(2);
+    condition3.Checker_val_vec.push_back(0.0);
     condition3.Setter_dof_vec.push_back(2);
     condition3.Setter_val_vec.push_back(-0.0005);
     condition3.Para = 0;
@@ -108,12 +108,12 @@ static int Data_init(DataObj *self, PyObject *args, PyObject *kwds)
     // BC4
     BC condition4;
     condition4.BCtype = 2;
-    condition4.Checker_vec.push_back(0);
-    condition4.Checker_vec.push_back(1);
-    condition4.Checker_vec.push_back(1);
-    condition4.Checker_vec.push_back(3);
-    condition4.Checker_vec.push_back(2);
-    condition4.Checker_vec.push_back(4);
+    condition4.Checker_dof_vec.push_back(0);
+    condition4.Checker_val_vec.push_back(2.0);
+    condition4.Checker_dof_vec.push_back(1);
+    condition4.Checker_val_vec.push_back(1.0);
+    condition4.Checker_dof_vec.push_back(2);
+    condition4.Checker_val_vec.push_back(0.0);
     condition4.Setter_dof_vec.push_back(2);
     condition4.Setter_val_vec.push_back(-0.0005);
     condition4.Para = 0;
@@ -146,10 +146,14 @@ static PyMemberDef members[] =
 // set mesh variables
 static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
 {
-    double xc0, xc1, xc2, xc3, xc4, xc5, xc6, xc7, xc8, xc9, xc10, xc11;
+    double xc0, xc1, xc2, xc3, xc4, xc5; //, xc6, xc7, xc8, xc9, xc10, xc11;
     int nxyz0, nxyz1, nxyz2;
 
-    if(!PyArg_ParseTuple(args, "(dddddddddddd)(iii)", &xc0, &xc1, &xc2, &xc3, &xc4, &xc5, &xc6, &xc7, &xc8, &xc9, &xc10, &xc11, &nxyz0, &nxyz1, &nxyz2)) {
+    //if(!PyArg_ParseTuple(args, "(dddddddddddd)(iii)", &xc0, &xc1, &xc2, &xc3, &xc4, &xc5, &xc6, &xc7, &xc8, &xc9, &xc10, &xc11, &nxyz0, &nxyz1, &nxyz2)) {
+    //    return NULL;
+    //}
+
+    if(!PyArg_ParseTuple(args, "(dddddd)(iii)", &xc0, &xc1, &xc2, &xc3, &xc4, &xc5, &nxyz0, &nxyz1, &nxyz2)) {
         return NULL;
     }
 
@@ -159,12 +163,12 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
     self->xc[3] = xc3;
     self->xc[4] = xc4;
     self->xc[5] = xc5;
-    self->xc[6] = xc6;
-    self->xc[7] = xc7;
-    self->xc[8] = xc8;
-    self->xc[9] = xc9;
-    self->xc[10] = xc10;
-    self->xc[11] = xc11;
+    //self->xc[6] = xc6;
+    //self->xc[7] = xc7;
+    //self->xc[8] = xc8;
+    //self->xc[9] = xc9;
+    //self->xc[10] = xc10;
+    //self->xc[11] = xc11;
 
     self->nxyz[0] = nxyz0;
     self->nxyz[1] = nxyz1;
@@ -424,25 +428,30 @@ static PyObject *bcpara_py(DataObj *self, PyObject *args)
 
 static PyObject *bc_py(DataObj *self, PyObject *args)
 {
-    PyObject *checker;
+    PyObject *checker_dof;
+    PyObject *checker_val;
     PyObject *setter_dof;
     PyObject *setter_val;
     //PyObject *param_func;
 
     int loadcase_ID;
     int BCtypes;
-    int nChecker;
+
+    int nChecker_dof;
+    int nChecker_val;
     int nSetter_dof;
     int nSetter_val;
+
     int param_funci;
 
     BC condition;
 
-    if (!PyArg_ParseTuple(args, "iiOOOi", &loadcase_ID, &BCtypes, &checker, &setter_dof, &setter_val, &param_funci)) {
+    if (!PyArg_ParseTuple(args, "iiOOOOi", &loadcase_ID, &BCtypes, &checker_dof, &checker_val, &setter_dof, &setter_val, &param_funci)) {
         return NULL;
     }
 
-    nChecker = PyList_Size(checker);
+    nChecker_dof = PyList_Size(checker_dof);
+    nChecker_val = PyList_Size(checker_val);
     nSetter_dof = PyList_Size(setter_dof);
     nSetter_val = PyList_Size(setter_val);
     //printf("Loadcase ID: %i\n", loadcase_ID);
@@ -452,18 +461,33 @@ static PyObject *bc_py(DataObj *self, PyObject *args)
 
     condition.BCtype = BCtypes;
 
-    PyObject *iterator = PyObject_GetIter(checker);
+    PyObject *iterator = PyObject_GetIter(checker_dof);
     PyObject *item;
 
 
     while ((item = PyIter_Next(iterator)))
         {
             int val = PyLong_AsLong(item);
-            condition.Checker_vec.push_back(val);
+            condition.Checker_dof_vec.push_back(val);
             Py_DECREF(item);
         }
 
     Py_DECREF(iterator);
+
+
+    PyObject *iterato = PyObject_GetIter(checker_val);
+    PyObject *ite;
+
+
+    while ((ite = PyIter_Next(iterato)))
+        {
+            double va = PyLong_AsLong(ite);
+            condition.Checker_val_vec.push_back(va);
+            Py_DECREF(ite);
+        }
+
+    Py_DECREF(iterato);
+
 
     PyObject *iteratorr = PyObject_GetIter(setter_dof);
     PyObject *itemm;

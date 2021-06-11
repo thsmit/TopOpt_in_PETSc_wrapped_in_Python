@@ -22,15 +22,13 @@ def main():
     # define input data
     # mesh: (domain: x, y, z)(mesh: number of nodes)
     # data.structuredGrid(
-    #    (0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), (65, 33, 33)
+    #    (0.0, 2.0, 0.0, 1.0, 0.0, 1.0), (65, 33, 33)
     # )
 
-    data.structuredGrid(
-        (0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), (129, 65, 65)
-    )
+    data.structuredGrid((0.0, 2.0, 0.0, 1.0, 0.0, 1.0), (129, 65, 65))
 
     # data.structuredGrid(
-    #   (0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), (257, 129, 129)
+    #   (0.0, 2.0, 0.0, 1.0, 0.0, 1.0), (257, 129, 129)
     # )
 
     # Optional printing:
@@ -51,17 +49,18 @@ def main():
     data.filter(1, 0.08)
 
     # optimizer: (maxIter, tol)
-    data.mma(4000, 0.01)
-    # data.mma(8000, 0.01)
+    # data.mma(400, 0.01)
+    data.mma(8000, 0.01)
 
     # loadcases: (# of loadcases)
     data.loadcases(1)
 
-    # bc: (loadcase, type, [checker: lcoorp[i+?], xc[?]], [setter: dof index], [setter: values])
-    data.bc(0, 1, [0, 0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
-    data.bc(0, 2, [0, 1, 2, 4], [2], [-0.001], 0)
-    data.bc(0, 2, [0, 1, 1, 2, 2, 4], [2], [-0.0005], 0)
-    data.bc(0, 2, [0, 1, 1, 3, 2, 4], [2], [-0.0005], 0)
+    # bc: (loadcase, type, [checker: dof index], [checker: values], [setter: dof index], [setter: values], parametrization)
+    # bc: (loadcase, type, [coordinate axis], [coordinate value], [coordinate axis], [bc value], parametrization)
+    data.bc(0, 1, [0], [0.0], [0, 1, 2], [0.0, 0.0, 0.0], 0)
+    data.bc(0, 2, [0, 2], [2.0, 0.0], [2], [-0.001], 0)
+    data.bc(0, 2, [0, 1, 2], [2.0, 0.0, 0.0], [2], [-0.0005], 0)
+    data.bc(0, 2, [0, 1, 2], [2.0, 1.0, 0.0], [2], [-0.0005], 0)
 
     materialvolumefraction = 0.12
     # materialvolumefraction = 0.24 # (3.f)
@@ -74,9 +73,8 @@ def main():
         # return sumXp # for minimizing volume (3.c)
 
     def sensitivity(xp, uKu, penal):
-        return (
-            -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
-        )  # for minimizing compliance (3.b)
+        return -1.0 * penal * np.power(xp, (penal - 1)) * (Emax - Emin) * uKu
+        # for minimizing compliance (3.b)
         # return 1.0 # for minimizing volume (3.c)
 
     def constraint(comp, sumXp, volfrac):
@@ -107,7 +105,7 @@ def main():
     data.initialcondition(materialvolumefraction)
 
     # number of cores used
-    nc = 32
+    nc = 128
 
     # get a function to run for testing
     def Test(trueFX, runtime, memory):

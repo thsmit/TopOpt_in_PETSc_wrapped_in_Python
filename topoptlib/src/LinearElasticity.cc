@@ -98,12 +98,12 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
         xc[3] = ne[1] * dy;
         xc[4] = 0.0;
         xc[5] = ne[2] * dz;
-        xc[6]   = data.xc[6];
-        xc[7]   = data.xc[7];
-        xc[8]   = data.xc[8];
-        xc[9]   = data.xc[9];
-        xc[10]   = data.xc[10];
-        xc[11]   = data.xc[11];
+        //xc[6]   = data.xc[6];
+        //xc[7]   = data.xc[7];
+        //xc[8]   = data.xc[8];
+        //xc[9]   = data.xc[9];
+        //xc[10]   = data.xc[10];
+        //xc[11]   = data.xc[11];
     }
 
     // Create the nodal mesh
@@ -175,7 +175,7 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
             PetscPrintf(PETSC_COMM_WORLD, "Parametrization number: %i\n", data.loadcases_list.at(lc).at(j).Para);
             PetscPrintf(PETSC_COMM_WORLD, "BC Type: %i\n", data.loadcases_list.at(lc).at(j).BCtype);
 
-            if (data.loadcases_list.at(lc).at(j).Checker_vec.size() == 2 && data.loadcases_list.at(lc).at(j).Para == 1) {
+            if (data.loadcases_list.at(lc).at(j).Checker_dof_vec.size() == 1 && data.loadcases_list.at(lc).at(j).Para == 1) {
                 //PetscPrintf(PETSC_COMM_WORLD, "Size Checker: %i\n", data.loadcases_list.at(j).Checker_vec.size());
 
                 // iterate over dofs
@@ -185,7 +185,7 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
 
                         PetscScalar ff = data.para_ev(lcoorp[ii], lcoorp[ii+1], lcoorp[ii+2]);
 
-                        if (PetscAbsScalar(lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]) < epsi &&
+                        if (PetscAbsScalar(lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_dof_vec.at(0)] - data.loadcases_list.at(lc).at(j).Checker_val_vec.at(0)) < epsi &&
                         PetscAbsScalar(ff) < 1) {
 
                             for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
@@ -207,12 +207,12 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                 }
             }
 
-            if (data.loadcases_list.at(lc).at(j).Checker_vec.size() == 2 && data.loadcases_list.at(lc).at(j).Para == 0) {
+            if (data.loadcases_list.at(lc).at(j).Checker_dof_vec.size() == 1 && data.loadcases_list.at(lc).at(j).Para == 0) {
 
                 // iterate over dofs
                 for (PetscInt ii = 0; ii < nn; ii++) {
 
-                    if (ii % 3 == 0 && PetscAbsScalar(lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]) < epsi) {
+                    if (ii % 3 == 0 && PetscAbsScalar(lcoorp[ii+data.loadcases_list.at(lc).at(j).Checker_dof_vec.at(0)] - data.loadcases_list.at(lc).at(j).Checker_val_vec.at(0)) < epsi) {
 
                         for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
                             if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
@@ -227,13 +227,13 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                 }
             }
 
-            if (data.loadcases_list.at(lc).at(j).Checker_vec.size() == 4 && data.loadcases_list.at(lc).at(j).Para == 0) {
+            if (data.loadcases_list.at(lc).at(j).Checker_dof_vec.size() == 2 && data.loadcases_list.at(lc).at(j).Para == 0) {
 
                 // iterate over dofs
                 for (PetscInt iii = 0; iii < nn; iii++) {
 
-                    if (iii % 3 == 0 && PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]) < epsi &&
-                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(3)]) < epsi) {
+                    if (iii % 3 == 0 && PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_dof_vec.at(0)] - data.loadcases_list.at(lc).at(j).Checker_val_vec.at(0)) < epsi &&
+                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_dof_vec.at(1)] - data.loadcases_list.at(lc).at(j).Checker_val_vec.at(1)) < epsi) {
 
                         for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
                             if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
@@ -247,14 +247,14 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                 }
             }
 
-            if (data.loadcases_list.at(lc).at(j).Checker_vec.size() == 6 && data.loadcases_list.at(lc).at(j).Para == 0) {
+            if (data.loadcases_list.at(lc).at(j).Checker_dof_vec.size() == 3 && data.loadcases_list.at(lc).at(j).Para == 0) {
 
                 // iterate over dofs
                 for (PetscInt iii = 0; iii < nn; iii++) {
 
-                    if (iii % 3 == 0 && PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(1)]) < epsi &&
-                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(3)]) < epsi &&
-                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)] - xc[data.loadcases_list.at(lc).at(j).Checker_vec.at(5)]) < epsi) {
+                    if (iii % 3 == 0 && PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_dof_vec.at(0)] - data.loadcases_list.at(lc).at(j).Checker_val_vec.at(0)) < epsi &&
+                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_dof_vec.at(1)] - data.loadcases_list.at(lc).at(j).Checker_val_vec.at(1)) < epsi &&
+                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_dof_vec.at(2)] - data.loadcases_list.at(lc).at(j).Checker_val_vec.at(2)) < epsi) {
 
                         for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
                             if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
@@ -268,12 +268,13 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                 }
             }
 
-            if (data.loadcases_list.at(lc).at(j).Checker_vec.size() == 6 && data.loadcases_list.at(lc).at(j).Para == 2) {
+            /*
+            if (data.loadcases_list.at(lc).at(j).Checker_dof_vec.size() == 3 && data.loadcases_list.at(lc).at(j).Para == 2) {
 
                 // iterate over dofs
                 for (PetscInt iii = 0; iii < nn; iii++) {
 
-                    if (iii % 3 == 0 && PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)] - (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(1)) < epsi &&
+                    if (iii % 3 == 0 && PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_dof_vec.at(0)] - (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(1)) < epsi &&
                     PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)] - (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(3)) < epsi &&
                     PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)] - (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(5)) < epsi) {
 
@@ -292,6 +293,7 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                     }
                 }
             }
+            */
         }
     }
 

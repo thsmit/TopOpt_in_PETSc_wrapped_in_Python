@@ -56,7 +56,7 @@ class TopOpt {
     PetscErrorCode SetVariables(Vec x, Vec xPassive);
 
     // Physical domain variables
-    PetscScalar xc[12];      // Domain coordinates
+    PetscScalar xc[6];      // Domain coordinates
     PetscScalar dx, dy, dz; // Element size
     PetscInt    nxyz[3];    // Number of nodes in each direction
     PetscInt    nlvls;      // Number of multigrid levels

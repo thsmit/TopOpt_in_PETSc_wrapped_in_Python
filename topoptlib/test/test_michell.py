@@ -20,9 +20,7 @@ data = topoptlib.Data()
 # define input data
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
 # 1/8
-data.structuredGrid(
-    (0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.0, 0.0, 0.0, 0.0), (161, 193, 193)
-)
+data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2), (161, 193, 193))
 
 # readin STL file in binary format
 # stl read: (encoding, backround, treshold, box around stl: (min corner)(max corner), full path to file)
@@ -71,13 +69,13 @@ data.mma(2, 0.01)
 data.loadcases(1)
 
 # symmetry
-data.bc(0, 1, [2, 0], [0, 1], [0.0, 0.0], 0)
-data.bc(0, 1, [1, 0], [0, 2], [0.0, 0.0], 0)
+data.bc(0, 1, [2], [0.0], [0, 1], [0.0, 0.0], 0)
+data.bc(0, 1, [1], [0.0], [0, 2], [0.0, 0.0], 0)
 
 # 1/8
-data.bc(0, 1, [0, 1], [1, 2], [0.0, 0.0], 0)
-data.bc(0, 2, [0, 7, 1, 0, 2, 6], [1], [0.01], 0)
-data.bc(0, 2, [0, 7, 1, 6, 2, 0], [2], [-0.01], 0)
+data.bc(0, 1, [0], [1.0], [1, 2], [0.0, 0.0], 0)
+data.bc(0, 2, [0, 1, 2], [0.0125, 0.0, 0.1625], [1], [0.01], 0)
+data.bc(0, 2, [0, 1, 2], [0.0125, 0.1625, 0.0], [2], [-0.01], 0)
 
 materialvolumefraction = 0.02
 nEl = data.nael
@@ -95,9 +93,7 @@ def sensitivity(xp, uKu, penal):
 
 
 def constraint(comp, sumXp, volfrac):
-    # print('volfrac: ', volfrac)
     return (sumXp - rigidVol) / nEl - volfrac
-    # return sumXp / nEl - volfrac
 
 
 def constraintSensitivity(xp, uKu, penal):

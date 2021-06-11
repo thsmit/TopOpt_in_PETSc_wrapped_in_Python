@@ -19,9 +19,7 @@ data = topoptlib.Data()
 # step 2:
 # define input data
 # mesh: (domain: x, y, z, centers)(mesh: number of nodes)
-data.structuredGrid(
-    (0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 7.0, 0.0, 0.0, 0.0, 0.0), (193, 65, 105)
-)
+data.structuredGrid((0.0, 192.0, 0.0, 64.0, 0.0, 104.0), (193, 65, 105))
 
 # readin STL file in binary format
 # stl read and voxelize: (encoding, backround, treshold, box around stl: (min corner)(max corner), full path to file)
@@ -109,28 +107,29 @@ data.loadcases(4)
 # use parametrization fuction
 data.bcpara(parametrization)
 
-# bc: (loadcase, type, [checker: lcoorp[i+?], xc[?]], [setter: dof index], [setter: values], parametrization)
+# bc: (loadcase, type, [checker: dof index], [checker: values], [setter: dof index], [setter: values], parametrization)
+# bc: (loadcase, type, [coordinate axis], [coordinate value], [coordinate axis], [bc value], parametrization)
 # up
-data.bc(0, 1, [1, 6], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(0, 1, [1, 7], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(0, 2, [0, 89, 1, 45, 2, 21], [1], [0.008], 2)
+data.bc(0, 1, [1], [1.0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(0, 1, [1], [7.0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(0, 2, [0, 1, 2], [89.0, 45.0, 21.0], [1], [0.008], 0)
 
 # out
-data.bc(1, 1, [1, 0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(1, 1, [1, 7], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(1, 2, [0, 89, 1, 45, 2, 21], [2], [-0.0085], 2)
+data.bc(1, 1, [1], [0.0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(1, 1, [1], [7.0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(1, 2, [0, 1, 2], [89.0, 45.0, 21.0], [2], [-0.0085], 0)
 
 # 42deg
-data.bc(2, 1, [1, 0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(2, 1, [1, 7], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(2, 2, [0, 89, 1, 45, 2, 21], [2], [-0.0095 * np.sin(np.deg2rad(42))], 2)
-data.bc(2, 2, [0, 89, 1, 45, 2, 21], [1], [0.0095 * np.cos(np.deg2rad(42))], 2)
+data.bc(2, 1, [1], [0.0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(2, 1, [1], [7.0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(2, 2, [0, 1, 2], [89.0, 45.0, 21.0], [2], [-0.0095 * np.sin(np.deg2rad(42))], 0)
+data.bc(2, 2, [0, 1, 2], [89.0, 45.0, 21.0], [1], [0.0095 * np.cos(np.deg2rad(42))], 0)
 
 # torsion
-data.bc(3, 1, [1, 0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(3, 1, [1, 7], [0, 1, 2], [0.0, 0.0, 0.0], 1)
-data.bc(3, 2, [0, 68, 1, 45, 2, 23], [2], [0.005], 2)
-data.bc(3, 2, [0, 111, 1, 45, 2, 19], [2], [-0.005], 2)
+data.bc(3, 1, [1], [0.0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(3, 1, [1], [7.0], [0, 1, 2], [0.0, 0.0, 0.0], 1)
+data.bc(3, 2, [0, 1, 2], [68.0, 45.0, 23.0], [2], [0.005], 0)
+data.bc(3, 2, [0, 1, 2], [111.0, 45.0, 19.0], [2], [-0.005], 0)
 
 materialvolumefraction = 0.3
 nEl = data.nael

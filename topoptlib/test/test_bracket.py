@@ -11,9 +11,7 @@
 import topoptlib
 
 data = topoptlib.Data()
-data.structuredGrid(
-    (0.0, 192.0, 0.0, 64.0, 0.0, 104.0, 1.0, 7.0, 0.0, 0.0, 0.0, 0.0), (193, 65, 105)
-)
+data.structuredGrid((0.0, 192.0, 0.0, 64.0, 0.0, 104.0), (193, 65, 105))
 data.stlread(
     -1.0,
     1.0,

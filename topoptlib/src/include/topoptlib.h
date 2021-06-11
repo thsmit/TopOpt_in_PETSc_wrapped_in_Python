@@ -23,7 +23,8 @@ class BC {
         int BCtype;
         int Para;
 
-        std::vector<int> Checker_vec;
+        std::vector<int> Checker_dof_vec;
+        std::vector<int> Checker_val_vec;
         std::vector<int> Setter_dof_vec;
         std::vector<double> Setter_val_vec;
 };
@@ -51,7 +52,7 @@ struct DataObj {
         // data storage standard var
         // Mesh
         PetscInt    nxyz[3];
-        PetscScalar xc[12];
+        PetscScalar xc[6];
 
         // Material
         PetscScalar Emin;

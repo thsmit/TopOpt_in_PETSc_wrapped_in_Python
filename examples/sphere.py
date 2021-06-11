@@ -20,9 +20,7 @@ data = topoptlib.Data()
 # define input data
 # mesh: (domain: x, y, z, center)(mesh: number of nodes)
 # 1/8
-data.structuredGrid(
-    (0.0, 1.0, 0.0, 1.2, 0.0, 1.2, 0.1625, 0.0125, 0.0, 0.0, 0.0, 0.0), (161, 193, 193)
-)
+data.structuredGrid((0.0, 1.0, 0.0, 1.2, 0.0, 1.2), (161, 193, 193))
 
 # readin STL file in binary format
 # stl read: (encoding, backround, treshold, box around stl: (min corner)(max corner), full path to file)
@@ -76,14 +74,16 @@ data.mma(2000, 0.01)
 # loadcases: (# of loadcases)
 data.loadcases(1)
 
+# bc: (loadcase, type, [checker: dof index], [checker: values], [setter: dof index], [setter: values], parametrization)
+# bc: (loadcase, type, [coordinate axis], [coordinate value], [coordinate axis], [bc value], parametrization)
 # symmetry
-data.bc(0, 1, [2, 0], [0, 1], [0.0, 0.0], 0)
-data.bc(0, 1, [1, 0], [0, 2], [0.0, 0.0], 0)
+data.bc(0, 1, [2], [0.0], [0, 1], [0.0, 0.0], 0)
+data.bc(0, 1, [1], [0.0], [0, 2], [0.0, 0.0], 0)
 
 # 1/8
-data.bc(0, 1, [0, 1], [1, 2], [0.0, 0.0], 0)
-data.bc(0, 2, [0, 7, 1, 0, 2, 6], [1], [0.01], 0)
-data.bc(0, 2, [0, 7, 1, 6, 2, 0], [2], [-0.01], 0)
+data.bc(0, 1, [0], [1.0], [1, 2], [0.0, 0.0], 0)
+data.bc(0, 2, [0, 1, 2], [0.0125, 0.0, 0.1625], [1], [0.01], 0)
+data.bc(0, 2, [0, 1, 2], [0.0125, 0.1625, 0.0], [2], [-0.01], 0)
 
 materialvolumefraction = 0.02
 nEl = data.nael
