@@ -303,7 +303,7 @@ PetscErrorCode Filter::GradientsRobust(Vec x, Vec xTilde, Vec dfdx, PetscInt m, 
     // Cheinrule for projection filtering
     if (projectionFilter) {
 
-        //PetscPrintf(PETSC_COMM_WORLD, "CHECK \n");
+        //PetscPrintf(PETSC_COMM_WORLD, "delta: %f\n", delta);
 
         // Get correction
         ChainruleHeavisideFilter(dx, xTilde, beta, eta + delta);

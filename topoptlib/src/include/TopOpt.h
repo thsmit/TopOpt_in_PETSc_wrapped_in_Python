@@ -80,7 +80,6 @@ class TopOpt {
     PetscScalar  Xmax;   // Max. value of design variables
 
     PetscScalar movlim;     // Max. change of design variables
-    //PetscScalar init_volfrac;
     PetscScalar volfrac;    // Volume fraction
     PetscScalar volfracREF;
     PetscScalar penal;      // Penalization parameter
@@ -120,8 +119,6 @@ class TopOpt {
 
     Vec xPhysEro;
     Vec xPhysDil;
-    //Vec dErodFilt;
-    //Vec dDildFilt;
 
     Vec xPhysPoints;
 

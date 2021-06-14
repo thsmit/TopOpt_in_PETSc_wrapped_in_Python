@@ -36,7 +36,7 @@ data.material(Emin, Emax, nu, Dens, penal)
 data.filter(1, 0.08)
 
 # optimizer: (maxIter, tol)
-data.mma(400, 0.01)
+data.mma(4000, 0.01)
 
 # loadcases: (# of loadcases)
 data.loadcases(2)

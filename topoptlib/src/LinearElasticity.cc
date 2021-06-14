@@ -98,12 +98,6 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
         xc[3] = ne[1] * dy;
         xc[4] = 0.0;
         xc[5] = ne[2] * dz;
-        //xc[6]   = data.xc[6];
-        //xc[7]   = data.xc[7];
-        //xc[8]   = data.xc[8];
-        //xc[9]   = data.xc[9];
-        //xc[10]   = data.xc[10];
-        //xc[11]   = data.xc[11];
     }
 
     // Create the nodal mesh
@@ -267,33 +261,6 @@ PetscErrorCode LinearElasticity::SetUpLoadAndBC(DM da_nodes, DataObj data) {
                     }
                 }
             }
-
-            /*
-            if (data.loadcases_list.at(lc).at(j).Checker_dof_vec.size() == 3 && data.loadcases_list.at(lc).at(j).Para == 2) {
-
-                // iterate over dofs
-                for (PetscInt iii = 0; iii < nn; iii++) {
-
-                    if (iii % 3 == 0 && PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_dof_vec.at(0)] - (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(1)) < epsi &&
-                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)] - (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(3)) < epsi &&
-                    PetscAbsScalar(lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)] - (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(5)) < epsi) {
-
-                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(0)], (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(0));
-                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(2)], (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(2));
-                        PetscPrintf(PETSC_COMM_SELF, "BC applied on coordinate %f, in direction %i\n", lcoorp[iii+data.loadcases_list.at(lc).at(j).Checker_vec.at(4)], (PetscScalar)data.loadcases_list.at(lc).at(j).Checker_vec.at(4));
-
-                        for (auto jj = 0; jj < data.loadcases_list.at(lc).at(j).Setter_dof_vec.size(); jj++) {
-                            if (data.loadcases_list.at(lc).at(j).BCtype == 1) {
-                                VecSetValueLocal(N[lc], iii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
-                            }
-                            if (data.loadcases_list.at(lc).at(j).BCtype == 2) {
-                                VecSetValueLocal(RHS[lc], iii + data.loadcases_list.at(lc).at(j).Setter_dof_vec.at(jj), data.loadcases_list.at(lc).at(j).Setter_val_vec.at(jj), INSERT_VALUES);
-                            }
-                        }
-                    }
-                }
-            }
-            */
         }
     }
 

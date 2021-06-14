@@ -41,7 +41,7 @@ def main():
     data.material(Emin, Emax, nu, Dens, penal)
 
     # setup heavyside projection filter (betaFinal, betaInit, eta)
-    data.projection(64.0, 1.0, 0.5)
+    # data.projection(64.0, 1.0, 0.5)
 
     # filter: (type, radius)
     # filter types: sensitivity = 0, density = 1

@@ -24,7 +24,7 @@ class BC {
         int Para;
 
         std::vector<int> Checker_dof_vec;
-        std::vector<int> Checker_val_vec;
+        std::vector<double> Checker_val_vec;
         std::vector<int> Setter_dof_vec;
         std::vector<double> Setter_val_vec;
 };

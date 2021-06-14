@@ -69,7 +69,6 @@ class LinearElasticity {
     Vec*        U;           // Displacement vector
     Vec*        RHS;         // Load vector
     Vec*        N;           // Dirichlet vector (used when imposing BCs)
-    //Vec*        S;
 
     PetscScalar KE[24 * 24]; // Element stiffness matrix
 

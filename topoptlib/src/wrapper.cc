@@ -163,20 +163,10 @@ static PyObject *structuredGrid_py(DataObj *self, PyObject *args)
     self->xc[3] = xc3;
     self->xc[4] = xc4;
     self->xc[5] = xc5;
-    //self->xc[6] = xc6;
-    //self->xc[7] = xc7;
-    //self->xc[8] = xc8;
-    //self->xc[9] = xc9;
-    //self->xc[10] = xc10;
-    //self->xc[11] = xc11;
 
     self->nxyz[0] = nxyz0;
     self->nxyz[1] = nxyz1;
     self->nxyz[2] = nxyz2;
-
-    //self->nxyz_w[0] = nxyz0;
-    //self->nxyz_w[1] = nxyz1;
-    //self->nxyz_w[2] = nxyz2;
 
     self->nNodes = nxyz0 * nxyz1 * nxyz2;
     self->nElements = (nxyz0 - 1) * (nxyz1 - 1) * (nxyz2 - 1);
@@ -455,7 +445,7 @@ static PyObject *bc_py(DataObj *self, PyObject *args)
     nSetter_dof = PyList_Size(setter_dof);
     nSetter_val = PyList_Size(setter_val);
     //printf("Loadcase ID: %i\n", loadcase_ID);
-    //printf("Number of Checkers: %i\n", nChecker);
+    //printf("Number of Checkers val: %i\n", nChecker_val);
     //printf("Number of Setters dof: %i\n", nSetter_dof);
     //printf("Number of Setters val: %i\n", nSetter_val);
 
@@ -481,7 +471,7 @@ static PyObject *bc_py(DataObj *self, PyObject *args)
 
     while ((ite = PyIter_Next(iterato)))
         {
-            double va = PyLong_AsLong(ite);
+            double va = PyFloat_AsDouble(ite);
             condition.Checker_val_vec.push_back(va);
             Py_DECREF(ite);
         }
@@ -663,7 +653,6 @@ static PyObject *vtr_py(DataObj *self, PyObject *args)
         return NULL;
     }
 
-    //self->name = std::string(str, len);
     self->outputIter = output;
     self->writevtr = PETSC_TRUE;
 
@@ -676,17 +665,6 @@ static PyObject *solve_py(DataObj *self)
     int complete = 0;
 
     complete = solve(*self);
-
-    // return "complete" signal
-    return PyLong_FromLong(complete);
-}
-
-static PyObject *solveRobust_py(DataObj *self)
-{
-    // variable to store output variables
-    int complete = 0;
-
-    //complete = solveRobust(*self);
 
     // return "complete" signal
     return PyLong_FromLong(complete);
@@ -713,7 +691,6 @@ static PyMethodDef methods[] =
       {"check", (PyCFunction)check_py, METH_VARARGS, "Callback for Sensitivity function\n"},
       {"vtr", (PyCFunction)vtr_py, METH_VARARGS, "Output vtr files\n"},
       {"solve", (PyCFunction)solve_py, METH_NOARGS, "Python bindings to solve() in topoptlib\n"},
-      {"solveRobust", (PyCFunction)solveRobust_py, METH_NOARGS, "Python bindings to solve() in topoptlib\n"},
       {NULL, NULL, 0, NULL}
     };
 

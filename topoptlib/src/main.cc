@@ -29,6 +29,7 @@ caused by the use of the program.
 
 static char help[] = "3D TopOpt using KSP-MG on PETSc's DMDA (structured grids) \n";
 
+// Output the results to vtr files
 PetscErrorCode outputPoints(const char *name, DM nd, Vec U, Vec xp) {
 
     PetscErrorCode ierr;
@@ -55,9 +56,10 @@ PetscErrorCode outputPoints(const char *name, DM nd, Vec U, Vec xp) {
     return ierr;
 }
 
+// solve function
 int solve(DataObj data) {
 
-    // HACK to fake zero run time input data...
+    // Zero run time input data...
     int argc = 0;
     char **argv = 0;
 
@@ -69,8 +71,6 @@ int solve(DataObj data) {
 
     // Capture runtime
     double rt1, rt2;
-
-    PetscPrintf(PETSC_COMM_WORLD,"Solve\n");
 
     // Monitor memory usage
     PetscMemorySetGetMaximumUsage();
@@ -85,33 +85,30 @@ int solve(DataObj data) {
     LinearElasticity* physics = new LinearElasticity(opt->da_nodes, data);
 
     // STEP 3: THE FILTERING
-    //Filter* filter = new Filter(opt->da_nodes, opt->xPhys, opt->filter, opt->rmin);
     Filter* filter = new Filter(opt->da_nodes, opt->xPhys, opt->xPassive, opt->filter, opt->rmin);
 
     // Initialize local volume constraint
     LocalVolume* local;
     if (opt->localVolumeStatus) {
-        local = new LocalVolume(opt->da_nodes, opt->x, opt->xPassive, data);
+        local = new LocalVolume(opt->da_nodes, opt->xPhys, opt->xPassive, data);
     }
 
-    // OUTPUT
+    // VISUALIZATION USING VTK
     MPIIO* output;
     if (opt->robustStatus) {
-        // STEP 4: VISUALIZATION USING VTK
         output = new MPIIO(opt->da_nodes, 3, "ux, uy, uz", 5, "x, xTilde, xPhysEro, xPhys, xPhysDil");
     } else {
         output = new MPIIO(opt->da_nodes, 3, "ux, uy, uz", 3, "x, xTilde, xPhys");
     }
-
 
     // STEP 5: THE OPTIMIZER MMA
     MMA* mma;
     PetscInt itr = 0;
     opt->AllocateMMAwithRestart(&itr, &mma); // allow for restart !
 
-    // Apply projection
+
+    // STEP 6: FILTER THE INITIAL DESIGN/RESTARTED DESIGN
     if (opt->robustStatus) {
-        // STEP 6: FILTER THE INITIAL DESIGN/RESTARTED DESIGN
         ierr = filter->FilterProjectRobust(opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, opt->projectionFilter, opt->beta, opt->eta, opt->delta);
         CHKERRQ(ierr);
     } else {
@@ -126,7 +123,7 @@ int solve(DataObj data) {
         opt->SetVariables(opt->xPhysDil, opt->xPassive);
     }
 
-    // OUTPUT
+    // print initial condition to vtr
     if (data.writevtr) {
         // filter->xPhysPoints
         if (data.filter == 0 || data.filter == 1) {
@@ -140,11 +137,10 @@ int solve(DataObj data) {
 
     }
 
+    // print initial condition to vtk
     if (opt->robustStatus) {
-        // print initial condition to vtk
         output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, itr);
     } else {
-        // print initial condition to vtk
         output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr);
     }
 
@@ -176,9 +172,9 @@ int solve(DataObj data) {
         // start timer
         t1 = MPI_Wtime();
 
+        // Scaling the upper bound volume constraint of the Dilated Design
         if (opt->robustStatus) {
 
-            // Scaling the upper bound volume constraint of the Dilated Design
             if (itr % 20 == 0){
                 PetscScalar VolDil = 0.0;
                 PetscScalar VolBlue = 0.0;
@@ -220,9 +216,8 @@ int solve(DataObj data) {
             CHKERRQ(ierr);
         }
 
-        // FILTERING
+        // Filter sensitivities (chainrule)
         if (opt->robustStatus) {
-            // Filter sensitivities (chainrule)
             ierr = filter->GradientsRobust(opt->x, opt->xTilde, opt->dfdx, opt->m, opt->dgdx, opt->projectionFilter, opt->beta,
                                     opt->eta, opt->delta);
             CHKERRQ(ierr);
@@ -234,6 +229,7 @@ int solve(DataObj data) {
 
         // MMA
         if (opt->xPassiveStatus) {
+
             // map vectors
             opt->UpdateVariables(1, opt->x, opt->xMMA);
             opt->UpdateVariables(1, opt->dfdx, opt->dfdxMMA);
@@ -294,7 +290,6 @@ int solve(DataObj data) {
 
         // Apply projection
         if (opt->robustStatus) {
-            // STEP 6: FILTER THE INITIAL DESIGN/RESTARTED DESIGN
             ierr = filter->FilterProjectRobust(opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, opt->projectionFilter, opt->beta, opt->eta, opt->delta);
             CHKERRQ(ierr);
         } else {
@@ -348,20 +343,6 @@ int solve(DataObj data) {
     // Write restart WriteRestartFiles
     //opt->WriteRestartFiles(&itr, mma);
     //physics->WriteRestartFiles();
-
-    // OUTPUT
-    if (data.writevtr) {
-        filter->UpdatexPhys(opt->xPhys, opt->xPhysPoints); // get xPhys point data
-        std::string name = "TopOpt_final.vtr";
-        ierr = outputPoints(name.c_str(), physics->da_nodal, physics->GetStateField(), opt->xPhysPoints);
-        CHKERRQ(ierr);
-    } else if (opt->robustStatus) {
-        // Dump final design
-        output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhysEro, opt->xPhys, opt->xPhysDil, itr + 1);
-    } else {
-        // Dump final design
-        output->WriteVTK(physics->da_nodal, physics->GetStateField(), opt->x, opt->xTilde, opt->xPhys, itr + 1);
-    }
 
     // stop timer total runtime
     rt2 = MPI_Wtime();

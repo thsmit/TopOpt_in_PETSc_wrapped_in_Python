@@ -74,7 +74,7 @@ To compile the framework (paths will differ):
 Running 'hello world' example
 --------
 
-Running a 'hello world' example from the commandline. Generates standard cantilever beam and output .vtr files for viewing in Paraview.
+Running a 'hello world' example from the command line. Generates standard cantilever beam and output .vtr files for viewing in Paraview.
 
 .. code:: bash
 
