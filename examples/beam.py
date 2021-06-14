@@ -49,8 +49,8 @@ def main():
     data.filter(1, 0.08)
 
     # optimizer: (maxIter, tol)
-    # data.mma(400, 0.01)
-    data.mma(8000, 0.01)
+    data.mma(400, 0.01)
+    # data.mma(8000, 0.01)
 
     # loadcases: (# of loadcases)
     data.loadcases(1)
