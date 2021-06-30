@@ -23,8 +23,6 @@ Disclaimer:
 
 using namespace std;
 
-
-
 // reference: www.jgxsoft.com
 bool checkBinarySTL(char * buffer) {
 
