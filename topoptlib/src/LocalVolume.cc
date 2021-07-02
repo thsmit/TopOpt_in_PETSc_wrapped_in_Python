@@ -77,10 +77,10 @@ PetscErrorCode LocalVolume::Constraint(Vec x, PetscScalar *gx, Vec dx){
             gxloc += PetscPowScalar(xv[i],pnorm);
         }
         // Collect from procs
-        MPI_Allreduce(&gxloc,&(gx[1]),1,MPIU_SCALAR,MPI_SUM,PETSC_COMM_WORLD);
-        gx[1] = PetscPowScalar(gx[1] / ((PetscScalar)nelglob),1.0/pnorm) /  alpha - 1.0;
+        MPI_Allreduce(&gxloc,&(gx[0]),1,MPIU_SCALAR,MPI_SUM,PETSC_COMM_WORLD);
+        gx[0] = PetscPowScalar(gx[0] / ((PetscScalar)nelglob),1.0/pnorm) /  alpha - 1.0;
 
-        PetscPrintf(PETSC_COMM_WORLD, "Local volume constraint value: %f\n", gx[1]);
+        PetscPrintf(PETSC_COMM_WORLD, "Local volume constraint value: %f\n", gx[0]);
 
         // Compute the Gradients
         //dgVoldx = 1/(alpha*nelx*nely)*(1/(nelx*nely)*sum(xVol.^penal_norm))^(1/penal_norm-1)*xVol.^(penal_norm-1);

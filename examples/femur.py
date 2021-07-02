@@ -19,7 +19,7 @@ data = topoptlib.Data()
 # step 2:
 # define input data
 # mesh: (domain: x, y, z)(mesh: number of nodes)
-data.structuredGrid((0.0, 96.0, 0.0, 60.0, 0.0, 96.0), (321, 201, 321))
+data.structuredGrid((0.0, 78.0, 0.0, 65.0, 0.0, 117.0), (241, 201, 361))
 
 # readin STL file in binary format
 # stl read: (encoding, backround, threshold, box around stl: (min corner)(max corner), full path to file)
@@ -31,9 +31,9 @@ data.structuredGrid((0.0, 96.0, 0.0, 60.0, 0.0, 96.0), (321, 201, 321))
 data.stlread(
     2.0,
     1.0,
-    1,
-    (69.0, -10.0, 1024.0),
-    (165.0, 50.0, 1120.0),
+    4,
+    (18.0, 87.0, 1580.0),
+    (96.0, 152.0, 1697.0),
     "/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/femur.stl",
 )
 
@@ -48,8 +48,8 @@ data.stlread(
     -1.0,
     0.0,
     8,
-    (69.0, -10.0, 1024.0),
-    (165.0, 50.0, 1120.0),
+    (18.0, 87.0, 1580.0),
+    (96.0, 152.0, 1697.0),
     "/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/femur.stl",
 )
 
@@ -70,7 +70,7 @@ data.projection(64.0, 1.0, 0.5)
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1, pde = 2,
-data.filter(2, 1.0)
+data.filter(1, 1.0)
 
 # optimizer: (maxIter, tol)
 data.mma(5, 0.01)
@@ -105,7 +105,7 @@ data.bc(
 # print('Total applied Hip-joint contact force = ', np.sqrt(np.square(-2317*np.sin(np.deg2rad(30))) + np.square(-2317*np.cos(np.deg2rad(30)))))
 # print('Total applied Abductor muscle force = ', np.sqrt(np.square(-703*np.sin(np.deg2rad(35))) + np.square(703*np.cos(np.deg2rad(35)))))
 
-nEl = data.nael
+# nEl = data.nael
 # rigidVol = data.nrel * 10.0
 # solidVol = data.nsel * 1.0
 
@@ -142,10 +142,10 @@ data.conssens(constraintSensitivity)
 
 # Use local volume constraint additionally
 # Local volume constraint input: (Rlocvol, alpha)
-data.localVolume(2.5, 0.6)
+data.localVolume(0.5, 0.6)
 
 # Homogeneous initial condition
-data.initialcondition(0.5)
+data.initialcondition(0.6)
 
 # Output vtr
 data.vtr(20)
