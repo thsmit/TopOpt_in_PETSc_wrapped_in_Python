@@ -19,7 +19,7 @@ data = topoptlib.Data()
 # step 2:
 # define input data
 # mesh: (domain: x, y, z)(mesh: number of nodes)
-data.structuredGrid((0.0, 78.0, 0.0, 65.0, 0.0, 117.0), (241, 201, 361))
+data.structuredGrid((0.0, 84.0, 0.0, 70.0, 0.0, 112.0), (241, 201, 321))
 
 # readin STL file in binary format
 # stl read: (encoding, backround, threshold, box around stl: (min corner)(max corner), full path to file)
@@ -32,8 +32,8 @@ data.stlread(
     2.0,
     1.0,
     4,
-    (18.0, 87.0, 1580.0),
-    (96.0, 152.0, 1697.0),
+    (16.0, 85.0, 1585.0),
+    (100.0, 155.0, 1697.0),
     "/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/femur.stl",
 )
 
@@ -48,8 +48,8 @@ data.stlread(
     -1.0,
     0.0,
     8,
-    (18.0, 87.0, 1580.0),
-    (96.0, 152.0, 1697.0),
+    (16.0, 85.0, 1585.0),
+    (100.0, 155.0, 1697.0),
     "/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/femur.stl",
 )
 
@@ -70,10 +70,10 @@ data.projection(64.0, 1.0, 0.5)
 
 # filter: (type, radius)
 # filter types: sensitivity = 0, density = 1, pde = 2,
-data.filter(1, 1.0)
+data.filter(1, 0.5)
 
 # optimizer: (maxIter, tol)
-data.mma(5, 0.01)
+data.mma(2, 0.01)
 
 # loadcases: (# of loadcases)
 data.loadcases(1)
@@ -86,7 +86,7 @@ data.bc(
     0,
     2,
     [0, 1, 2],
-    [25.5, 27.3, 93.9],
+    [21.125, 22.75, 104.0],
     [0, 1, 2],
     [-2317 * np.sin(np.deg2rad(24)), 1.0, -2317 * np.cos(np.deg2rad(24))],
     0,
@@ -95,7 +95,7 @@ data.bc(
     0,
     2,
     [0, 1, 2],
-    [68.7, 42.9, 71.4],
+    [50.375, 53.625, 84.5],
     [0, 1, 2],
     [-703 * np.sin(np.deg2rad(28)), -1.0, 703 * np.cos(np.deg2rad(28))],
     0,
@@ -105,9 +105,10 @@ data.bc(
 # print('Total applied Hip-joint contact force = ', np.sqrt(np.square(-2317*np.sin(np.deg2rad(30))) + np.square(-2317*np.cos(np.deg2rad(30)))))
 # print('Total applied Abductor muscle force = ', np.sqrt(np.square(-703*np.sin(np.deg2rad(35))) + np.square(703*np.cos(np.deg2rad(35)))))
 
-# nEl = data.nael
+nEl = data.nael
 # rigidVol = data.nrel * 10.0
-# solidVol = data.nsel * 1.0
+solidVol = data.nsel * 1.0
+materialvolumefraction = 0.5
 
 # Calculate the objective function
 # objective input: (design variable value, SED)
@@ -122,13 +123,13 @@ def sensitivity(xp, uKu, penal):
 
 
 def constraint(comp, sumXp, volfrac):
-    # return sumXp / nEl - materialvolumefraction
-    return 0.0
+    return (sumXp - solidVol) / nEl - materialvolumefraction
+    # return 0.0
 
 
 def constraintSensitivity(xp, uKu, penal):
-    # return 1.0 / nEl
-    return 0.0
+    return 1.0 / nEl
+    # return 0.0
 
 
 # Callback implementation
@@ -142,10 +143,10 @@ data.conssens(constraintSensitivity)
 
 # Use local volume constraint additionally
 # Local volume constraint input: (Rlocvol, alpha)
-data.localVolume(0.5, 0.6)
+# data.localVolume(0.5, 0.6)
 
 # Homogeneous initial condition
-data.initialcondition(0.6)
+data.initialcondition(materialvolumefraction)
 
 # Output vtr
 data.vtr(20)
