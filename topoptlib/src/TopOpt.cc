@@ -552,6 +552,8 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         PetscInt scount = 0; // number of solid elements
         PetscInt rcount = 0; // number of rigid element
         PetscInt vcount = 0; // number of void element
+        PetscInt icount = 0; // number of initial condition element
+
 
         // create a temporary vector with natural ordering to get domain data to xPassive
         Vec TMPnatural;
@@ -599,6 +601,9 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
             if (xpPassive[el] == 4.0) {
                 vcount++;
             }
+            if (xpPassive[el] == 5.0) {
+                icount++;
+            }
         }
 
         // Forcing PETSc ordering in stead of natural ordering otherwise the output is changed into natural ordering
@@ -638,12 +643,17 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         vcount = 0;
         MPI_Allreduce(&tmpv, &vcount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
 
+        PetscInt tmpi = icount;
+        icount = 0;
+        MPI_Allreduce(&tmpi, &icount, 1, MPIU_INT, MPI_SUM, PETSC_COMM_WORLD);
+
         // printing
         PetscPrintf(PETSC_COMM_WORLD, "################### STL readin ###############################\n");
         PetscPrintf(PETSC_COMM_WORLD, "acount sum: %i\n", acount);
         PetscPrintf(PETSC_COMM_WORLD, "scount sum: %i\n", scount);
         PetscPrintf(PETSC_COMM_WORLD, "rcount sum: %i\n", rcount);
         PetscPrintf(PETSC_COMM_WORLD, "vcount sum: %i\n", vcount);
+        PetscPrintf(PETSC_COMM_WORLD, "icount sum: %i\n", icount);
         PetscPrintf(PETSC_COMM_WORLD, "##############################################################\n");
 
 
@@ -661,6 +671,12 @@ PetscErrorCode TopOpt::SetUpOPT(DataObj data) {
         // fill the indicator vector as mapping for x -> xMMA
         PetscInt count = 0;
         for (PetscInt el = 0; el < nel; el++) {
+            if (xpPassive[el] == 5.0) {
+                xpPhys[el] = 1.0;
+                xptilde[el] = 1.0;
+                xpx[el] = 1.0;
+                xpold[el] = 1.0;
+            }
             if (xpPassive[el] == -1.0) {
                 xpIndicator[count] = el;
                 xpPhys[el] = volfrac;
