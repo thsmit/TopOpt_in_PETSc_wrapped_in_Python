@@ -58,3 +58,7 @@ domaintorsion.stl
 H1402_LF_mesh.stl
 torsionrigid14.stl
 torsionvoid14.stl
+
+*.vtr
+*.dat
+
