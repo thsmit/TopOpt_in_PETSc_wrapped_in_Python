@@ -40,7 +40,7 @@ def main():
         8,
         (-2.5, -2.5, 0.0),
         (2.5, 2.5, 5.0),
-        "/cluster/home/thsmit/TopOpt_in_PETSc_wrapped_in_Python/stl/porousCube.stl",
+        "/home/yijun/GitHub_Projects/TopOpt_in_PETSc_wrapped_in_Python/stl/porousCube.stl",
     )
 
     # Optional printing:
