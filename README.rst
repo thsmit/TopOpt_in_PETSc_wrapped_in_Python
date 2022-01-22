@@ -178,15 +178,13 @@ For citing this work use:
 .. code:: bib
 
     @article{Smit2021,
-    abstract =     "..",
-    author =       "..",
-    title =        "{..},
-    journal =      "..",
-    volume =       "..",
-    number =       "..",
-    pages =        "..",
-    year =         "..",
-    DOI =          ".."
+    author = {Smit, Thijs and Aage, Niels and Ferguson, Stephen J and Helgason, Benedikt},
+    title = {{Topology optimization using PETSc : a Python wrapper and extended functionality}},
+    journal = {Structural and Multidisciplinary Optimization},
+    year = {2021}
+    publisher = {Springer Berlin Heidelberg},
+    doi = {10.1007/s00158-021-03018-7},
+    url = {https://doi.org/10.1007/s00158-021-03018-7},
     }
 
 
