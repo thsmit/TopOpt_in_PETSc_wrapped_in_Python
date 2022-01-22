@@ -37,19 +37,22 @@ Large scale, high-resolution topology optimization including:
 Installation
 ------------
 
-The framework should be compiled ones, on a cluster or a desktop computer. A problem file can use the functionality of the framework without compiling thereafter. A Linux system is recommended. A Windows machine should also work, however not tested.
+The framework should be compiled once, on a cluster or a desktop computer. A problem file can use the functionality of the framework without compiling thereafter. A Linux system is recommended. A Windows machine should also work, however not tested.
 The framework uses [CMake](https://cmake.org) to compile. The following third party libraries are required and located using CMake's ``find_package``.
 
 - [Git] (https://git-scm.com/)
 - [PETSc](https://www.mcs.anl.gov/petsc/mirror/release-snapshots/): version 3.14.1
 - [Python] (https://www.python.org/): version 3.7 or higher
 
-It install PETSc:
+It needs PETSc to be installed:
 
 .. code:: bash
 
+    # Download PETSc source from its `release-snapshots <https://www.mcs.anl.gov/petsc/mirror/release-snapshots/>`_.
+    # Then follow the guide on `Quickest Quick-start <https://petsc.org/release/install/install_tutorial/#qqtw-quickest-quick-start-in-the-west>`_.
     cd petsc-3.14.1
     ./configure --with-cc=mpicc --with-cxx=mpicxx --with-fc=0 --download-f2cblaslapack=1 --with-debugging=0
+    # PETSC_DIR is the path to the PETSc just downloaded
     make PETSC_DIR=/home/ts/Documents/petsc PETSC_ARCH=arch-linux-c-opt all
     make PETSC_DIR=/home/ts/Documents/petsc PETSC_ARCH=arch-linux-c-opt check
 
@@ -66,10 +69,9 @@ To compile the framework (paths will differ):
     export PETSC_ARCH=arch-linux-c-opt
     export PETSC_DIR=/home/ts/Documents/petsc
     cd TopOpt_in_PETSc_wrapped_in_Python
-    mkdir build
-    cd build
+    mkdir build && cd build
     cmake .. -D PETSC_EXECUTABLE_RUNS=ON
-    make
+    make -j $(nproc)
 
 Running 'hello world' example
 --------
