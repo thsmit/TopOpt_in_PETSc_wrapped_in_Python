@@ -42,7 +42,7 @@ The framework uses [CMake](https://cmake.org) to compile. The following third pa
 
 - [Git] (https://git-scm.com/)
 - [PETSc](https://www.mcs.anl.gov/petsc/mirror/release-snapshots/): version 3.14.1
-- [Python] (https://www.python.org/): version 3.7 or higher
+- [Python] (https://www.python.org/): version 3.7
 
 It needs PETSc to be installed:
 
